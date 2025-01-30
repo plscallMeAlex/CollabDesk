@@ -1,0 +1,21 @@
+services:
+  server:
+    build:
+      context: server
+      dockerfile: Dockerfile
+    environment:
+      
+      
+    networks:
+      - collabnetwork
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    networks:
+      - collabnetwork
+
+networks:
+  collabnetwork:
