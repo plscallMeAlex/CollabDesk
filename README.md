@@ -1,6 +1,4 @@
-# Steps
-
-Make the venv and go inside venv first.
+# Virtual Environment
 
 ```bash
 python -m venv venv
@@ -13,11 +11,32 @@ After that install modules.
 pip install -r requirements.txt
 ```
 
-You need to initialize the Django configuration and setting first with the command as follows
+# Setting
+
+You need to set your .env by this following keys.
+
+```env
+SECRET_KEY
+DATABASE_URL
+POSTGRES_DB
+POSTGRES_USER
+POSTGRES_PASSWORD
+POSTGRES_HOST
+POSTGRES_PORT
+```
+
+# Usage
+
+This project is separate to two directories app/ standfor the frontend (customtkinter) and the server is for api endpoint connected to the database.
+
+To use this you need to run the docker both services by this command.
 
 ```bash
-cd server
-python manage.py startapp server
+# For the start the project the first time
+docker compose up --build -d
+
+# For stop the docker containers.
+docker compose down -v
 ```
 
 Then config your database inside the setting to the postgreSQL enter your database name, user, password.
