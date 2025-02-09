@@ -12,6 +12,10 @@ class Page(ctk.CTkFrame):
     def create_widgets(self):
         raise NotImplementedError("create_widgets method must be overridden")
 
+    # This function can be overridden or not in the child class
+    def navigate_to(self):
+        pass
+
 
 # Page manager class to manage page changes in the app
 class Pagemanager:
@@ -19,10 +23,14 @@ class Pagemanager:
         self.master = master
         self.current_page = None
 
-    def page_change(self, new_page: Page):
+    def switch_page(self, new_page: Page):
         if self.current_page is not None:
             self.current_page.destroy()
 
+        # delay the creation of the new page to avoid flickering
+        self.master.after(100, self.__create_page, new_page)
+
+    def __create_page(self, new_page):
         self.current_page = new_page(self.master)
         self.current_page.place(relx=0.5, rely=0.5, anchor="center")
         self.current_page.create_widgets()
