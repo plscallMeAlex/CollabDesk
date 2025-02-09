@@ -2,6 +2,7 @@ import customtkinter as ctk
 
 
 #  The base class for all pages
+# Inherit from this class to create a new page.
 class Page(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
