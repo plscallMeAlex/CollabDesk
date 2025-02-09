@@ -18,7 +18,7 @@ class App(ctk.CTk):
 
         # Pagemanagement System
         self.pagemanager = Pagemanager(self)
-        self.pagemanager.page_change(LoginPage)
+        self.pagemanager.switch_page(LoginPage)
 
         if sys.platform.startswith("win"):
             self.after(100, self.__maximize)

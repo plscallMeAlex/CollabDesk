@@ -37,7 +37,7 @@ class LoginPage(Page):
         self.__frame1 = ctk.CTkFrame(self, fg_color="transparent")
         self.username_entry = ctk.CTkEntry(
             self.__frame1,
-            placeholder_text="Enter your email",
+            placeholder_text="Enter your username or email",
             font=(self.master.config.font, 12, "normal"),
         )
         self.password_entry = ctk.CTkEntry(
@@ -58,16 +58,15 @@ class LoginPage(Page):
             text="Don't have an account?",
             font=(self.master.config.font, 10),
             text_color=self.master.config.colors["grey-text"],
-            fg_color="transparent",
         )
         self.register_button = ctk.CTkButton(
             self.__frame2,
             text="Register",
-            font=(self.master.config.font, 10),
+            font=(self.master.config.font, 12),
             fg_color="transparent",
             text_color=self.master.config.colors["green-program"],
-            command=self.register,
-            hover=False,
+            command=self.navigate_to,
+            hover_color="lightgrey",
         )
 
         # Pack the widgets
@@ -93,10 +92,10 @@ class LoginPage(Page):
         self.username_entry.configure(width=300)  # Make entries wider
         self.password_entry.configure(width=300)
 
-    def login(self):
-        username = self.username_entry.get()
-        password = self.password_entry.get()
+    def navigate_to(self):
+        from app.pages.Register import RegisterPage
 
-    def register(self):
-        print("Register button clicked")
+        self.master.pagemanager.switch_page(RegisterPage)
+
+    def login(self):
         pass
