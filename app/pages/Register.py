@@ -249,13 +249,27 @@ class RegisterPage(Page):
         try:
             response = requests.post(api_url, json=data)
             if response.status_code == 201:
-                print("Create")
+                CTkMessagebox(
+                    title="Success",
+                    message="Account created successfully",
+                    icon="check",
+                    option_1="OK",
+                )
                 self.navigate_to()
             else:
-                print(f"code: {response}")
-                print("Not create")
+                CTkMessagebox(
+                    "Error",
+                    "Account not created please try again T_T",
+                    icon="cancel",
+                    option_1="OK",
+                )
         except requests.exceptions.RequestException as e:
-            print("Create Error")
+            CTkMessagebox(
+                title="Error",
+                message="Unable to connect to the server",
+                icon="cancel",
+                option_1="OK",
+            )
 
     def check_password_match(self, *args):
         password = self.password_entry.get()
