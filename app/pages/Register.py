@@ -1,8 +1,6 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
-import os
-import bcrypt
 from app.pages.Pagemanager import Page
 from PIL import Image
 
@@ -237,7 +235,7 @@ class RegisterPage(Page):
         if password != self.confirm_password_entry.get() or len(password) < 8:
             return
 
-        api_url = "http://127.0.0.1:8000/register/"
+        api_url = f"{self.master.config.api_url}/register/"
         data = {
             "username": username,
             "first_name": firstname,

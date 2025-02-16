@@ -1,4 +1,6 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
+import requests
 from app.pages.Pagemanager import Page
 from PIL import Image
 
@@ -98,4 +100,38 @@ class LoginPage(Page):
         self.master.pagemanager.switch_page(RegisterPage)
 
     def login(self):
-        pass
+        endpoint = f"{self.master.config.api_url}/login/"
+        print(endpoint)
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        payload = {"username": username, "password": password}
+
+        try:
+            response = requests.post(endpoint, json=payload)
+            if response.status_code == 200:
+                print("Login successful!")
+                CTkMessagebox(
+                    title="Login",
+                    message="Login successful!",
+                    icon="check",
+                )
+            else:
+                print("Login failed!")
+                CTkMessagebox(
+                    title="Login",
+                    message="Login failed!",
+                    icon="cancel",
+                )
+        except requests.exceptions.ConnectionError:
+            print("Unable to connect to the server!")
+            CTkMessagebox(
+                title="Connection Error",
+                message="Unable to connect to the server!",
+                icon="error",
+            )
+
+        # Clear the entries
+        self.username_entry.delete(0, "end")
+        self.password_entry.delete(0, "end")
+        self.username_entry.focus_set()
+        self.password_entry.focus_set()
