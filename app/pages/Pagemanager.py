@@ -30,7 +30,13 @@ class Pagemanager:
         # delay the creation of the new page to avoid flickering
         self.master.after(100, self.__create_page, new_page)
 
-    def __create_page(self, new_page):
+    def switch_frame(self, old_frame: ctk.CTkFrame, new_frame: ctk.CTkFrame):
+        if old_frame is not None:
+            old_frame.destroy()
+
+        new_frame.pack(expand=True, fill="both")
+
+    def __create_page(self, new_page: Page):
         self.current_page = new_page(self.master)
         self.current_page.pack(expand=True, fill="both")
         self.current_page.create_widgets()

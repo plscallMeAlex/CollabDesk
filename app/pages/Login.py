@@ -107,13 +107,7 @@ class LoginPage(Page):
         self.master.pagemanager.switch_page(RegisterPage)
 
     def login(self):
-        from app.pages.TestPage import TestPage
-
-        self.master.pagemanager.switch_page(TestPage)
-        return
-
         endpoint = f"{self.master.config.api_url}/login/"
-        print(endpoint)
         username = self.username_entry.get()
         password = self.password_entry.get()
         payload = {"username": username, "password": password}
@@ -127,6 +121,9 @@ class LoginPage(Page):
                     message="Login successful!",
                     icon="check",
                 )
+                from app.pages.Home import HomePage
+
+                self.master.pagemanager.switch_page(HomePage)
             else:
                 print("Login failed!")
                 CTkMessagebox(
