@@ -9,13 +9,18 @@ class LoginPage(Page):
     def __init__(self, master):
         super().__init__(
             master,
-            fg_color=master.config.colors["frame-color-main"],
-            corner_radius=10,
+            fg_color="transparent",
         )
         self.master = master
+        self.__localframe = ctk.CTkFrame(
+            self,
+            fg_color=self.master.config.colors["frame-color-main"],
+            corner_radius=10,
+        )
+        self.__localframe.place(relx=0.5, rely=0.5, anchor="center")
 
     def create_widgets(self):
-        self.__frame0 = ctk.CTkFrame(self, fg_color="transparent")
+        self.__frame0 = ctk.CTkFrame(self.__localframe, fg_color="transparent")
         my_image = ctk.CTkImage(
             light_image=Image.open("app/assets/logo.png"), size=(70, 70)
         )
@@ -26,7 +31,9 @@ class LoginPage(Page):
             font=(self.master.config.font, 28, "bold"),
             text_color=self.master.config.colors["green-program"],
         )
-        self.__frame0_description = ctk.CTkFrame(self, fg_color="transparent")
+        self.__frame0_description = ctk.CTkFrame(
+            self.__localframe, fg_color="transparent"
+        )
 
         self.description = ctk.CTkLabel(
             self.__frame0_description,
@@ -36,7 +43,7 @@ class LoginPage(Page):
             fg_color="transparent",
         )
 
-        self.__frame1 = ctk.CTkFrame(self, fg_color="transparent")
+        self.__frame1 = ctk.CTkFrame(self.__localframe, fg_color="transparent")
         self.username_entry = ctk.CTkEntry(
             self.__frame1,
             placeholder_text="Enter your username or email",
@@ -54,7 +61,7 @@ class LoginPage(Page):
             text_color=self.master.config.colors["white-text"],
         )
 
-        self.__frame2 = ctk.CTkFrame(self, fg_color="transparent")
+        self.__frame2 = ctk.CTkFrame(self.__localframe, fg_color="transparent")
         self.register_label = ctk.CTkLabel(
             self.__frame2,
             text="Don't have an account?",
@@ -100,6 +107,11 @@ class LoginPage(Page):
         self.master.pagemanager.switch_page(RegisterPage)
 
     def login(self):
+        from app.pages.TestPage import TestPage
+
+        self.master.pagemanager.switch_page(TestPage)
+        return
+
         endpoint = f"{self.master.config.api_url}/login/"
         print(endpoint)
         username = self.username_entry.get()

@@ -9,14 +9,21 @@ class RegisterPage(Page):
     def __init__(self, master):
         super().__init__(
             master,
-            fg_color=master.config.colors["frame-color-main"],
-            corner_radius=15,
+            fg_color="transparent",
         )
         self.master = master
+        self.__localframe = ctk.CTkFrame(
+            self,
+            fg_color=self.master.config.colors["frame-color-main"],
+            corner_radius=10,
+        )
+        self.__localframe.place(relx=0.5, rely=0.5, anchor="center")
 
     def create_widgets(self):
         # Center the main frame
-        self.__main_frame = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
+        self.__main_frame = ctk.CTkFrame(
+            self.__localframe, fg_color="white", corner_radius=20
+        )
         self.__main_frame.pack(padx=20, pady=20, ipadx=20, ipady=20)
 
         # Header Section

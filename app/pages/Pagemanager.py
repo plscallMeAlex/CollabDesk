@@ -32,5 +32,5 @@ class Pagemanager:
 
     def __create_page(self, new_page):
         self.current_page = new_page(self.master)
-        self.current_page.place(relx=0.5, rely=0.5, anchor="center")
+        self.current_page.pack(expand=True, fill="both")
         self.current_page.create_widgets()
