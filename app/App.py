@@ -3,6 +3,9 @@ import sys
 from app.Configuration import Configuration
 from app.pages.Pagemanager import Pagemanager
 from app.pages.Login import LoginPage
+# from app.components.sidebar import SidebarFrame, SidebarComponent
+from app.components.sidebar import SidebarFrame
+
 
 
 class App(ctk.CTk):
@@ -19,6 +22,14 @@ class App(ctk.CTk):
         # Pagemanagement System
         self.pagemanager = Pagemanager(self)
         self.pagemanager.switch_page(LoginPage)
+
+
+        # Add Sidebar to the main app
+        self.sidebar_frame = SidebarFrame(self)
+        self.sidebar_frame.pack(side="left", fill="y", padx=10, pady=10)
+
+        # self.sidebar_component = SidebarComponent(self)
+        # self.sidebar_component.pack(side="left", padx=10, pady=10)
 
         if sys.platform.startswith("win"):
             self.after(100, self.__maximize)
