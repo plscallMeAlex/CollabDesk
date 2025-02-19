@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status  # Import status codes
 
 from .models import User
-from .serializers import UserSerializer
+from api.serializers.User_serializer import UserSerializer
 
 
 # Create your views here.
