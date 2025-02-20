@@ -107,7 +107,7 @@ class LoginPage(Page):
         self.master.pagemanager.switch_page(RegisterPage)
 
     def login(self):
-        endpoint = f"{self.master.config.api_url}/login/"
+        endpoint = f"{self.master.config.api_url}/users/login/"
         username = self.username_entry.get()
         password = self.password_entry.get()
         payload = {"username": username, "password": password}

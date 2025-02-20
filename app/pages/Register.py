@@ -242,7 +242,7 @@ class RegisterPage(Page):
         if password != self.confirm_password_entry.get() or len(password) < 8:
             return
 
-        api_url = f"{self.master.config.api_url}/register/"
+        api_url = f"{self.master.config.api_url}/users/register/"
         data = {
             "username": username,
             "first_name": firstname,
