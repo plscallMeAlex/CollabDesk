@@ -5,8 +5,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from api.models.User import User
-from api.serializers.User_serializer import UserSerializer
+from api.models.user import User
+from api.serializers.user_serializer import UserSerializer
 
 
 class UserViewSet(ModelViewSet):
