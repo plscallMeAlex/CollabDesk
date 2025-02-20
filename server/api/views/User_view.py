@@ -1,6 +1,6 @@
-from django.contrib.auth import authenticate
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import check_password
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,14 +19,13 @@ class UserViewSet(ModelViewSet):
             request.data.get("username", "").strip(),
             request.data.get("password", "").strip(),
         )
+        user = None
         try:
             validate_email(username)
             user = User.objects.get(email=username)
         except ValidationError:
             user = User.objects.filter(username=username).first()
-
-        authenticated_user = authenticate(username=user.username, password=password)
-        if authenticated_user is None:
+        if user is None or not check_password(password, user.password):
             return Response(
                 {"error": "Invalid username or password"},
                 status=status.HTTP_400_BAD_REQUEST,
