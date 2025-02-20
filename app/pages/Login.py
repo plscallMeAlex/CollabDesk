@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
-from app.pages.Pagemanager import Page
+from app.pages.pagemanager import Page
 from PIL import Image
 
 
@@ -102,7 +102,7 @@ class LoginPage(Page):
         self.password_entry.configure(width=300)
 
     def navigate_to(self):
-        from app.pages.Register import RegisterPage
+        from app.pages.register import RegisterPage
 
         self.master.pagemanager.switch_page(RegisterPage)
 
@@ -121,7 +121,7 @@ class LoginPage(Page):
                     message="Login successful!",
                     icon="check",
                 )
-                from app.pages.Home import HomePage
+                from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)
             else:

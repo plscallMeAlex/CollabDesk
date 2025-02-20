@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
-from app.pages.Pagemanager import Page
+from app.pages.pagemanager import Page
 from PIL import Image
 
 
@@ -228,7 +228,7 @@ class RegisterPage(Page):
         self.confirm_password_var.trace_add("write", self.check_password_match)
 
     def navigate_to(self):
-        from app.pages.Login import LoginPage
+        from app.pages.login import LoginPage
 
         self.master.pagemanager.switch_page(LoginPage)
 

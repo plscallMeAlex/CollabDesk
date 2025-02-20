@@ -1,8 +1,8 @@
 import customtkinter as ctk
 import sys
-from app.Configuration import Configuration
-from app.pages.Pagemanager import Pagemanager
-from app.pages.Login import LoginPage
+from app.configuration import Configuration
+from app.pages.pagemanager import Pagemanager
+from app.pages.login import LoginPage
 
 
 class App(ctk.CTk):
