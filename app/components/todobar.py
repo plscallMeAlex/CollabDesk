@@ -3,7 +3,7 @@ from app.components.todocard import TodoCard
 
 
 class TodoBar(ctk.CTkFrame):
-    def __init__(self, master, configuration, title, show=False):
+    def __init__(self, master, configuration, title, show=False, **pack_options):
         super().__init__(
             master, fg_color=configuration.colors["frame-color-main"], corner_radius=10
         )
@@ -12,6 +12,9 @@ class TodoBar(ctk.CTkFrame):
         self.__title = title
         self.__show = show
         self.__entry_open = False
+
+        self.pack(**pack_options)
+        self.create_widget
 
     def create_widget(self):
         #  Title of the Bar
