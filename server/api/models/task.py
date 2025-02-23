@@ -4,8 +4,16 @@ import uuid
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     guild = models.ForeignKey('Guild', on_delete=models.CASCADE)
-    assigner = models.ForeignKey('User', on_delete=models.CASCADE, related_name="task_assigner") # This is the user who assigned the task
-    assignee = models.ForeignKey('User', on_delete=models.CASCADE, related_name="task_assignee") # This is the user who is assigned the task
+    assigner = models.ForeignKey('User', 
+                                 on_delete=models.SET_NULL, 
+                                 related_name="task_assigner", 
+                                 null=True
+                                ) # This is the user who assigned the task
+    assignee = models.ForeignKey('User', 
+                                 on_delete=models.SET_NULL, 
+                                 related_name="task_assignee",
+                                 null=True
+                                ) # This is the user who is assigned the task
     created_at = models.DateTimeField(auto_now_add=True)
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
