@@ -4,11 +4,11 @@ from CTkMessagebox import CTkMessagebox
 
 # This class to representing the task as a card.
 class TodoCard(ctk.CTkFrame):
-    def __init__(self, master, configuration, taskName, **kwargs):
+    def __init__(self, master, configuration, task_data, **kwargs):
         super().__init__(master, fg_color=configuration.colors["snow-white"], **kwargs)
         self.master = master
         self._configuration = configuration
-        self.__taskName = taskName
+        self.__task_data = task_data
 
         # color for changing
         self.__normal_color = configuration.colors["snow-white"]
@@ -23,13 +23,13 @@ class TodoCard(ctk.CTkFrame):
         # Label of the card
         self.__label = ctk.CTkLabel(
             self,
-            text=self.__taskName,
+            text=self.__task_data.get("title", "Untitled"),
             text_color=self._configuration.colors["black-text"],
             font=(self._configuration.font, 12),
         )
         self.__label.pack(side="left", padx=10, pady=5)
 
-        # Button to delete the task
+        # Button to delete the task1x
         self.__delBut = ctk.CTkButton(
             self,
             text="X",
