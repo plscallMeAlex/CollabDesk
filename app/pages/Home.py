@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from app.pages.Pagemanager import Page
+from app.pages.pagemanager import Page
 
 
 class HomePage(Page):

@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 
+
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     guild = models.ForeignKey('Guild', on_delete=models.CASCADE)
@@ -15,8 +16,9 @@ class Task(models.Model):
                                  null=True
                                 ) # This is the user who is assigned the task
     created_at = models.DateTimeField(auto_now_add=True)
-    start_at = models.DateTimeField()
-    end_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
+    due_date = models.DateTimeField()
+    announce_date = models.DateTimeField()
     title = models.CharField(max_length=200)
     description = models.TextField()
-    status = models.CharField(max_length=20)
+    state = models.CharField(max_length=20)
