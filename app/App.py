@@ -6,6 +6,7 @@ from app.pages.Login import LoginPage
 # from app.components.sidebar import SidebarFrame, SidebarComponent
 from app.components.sidebar import SidebarFrame
 from app.components.chanelbar import ChannelBar
+from app.components.header import Header
 
 
 
@@ -24,6 +25,10 @@ class App(ctk.CTk):
         # Pagemanagement System
         self.pagemanager = Pagemanager(self)
         self.pagemanager.switch_page(LoginPage)
+
+        # Add Header to the top of the app window but make it compact
+        self.header = Header(self)  # Create an instance of Header
+        self.header.pack(side="top", fill="x", pady=10)  # Add padding to make it compact
 
 
         # Add Sidebar to the main app
