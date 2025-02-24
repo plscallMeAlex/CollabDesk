@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from api.views.Task_view import TaskViewSet
-from api.views.Role_view import RoleViewSet
+from api.views.task_view import TaskViewSet
+from api.views.role_view import RoleViewSet
 from api.views.view import home
 from api.views.user_view import UserViewSet
 
