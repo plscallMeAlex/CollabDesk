@@ -51,19 +51,22 @@ class TodoCard(ctk.CTkFrame):
 
     # Delete the task
     def __delete_task(self):
-        result = CTkMessagebox(
-            self.master,
-            icon="warning",
-            title="Delete Task",
-            message="Are you sure you want to delete this task?",
-            option_1="Yes",
-            option_2="No",
-        )
-        result.grab_set()
-        result.focus_force()
-        result.wait_window()
-        if result.get() == "Yes":
-            self.destroy()
+        try:
+            result = CTkMessagebox(
+                self.master,
+                icon="warning",
+                title="Delete Task",
+                message="Are you sure you want to delete this task?",
+                option_1="Yes",
+                option_2="No",
+            )
+            result.grab_set()
+            result.focus_force()
+            result.wait_window()
+            if result.get() == "Yes":
+                self.destroy()
+        except Exception as e:
+            print(e)
 
     def __on_hover(self, event):
         self.configure(fg_color=self.__hover_color)
