@@ -27,24 +27,26 @@ class App(ctk.CTk):
         self.pagemanager = Pagemanager(self)
 
         # Check if user is logged in
-        token = Login_token.check_login() # This variable is the username. You can use at homepage to fetch data from the server
+        token = (
+            Login_token.check_login()
+        )  # This variable is the username. You can use at homepage to fetch data from the server
         if token is None:
             self.pagemanager.switch_page(LoginPage)
         else:
             self.pagemanager.switch_page(HomePage)
 
-
         # Add Header to the top of the app window but make it compact
         self.header = Header(self)  # Create an instance of Header
-        self.header.pack(side="top", fill="x", pady=10)  # Add padding to make it compact
-
+        self.header.pack(
+            side="top", fill="x", pady=10
+        )  # Add padding to make it compact
 
         # Add Sidebar to the main app
-    # Add Sidebar to the main app (Left Side)
+        # Add Sidebar to the main app (Left Side)
         self.sidebar_frame = SidebarFrame(self)
         self.sidebar_frame.pack(side="left", fill="y", padx=10, pady=10)
 
-# Add ChannelBar next to Sidebar (Left Side, but after Sidebar)
+        # Add ChannelBar next to Sidebar (Left Side, but after Sidebar)
         self.ChannelBar = ChannelBar(self)
         self.ChannelBar.pack(side="left", fill="y", padx=10, pady=10)
 

@@ -124,7 +124,6 @@ class LoginPage(Page):
                 )
                 Login_token.store_token(username)
 
-
                 from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)
