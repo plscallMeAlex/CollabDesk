@@ -1,7 +1,8 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
-from app.pages.Pagemanager import Page
+from app.pages.pagemanager import Page
+import app.login_token as Login_token
 from PIL import Image
 
 
@@ -102,12 +103,12 @@ class LoginPage(Page):
         self.password_entry.configure(width=300)
 
     def navigate_to(self):
-        from app.pages.Register import RegisterPage
+        from app.pages.register import RegisterPage
 
         self.master.pagemanager.switch_page(RegisterPage)
 
     def login(self):
-        endpoint = f"{self.master.config.api_url}/login/"
+        endpoint = f"{self.master.config.api_url}/users/login/"
         username = self.username_entry.get()
         password = self.password_entry.get()
         payload = {"username": username, "password": password}
@@ -121,7 +122,10 @@ class LoginPage(Page):
                     message="Login successful!",
                     icon="check",
                 )
-                from app.pages.Home import HomePage
+                Login_token.store_token(username)
+
+
+                from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)
             else:

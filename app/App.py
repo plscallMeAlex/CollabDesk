@@ -1,14 +1,15 @@
 import customtkinter as ctk
 import sys
-from app.Configuration import Configuration
-from app.pages.Pagemanager import Pagemanager
-from app.pages.Login import LoginPage
-# from app.components.sidebar import SidebarFrame, SidebarComponent
+
+from app.configuration import Configuration
+from app.pages.pagemanager import Pagemanager
+from app.pages.login import LoginPage
+from app.pages.home import HomePage
+import app.login_token as Login_token
+
 from app.components.sidebar import SidebarFrame
 from app.components.chanelbar import ChannelBar
 from app.components.header import Header
-
-
 
 
 class App(ctk.CTk):
@@ -24,7 +25,14 @@ class App(ctk.CTk):
 
         # Pagemanagement System
         self.pagemanager = Pagemanager(self)
-        self.pagemanager.switch_page(LoginPage)
+
+        # Check if user is logged in
+        token = Login_token.check_login() # This variable is the username. You can use at homepage to fetch data from the server
+        if token is None:
+            self.pagemanager.switch_page(LoginPage)
+        else:
+            self.pagemanager.switch_page(HomePage)
+
 
         # Add Header to the top of the app window but make it compact
         self.header = Header(self)  # Create an instance of Header

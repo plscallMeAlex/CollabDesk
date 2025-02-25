@@ -26,9 +26,10 @@ class Pagemanager:
     def switch_page(self, new_page: Page):
         if self.current_page is not None:
             self.current_page.destroy()
+            self.current_page = None
 
         # delay the creation of the new page to avoid flickering
-        self.master.after(100, self.__create_page, new_page)
+        self.master.after(1000, self.__create_page, new_page)
 
     def switch_frame(self, old_frame: ctk.CTkFrame, new_frame: ctk.CTkFrame):
         if old_frame is not None:
