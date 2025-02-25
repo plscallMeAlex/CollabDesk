@@ -2,6 +2,7 @@ from api.models import Task
 from api.models import Guild
 from api.models import User
 from api.serializers.task_serializer import TaskSerializer
+from django.db.models import Q
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,6 +12,23 @@ from rest_framework import status
 class TaskViewSet(ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+
+    # create a task
+    @action(detail=False, methods=["POST"])
+    def create_task(self, request):
+        # check the title is unique and not the same as in database
+        title = request.data["title"].strip()
+        if Task.objects.filter(title__iexact=title).exists():
+            return Response(
+                {"error": "Task already exists"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = TaskSerializer(data={**request.data, "title": title})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # get all tasks in a guild
     @action(detail=False, methods=["GET"])
