@@ -1,7 +1,7 @@
 from api.models import Task
 from api.models import Guild
 from api.models import User
-from api.serializers.task_serializer import TaskSerializer
+from api.serializers.task_serializer import TaskSerializer, TaskCreateSerializer
 from django.db.models import Q
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -16,18 +16,23 @@ class TaskViewSet(ModelViewSet):
     # create a task
     @action(detail=False, methods=["POST"])
     def create_task(self, request):
-        # check the title is unique and not the same as in database
-        title = request.data["title"].strip()
+        title = request.data.get("title", "").strip()
+
+        # Check if the title already exists
         if Task.objects.filter(title__iexact=title).exists():
             return Response(
                 {"error": "Task already exists"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = TaskSerializer(data={**request.data, "title": title})
-
+        # Use TaskCreateSerializer for validation
+        serializer = TaskCreateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            task = serializer.save()
+            return Response(
+                TaskCreateSerializer(task).data, status=status.HTTP_201_CREATED
+            )
+
+        # Return validation errors if serializer is not valid
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # get all tasks in a guild
