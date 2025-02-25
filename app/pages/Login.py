@@ -2,6 +2,7 @@ import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
 from app.pages.pagemanager import Page
+import app.login_token as Login_token
 from PIL import Image
 
 
@@ -121,6 +122,9 @@ class LoginPage(Page):
                     message="Login successful!",
                     icon="check",
                 )
+                Login_token.store_token(username)
+
+
                 from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)
