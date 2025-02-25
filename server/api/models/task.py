@@ -18,5 +18,5 @@ class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     state = models.ForeignKey(
-        "TaskState", on_delete=models.SET_NULL, related_name="task_state"
+        "TaskState", on_delete=models.SET_NULL, related_name="task_state", null=True
     )
