@@ -12,17 +12,21 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
+    state = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
+    assigner = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
+
     class Meta:
         model = Task
         fields = ["title", "state", "assigner"]
 
     def create(self, validated_data):
         state = validated_data["state"]
+        assigner = validated_data["assigner"]
         guild = state.guild if hasattr(state, "guild") else None
 
         task = Task.objects.create(
             title=validated_data["title"],
-            assigner=validated_data["assigner"],
+            assigner=assigner,
             state=state,
             guild=guild,
             assignee=None,
