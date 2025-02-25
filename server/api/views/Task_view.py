@@ -62,3 +62,17 @@ class TaskViewSet(ModelViewSet):
         tasks = Task.objects.filter(guild=guild, assignee=assignee)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # get all tasks in a guild with a specific state
+    @action(detail=False, methods=["GET"])
+    def in_guild_by_state(self, request):
+        guild_id = request.query_params.get("guild_id")
+        state_id = request.query_params.get("state_id")
+        tasks = Task.objects.filter(guild=guild_id, state=state_id)
+        if tasks is None:
+            return Response(
+                {"error": "Tasks not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
