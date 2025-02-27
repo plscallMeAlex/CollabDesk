@@ -17,3 +17,22 @@ class TaskStateViewSet(ModelViewSet):
         taskstates = TaskState.objects.filter(guild_id=guild_id)
         serializer = TaskStateSerializer(taskstates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["POST"])
+    def create_state(self, request):
+        title = request.data.get("title", "").strip()
+        guild_id = request.data.get("guild_id")
+
+        # Check if the title already exists
+        if TaskState.objects.filter(title__iexact=title, guild_id=guild_id).exists():
+            return Response(
+                {"error": "State already exists"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Use TaskStateSerializer for validation
+        serializer = TaskStateSerializer(data=request.data)
+        if serializer.is_valid():
+            taskstate = serializer.save()
+            return Response(
+                TaskStateSerializer(taskstate).data, status=status.HTTP_201_CREATED
+            )
