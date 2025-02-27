@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 import requests
 from app.frames.frame import Frame
 from app.components.todobar import TodoBar
@@ -36,6 +37,30 @@ class BulletinBoard(Frame):
         self.__frame0.pack(expand=True, fill="both")
         self.__frame1.pack(expand=True, fill="both")
 
+    def create_bar(self, state):
+        # Check if it reach the limit of bars
+        if len(self.__bar) == 6:
+            CTkMessagebox(
+                self.master,
+                icon="warning",
+                title="Bar Limit",
+                message="You have reached the limit of bars",
+            )
+            return
+
+        payload = {"title": state, "guild": self._guildId}
+        response = requests.post(
+            self.__configuration.api_url + "/taskstates/create_state/", data=payload
+        )
+        if response.status_code == 201:
+            bar_data = response.json()
+            bar = TodoBar(self.__frame0, self.__configuration, bar_data)
+            bar.pack(side="left", fill="y", padx=10)
+            self.__bar[state] = bar
+        else:
+            print("Failed to create bar")
+            CTkMessagebox(icon="cancel", title="Error", message="Failed to create bar")
+
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}
         response = requests.get(
@@ -61,22 +86,7 @@ class BulletinBoard(Frame):
         # POST request to create the default bars
         states = ["Todo", "Doing", "Done"]
         for state in states:
-            payload = {"title": state, "guild": self._guildId}
-            response = requests.post(
-                self.__configuration.api_url + "/taskstates/create_state/", data=payload
-            )
-            if response.status_code == 201:
-                bar_data = response.json()
-                bar = TodoBar(
-                    self.__frame0,
-                    self.__configuration,
-                    bar_data,
-                    show=(state == "Todo"),
-                )
-                bar.pack(side="left", fill="y", padx=10)
-                self.__bar[state] = bar
-            else:
-                print("Error creating the bar")
+            self.create_bar(state)
 
 
 # Testing the bulletin board frame with the following code function
