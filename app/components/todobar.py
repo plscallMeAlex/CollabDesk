@@ -322,7 +322,7 @@ if __name__ == "__main__":
     from customtkinter import CTk
 
     app = CTk()
-    config = Configuration(app)
+    config = Configuration()
 
     data = {"title": "Todo", "id": uuid.uuid4(), "guild_id": uuid.uuid4()}
     todobar = TodoBar(

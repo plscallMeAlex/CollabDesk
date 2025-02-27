@@ -18,7 +18,7 @@ class App(ctk.CTk):
         self.minsize(1920, 1080)
 
         self.title("CollabDesk")
-        self.config = Configuration(self)
+        self.config = Configuration()
 
         # Set main background color
         self.configure(fg_color=self.config.colors["frame-color-secondary"])

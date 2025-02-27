@@ -5,9 +5,8 @@ import customtkinter as ctk
 
 
 class Configuration:
-    def __init__(self, master):
+    def __init__(self):
         load_dotenv()
-        self.__master = master
         self.colors = self.__color_import()
         self.font = "Inter"
         self.api_url = os.getenv("API_URL")
