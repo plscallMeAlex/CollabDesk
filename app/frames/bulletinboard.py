@@ -64,7 +64,7 @@ class BulletinBoard(Frame):
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}
         response = requests.get(
-            self.__configuration.api_url + "/taskstate/in_guild", params=params
+            self.__configuration.api_url + "/taskstates/in_guild/", params=params
         )
 
         if response.status_code == 200 and response.json() != []:
@@ -73,11 +73,11 @@ class BulletinBoard(Frame):
                 bar = TodoBar(
                     self.__frame0,
                     self.__configuration,
-                    data["state"],
-                    show=(data["state"] == "Todo"),
+                    data,
+                    show=(data["title"] == "Todo"),
                 )
                 bar.pack(side="left", fill="y", padx=10)
-                self.__bar[data["state"]] = bar
+                self.__bar[data["title"]] = bar
         else:
             self.__init_bars()
 
