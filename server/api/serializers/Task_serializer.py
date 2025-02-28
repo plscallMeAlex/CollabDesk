@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Task
+from api.models import Task, TaskState, User
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -12,8 +12,8 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
-    state = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
-    assigner = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
+    state = serializers.PrimaryKeyRelatedField(queryset=TaskState.objects.all())
+    assigner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Task
