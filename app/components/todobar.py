@@ -82,7 +82,7 @@ class TodoBar(ctk.CTkFrame):
 
     # Fetch all task state that the same guild as the current bar
     def __fetch_all_taskstates(self):
-        param = {"guild_id": self.__bar_data.get("guild_id")}
+        param = {"guild": self.__bar_data.get("guild")}
         response = requests.get(
             self.__configuration.api_url + "/taskstates/in_guild/", params=param
         )
@@ -94,7 +94,7 @@ class TodoBar(ctk.CTkFrame):
     def __fetch_all_tasks(self):
         param = {"state_id": self.__bar_data.get("id")}
         response = requests.get(
-            self.__configuration.api_url + "/task/in_guild_by_state", params=param
+            self.__configuration.api_url + "/tasks/in_guild_by_state/", params=param
         )
         if response.status_code == 200:
             return response.json()
@@ -102,48 +102,64 @@ class TodoBar(ctk.CTkFrame):
 
     # create a task in the data and create a card for it
     def __create_card(self, text):
-        # send post to create a task text, title (state of the task),
-        #
-        payload = {
-            "title": text,
-            "state": str(self.__bar_data.get("id")),
-            "assigner": "",  # for user_id
-        }
-        print("Payload:", payload)
-        response = requests.post(
-            self.__configuration.api_url + "/tasks/create_task/", json=payload
-        )
-        print("Response:", response.status_code, response.text)
-        if response.status_code != 201:
-            print("create failed")
+        try:
+            print("Creating task")
+            payload = {
+                "title": text,
+                "state": self.__bar_data.get("id"),
+                "assigner": "f452d1d8-f836-4006-a63d-647e03836040",  # for user_id
+            }
+            print("Payload:", payload)
+
+            try:
+                response = requests.post(
+                    self.__configuration.api_url + "/tasks/create_task/", json=payload
+                )
+                print("Response:", response.status_code, response.text)
+
+                if response.status_code != 201:
+                    print("create failed")
+                    CTkMessagebox(
+                        title="Error",
+                        message=f"Task creation failed: {response.text}",
+                        icon="cancel",
+                    )
+                    return
+
+                response_data = response.json()
+                card = TodoCard(self.__frame0, self.__configuration, response_data)
+                card.create_widgets()
+                card.pack(fill="x", pady=5, padx=5)
+                card.bind("<Enter>", self.__on_hover)
+                card.bind("<Leave>", self.__on_leave)
+            except requests.RequestException as e:
+                print(f"Network error: {e}")
+                CTkMessagebox(
+                    title="Netowrk Error",
+                    message=f"Unable to connect to the server: {str(e)}",
+                    icon="cancel",
+                )
+        except Exception as e:
+            print(f"Exception creating card: {e}")
             CTkMessagebox(
                 title="Error",
-                message="Task card creation failed",
+                message=f"An error occurred: {str(e)}",
                 icon="cancel",
             )
-            return
-        # data that will get as respond after post request
-        # mock_data = {
-        #     "id": 1,
-        #     "title": text,
-        #     "description": "This is a task",
-        #     "assigner": "John Doe",
-        #     "due_date": "2021-12-31",
-        # }
-        response = response.json()
-        card = TodoCard(self.__frame0, self.__configuration, response)
-        card.create_widgets()
-        card.pack(fill="x", pady=5, padx=5)
-        card.bind("<Enter>", self.__on_hover)
-        card.bind("<Leave>", self.__on_leave)
 
     def __create_task(self, event):
+        if not hasattr(self, "__entry") or not self.__entry.winfo_exists():
+            return
+
         task_text = self.__entry.get().strip()
         if task_text:
             self.__create_card(task_text)
-        self.__entry.destroy()
-        self.__entry_open = False
-        self.__taskZone.lift()
+        try:
+            self.__entry.destroy()
+            self.__entry_open = False
+            self.__taskZone.lift()
+        except Exception as e:
+            print(f"Error in __create_task: {e}")
 
     # The button will hidden and remove binding an event after callung this function until finish adding
     def __create_entry(self):
@@ -267,7 +283,7 @@ class TodoBar(ctk.CTkFrame):
             self.__taskZone.lower()
 
     def __close_entry(self, event):
-        if self.__entry:
+        if hasattr(self, "__entry") and self.__entry.winfo_exists():
             self.__entry.destroy()
             self.__entry_open = False
             self.__taskZone.lift()
