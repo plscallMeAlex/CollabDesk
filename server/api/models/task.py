@@ -13,10 +13,10 @@ class Task(models.Model):
     )  # This is the user who is assigned the task
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    due_date = models.DateTimeField()
-    announce_date = models.DateTimeField()
+    due_date = models.DateTimeField(null=True, blank=True)
+    announce_date = models.DateTimeField(null=True, blank=True)
     title = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     state = models.ForeignKey(
         "TaskState", on_delete=models.SET_NULL, related_name="task_state", null=True
     )
