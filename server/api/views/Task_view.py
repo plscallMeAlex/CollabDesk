@@ -98,3 +98,15 @@ class TaskViewSet(ModelViewSet):
 
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["DELETE"])
+    def delete_task(self, request, pk=None):
+        task = Task.objects.filter(id=pk).first()
+
+        if not task:
+            return Response(
+                {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
