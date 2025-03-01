@@ -1,4 +1,4 @@
-from api.models import TaskState
+from api.models import TaskState, Task
 from api.serializers.taskstate_serializer import TaskStateSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -46,3 +46,20 @@ class TaskStateViewSet(ModelViewSet):
             return Response(
                 TaskStateSerializer(taskstate).data, status=status.HTTP_201_CREATED
             )
+
+    @action(detail=False, methods=["PATCH"])
+    def transfer_state(self, request):
+        state_id = request.data.get("state_id")
+        new_state_id = request.data.get("new_state_id")
+
+        # Check if the state_id and new_state_id are provided
+        if not state_id or not new_state_id:
+            return Response(
+                {"error": "State ID and New State ID are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        task = Task.objects.filter(state=state_id)
+        task.update(state=new_state_id)
+
+        return Response(status=status.HTTP_200_OK)
