@@ -7,14 +7,13 @@ import uuid
 
 # TaskState frontend component
 class TodoBar(ctk.CTkFrame):
-    def __init__(self, master, configuration, bar_data, show=False):
+    def __init__(self, master, configuration, bar_data):
         super().__init__(
             master, fg_color=configuration.colors["frame-color-main"], corner_radius=10
         )
         self.master = master
         self.__configuration = configuration
         self.__bar_data = bar_data
-        self.__show = show
         self.__tasks = []
         self.__entry_open = False
 
@@ -66,18 +65,16 @@ class TodoBar(ctk.CTkFrame):
         )
         self.__taskButt.pack(side="top", pady=5)
 
-        # Hide the add task button if show is False
-        if not self.__show:
-            self.__taskButt.lower()
+        # Lower the add task button
+        self.__taskButt.lower()
 
         # Specific the event that want to show the add task button while hovering or not
-        if not self.__show:
-            self.bind("<Enter>", self.__add_task_hover)
-            self.bind("<Leave>", self.__add_task_leave)
-            self.__frame0.bind("<Enter>", self.__add_task_hover)
-            self.__frame0.bind("<Leave>", self.__add_task_leave)
-            self.__taskButt.bind("<Enter>", self.__add_task_hover)
-            self.__taskButt.bind("<Leave>", self.__add_task_leave)
+        self.bind("<Enter>", self.__add_task_hover)
+        self.bind("<Leave>", self.__add_task_leave)
+        self.__frame0.bind("<Enter>", self.__add_task_hover)
+        self.__frame0.bind("<Leave>", self.__add_task_leave)
+        self.__taskButt.bind("<Enter>", self.__add_task_hover)
+        self.__taskButt.bind("<Leave>", self.__add_task_leave)
 
     def __create_task(self, event):
         """Create a new task card"""
@@ -114,7 +111,7 @@ class TodoBar(ctk.CTkFrame):
                 CTkMessagebox(
                     self.master,
                     title="Error",
-                    message="An error occurred while creating the task",
+                    message=response.json()["error"],
                     icon="cancel",
                 )
                 return
@@ -147,18 +144,21 @@ class TodoBar(ctk.CTkFrame):
         )
         self.__entry.pack(side="left", padx=5)
         self.__entry.bind("<Return>", self.__create_task)
+        self.__entry.focus_set()
 
     def __open_dialog(self, event):
         pass
 
     def __dialog_hover(self, event):
-        self.__dialog_but.lift()
+        if not self.__entry_open:
+            self.__dialog_but.lift()
 
     def __dialog_leave(self, event):
         self.__dialog_but.lower()
 
     def __add_task_hover(self, event):
-        self.__taskButt.lift()
+        if not self.__entry_open:
+            self.__taskButt.lift()
 
     def __add_task_leave(self, event):
         self.__taskButt.lower()

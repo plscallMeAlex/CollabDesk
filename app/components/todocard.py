@@ -5,7 +5,9 @@ from CTkMessagebox import CTkMessagebox
 # This class to representing the task as a card.
 class TodoCard(ctk.CTkFrame):
     def __init__(self, master, configuration, task_data, **kwargs):
-        super().__init__(master, fg_color=configuration.colors["snow-white"], **kwargs)
+        super().__init__(
+            master, fg_color=configuration.colors["snow-white"], height=30, **kwargs
+        )
         self.master = master
         self._configuration = configuration
         self.__task_data = task_data
@@ -25,20 +27,21 @@ class TodoCard(ctk.CTkFrame):
             self,
             text=self.__task_data.get("title", "Untitled"),
             text_color=self._configuration.colors["black-text"],
-            font=(self._configuration.font, 12),
+            font=(self._configuration.font, 10),
         )
-        self.__label.pack(side="left", padx=10, pady=5)
+        self.__label.pack(side="left", padx=5, pady=2)
 
         # Button to delete the task1x
         self.__delBut = ctk.CTkButton(
             self,
             text="X",
-            width=10,
+            width=5,
+            height=5,
             fg_color=self._configuration.colors["black-text"],
             text_color=self._configuration.colors["white-text"],
             command=self.__delete_task,
         )
-        self.__delBut.pack(side="right", padx=10, pady=5)
+        self.__delBut.pack(side="right", padx=5, pady=2)
 
         self.__label.bind("<Enter>", self.__on_hover)
         self.__label.bind("<Leave>", self.__on_leave)
