@@ -7,13 +7,14 @@ import uuid
 
 # TaskState frontend component
 class TodoBar(ctk.CTkFrame):
-    def __init__(self, master, configuration, bar_data):
+    def __init__(self, master, configuration, bar_data, bar_refresh):
         super().__init__(
             master, fg_color=configuration.colors["frame-color-main"], corner_radius=10
         )
         self.master = master
         self.__configuration = configuration
         self.__bar_data = bar_data
+        self.__bar_refresh = bar_refresh
         self.__tasks = []
         self.__entry_open = False
 
@@ -76,6 +77,13 @@ class TodoBar(ctk.CTkFrame):
         self.__taskButt.bind("<Enter>", self.__add_task_hover)
         self.__taskButt.bind("<Leave>", self.__add_task_leave)
 
+        self.__fetch_tasks()
+
+    def refresh_tasks(self):
+        """Refresh all tasks in this bar"""
+        for task in self.__tasks:
+            task.destroy()
+        self.__tasks.clear()
         self.__fetch_tasks()
 
     def __fetch_tasks(self):
@@ -184,6 +192,7 @@ class TodoBar(ctk.CTkFrame):
             configuration=self.__configuration,
             guild=self.__bar_data["guild"],
             state=self.__bar_data["id"],
+            bar_refresh=self.__bar_refresh,
         )
         transfer_dialog.grab_set()
         transfer_dialog.focus_force()
@@ -210,6 +219,7 @@ class TransferDialog(ctk.CTkToplevel):
         configuration,
         guild,
         state,
+        bar_refresh,
         fg_color=None,
         **kwargs,
     ):
@@ -217,6 +227,7 @@ class TransferDialog(ctk.CTkToplevel):
         self.__configuration = configuration
         self.__guild_id = guild
         self.__state_id = state
+        self.__bar_refresh = bar_refresh
         self.title("Transfer Tasks")
         self.geometry("300x150")
 
@@ -285,6 +296,7 @@ class TransferDialog(ctk.CTkToplevel):
                         message="Tasks transferred successfully",
                         icon="info",
                     )
+                    self.__bar_refresh()
                     self.wait_window(box)
                     self.destroy()
                     return True
