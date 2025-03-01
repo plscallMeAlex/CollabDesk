@@ -74,7 +74,6 @@ class BulletinBoard(Frame):
                     self.__frame0,
                     self.__configuration,
                     data,
-                    show=(data["title"] == "Todo"),
                 )
                 bar.pack(side="left", fill="y", padx=10)
                 self.__bar[data["title"]] = bar
