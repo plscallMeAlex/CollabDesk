@@ -14,12 +14,16 @@ class TaskStateViewSet(ModelViewSet):
     @action(detail=False, methods=["GET"])
     def in_guild(self, request):
         guild_id = request.query_params.get("guild_id")
+        state_id = request.query_params.get("state_id")
+
         if not guild_id:
             return Response(
                 {"error": "Guild is not found"}, status=status.HTTP_400_BAD_REQUEST
             )
-
         taskstates = TaskState.objects.filter(guild=guild_id)
+        if state_id:
+            taskstates = taskstates.filter(id=state_id)
+
         serializer = TaskStateSerializer(taskstates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
