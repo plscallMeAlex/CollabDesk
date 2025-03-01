@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import requests
 from CTkMessagebox import CTkMessagebox
 
 
@@ -71,9 +72,31 @@ class TodoCard(ctk.CTkFrame):
             result.focus_force()
             result.wait_window()
             if result.get() == "Yes":
+                self.__delete_task_db()
                 self.destroy()
         except Exception as e:
             print(e)
+
+    def __delete_task_db(self):
+        task_id = self.__task_data.get("id")
+        response = requests.delete(
+            self._configuration.api_url + f"/tasks/{task_id}/delete_task/"
+        )
+
+        if response.status_code == 204:
+            return CTkMessagebox(
+                self.master,
+                icon="check",
+                title="Task Deleted",
+                message="Task has been deleted",
+            )
+        else:
+            return CTkMessagebox(
+                self.master,
+                icon="cancel",
+                title="Error",
+                message="Failed to delete task",
+            )
 
     def __on_hover(self, event):
         self.configure(fg_color=self.__hover_color)
