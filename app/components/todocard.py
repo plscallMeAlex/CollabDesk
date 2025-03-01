@@ -21,13 +21,17 @@ class TodoCard(ctk.CTkFrame):
 
         self.bind("<Button-1>", self.__open_editor)
 
+    def pack(self, **kwargs):
+        super().pack(**kwargs)
+        self.create_widgets()
+
     def create_widgets(self):
         # Label of the card
         self.__label = ctk.CTkLabel(
             self,
             text=self.__task_data.get("title", "Untitled"),
             text_color=self._configuration.colors["black-text"],
-            font=(self._configuration.font, 10),
+            font=(self._configuration.font, 12),
         )
         self.__label.pack(side="left", padx=5, pady=2)
 
