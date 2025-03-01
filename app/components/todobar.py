@@ -204,7 +204,15 @@ class TodoBar(ctk.CTkFrame):
 
 
 class TransferDialog(ctk.CTkToplevel):
-    def __init__(self, *args, configuration, guild, state, fg_color=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        configuration,
+        guild,
+        state,
+        fg_color=None,
+        **kwargs,
+    ):
         super().__init__(*args, fg_color=fg_color, **kwargs)
         self.__configuration = configuration
         self.__guild_id = guild
@@ -279,27 +287,37 @@ class TransferDialog(ctk.CTkToplevel):
                     )
                     self.wait_window(box)
                     self.destroy()
+                    return True
                 else:
-                    CTkMessagebox(
+                    box = CTkMessagebox(
                         self,
                         title="Error",
                         message="Failed to transfer tasks",
                         icon="cancel",
                     )
+                    self.wait_window(box)
+                    self.destroy()
+                    return False
             except requests.exceptions.RequestException:
-                CTkMessagebox(
+                box = CTkMessagebox(
                     self,
                     title="Error",
                     message="An error occurred while transferring tasks",
                     icon="error",
                 )
+                self.wait_window(box)
+                self.destroy()
+                return False
         else:
-            CTkMessagebox(
+            box = CTkMessagebox(
                 self,
                 title="Error",
                 message="Selected state not found",
                 icon="cancel",
             )
+            self.wait_window(box)
+            self.destroy()
+            return False
 
     def __fetch_state(self):
         """Fetch available states, excluding the current state."""
