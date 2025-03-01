@@ -40,7 +40,7 @@ class TodoBar(ctk.CTkFrame):
         self.__dialog_but.lower()
 
         # Pack title frame and label
-        self.__title_frame.pack(fill="x")
+        self.__title_frame.pack(fill="x", padx=5, pady=5)
         self.__title_label.pack(side="left", pady=10, padx=10)
 
         # Bind hover events for dialog button visibility
@@ -178,7 +178,7 @@ class TodoBar(ctk.CTkFrame):
         self.__entry_open = False
 
     def __open_dialog(self, event):
-        pass
+        """Open a dialog to delete the bar"""
 
     def __dialog_hover(self, event):
         if not self.__entry_open:
@@ -193,3 +193,78 @@ class TodoBar(ctk.CTkFrame):
 
     def __add_task_leave(self, event):
         self.__taskButt.lower()
+
+
+class TransferDialog(ctk.CTkToplevel):
+    def __init__(self, *args, configuration, guild, state, fg_color=None, **kwargs):
+        super().__init__(*args, fg_color=fg_color, **kwargs)
+        self.__configuration = configuration
+        self.__guild_id = guild
+        self.__state_id = state
+        self.title("Transfer Tasks")
+        self.geometry("300x150")
+
+        # Fetch available states
+        self.__available_states = self.__fetch_state()
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.label = ctk.CTkLabel(
+            self,
+            text="Select the state to transfer the tasks",
+            font=(self.__configuration.font, 12),
+            text_color=self.__configuration.colors["black-text"],
+            fg_color="transparent",
+        )
+        self.label.pack(pady=10)
+
+        # Extract state names for dropdown menu
+        state_names = [state["name"] for state in self.__available_states]
+
+        self.state_selector = ctk.CTkOptionMenu(self, values=state_names)
+        self.state_selector.pack(pady=5)
+
+        self.confirm_button = ctk.CTkButton(
+            self,
+            text="Confirm",
+            fg_color=self.__configuration.colors["green-program"],
+            text_color=self.__configuration.colors["white-text"],
+            font=(self.__configuration.font, 12),
+            command=self.__transfer_tasks,
+        )
+        self.confirm_button.pack(pady=5)
+
+    def __transfer_tasks(self):
+        selected_state_name = self.state_selector.get()
+
+        # Find the corresponding state ID
+        selected_state = next(
+            (
+                state
+                for state in self.__available_states
+                if state["name"] == selected_state_name
+            ),
+            None,
+        )
+
+        if selected_state:
+            print(
+                f"Transferring tasks to state: {selected_state['id']} ({selected_state_name})"
+            )
+            # Implement actual task transfer logic here
+
+    def __fetch_state(self):
+        """Fetch available states, excluding the current state."""
+        try:
+            params = {"guild_id": self.__guild_id, "state_id": self.__state_id}
+            response = requests.get(
+                self.__configuration.api_url + "/taskstates/in_guild/", params=params
+            )
+            if response.status_code == 200:
+                return response.json()  # Returns list of JSON objects
+            else:
+                return []
+        except requests.exceptions.RequestException:
+            return []
+        except Exception:
+            return []
