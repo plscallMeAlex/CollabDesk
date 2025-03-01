@@ -260,6 +260,46 @@ class TransferDialog(ctk.CTkToplevel):
                 f"Transferring tasks to state: {selected_state['id']} ({selected_state_name})"
             )
             # Implement actual task transfer logic here
+            try:
+                payload = {
+                    "state_id": self.__state_id,
+                    "new_state_id": selected_state["id"],
+                }
+                response = requests.patch(
+                    self.__configuration.api_url + "/taskstates/transfer_state/",
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                )
+                if response.status_code == 200:
+                    box = CTkMessagebox(
+                        self,
+                        title="Success",
+                        message="Tasks transferred successfully",
+                        icon="info",
+                    )
+                    self.wait_window(box)
+                    self.destroy()
+                else:
+                    CTkMessagebox(
+                        self,
+                        title="Error",
+                        message="Failed to transfer tasks",
+                        icon="cancel",
+                    )
+            except requests.exceptions.RequestException:
+                CTkMessagebox(
+                    self,
+                    title="Error",
+                    message="An error occurred while transferring tasks",
+                    icon="error",
+                )
+        else:
+            CTkMessagebox(
+                self,
+                title="Error",
+                message="Selected state not found",
+                icon="cancel",
+            )
 
     def __fetch_state(self):
         """Fetch available states, excluding the current state."""
