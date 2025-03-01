@@ -167,7 +167,15 @@ class TodoBar(ctk.CTkFrame):
         )
         self.__entry.pack(side="left", padx=5)
         self.__entry.bind("<Return>", self.__create_task)
+        self.__entry.bind(
+            "<Escape>",
+            self.__close_entry,
+        )
         self.__entry.focus_set()
+
+    def __close_entry(self, event):
+        self.__entry_frame.destroy()
+        self.__entry_open = False
 
     def __open_dialog(self, event):
         pass
