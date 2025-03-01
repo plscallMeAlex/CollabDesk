@@ -179,6 +179,14 @@ class TodoBar(ctk.CTkFrame):
 
     def __open_dialog(self, event):
         """Open a dialog to delete the bar"""
+        transfer_dialog = TransferDialog(
+            self.master,
+            configuration=self.__configuration,
+            guild=self.__bar_data["guild"],
+            state=self.__bar_data["id"],
+        )
+        transfer_dialog.grab_set()
+        transfer_dialog.focus_force()
 
     def __dialog_hover(self, event):
         if not self.__entry_open:
@@ -219,7 +227,7 @@ class TransferDialog(ctk.CTkToplevel):
         self.label.pack(pady=10)
 
         # Extract state names for dropdown menu
-        state_names = [state["name"] for state in self.__available_states]
+        state_names = [state["title"] for state in self.__available_states]
 
         self.state_selector = ctk.CTkOptionMenu(self, values=state_names)
         self.state_selector.pack(pady=5)
@@ -242,7 +250,7 @@ class TransferDialog(ctk.CTkToplevel):
             (
                 state
                 for state in self.__available_states
-                if state["name"] == selected_state_name
+                if state["state"] == selected_state_name
             ),
             None,
         )
