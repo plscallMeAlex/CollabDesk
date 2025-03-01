@@ -61,6 +61,10 @@ class BulletinBoard(Frame):
             print("Failed to create bar")
             CTkMessagebox(icon="cancel", title="Error", message="Failed to create bar")
 
+    def refresh_bars(self):
+        for bar in self.__bar.values():
+            bar.refresh_tasks()
+
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}
         response = requests.get(
@@ -74,6 +78,7 @@ class BulletinBoard(Frame):
                     self.__frame0,
                     self.__configuration,
                     data,
+                    self.refresh_bars,
                 )
                 bar.pack(side="left", fill="y", padx=10)
                 self.__bar[data["title"]] = bar
