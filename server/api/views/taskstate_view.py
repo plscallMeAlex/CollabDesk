@@ -21,8 +21,9 @@ class TaskStateViewSet(ModelViewSet):
                 {"error": "Guild is not found"}, status=status.HTTP_400_BAD_REQUEST
             )
         taskstates = TaskState.objects.filter(guild=guild_id)
+        # Filter by not equal to state_id
         if state_id:
-            taskstates = taskstates.filter(id=state_id)
+            taskstates = taskstates.exclude(id=state_id)
 
         serializer = TaskStateSerializer(taskstates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
