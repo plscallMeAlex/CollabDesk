@@ -250,7 +250,7 @@ class TransferDialog(ctk.CTkToplevel):
             (
                 state
                 for state in self.__available_states
-                if state["state"] == selected_state_name
+                if state["title"] == selected_state_name
             ),
             None,
         )
