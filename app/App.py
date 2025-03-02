@@ -5,7 +5,7 @@ from app.configuration import Configuration
 from app.pages.pagemanager import Pagemanager
 from app.pages.login import LoginPage
 from app.pages.home import HomePage
-import app.login_token as Login_token
+from app.tokenmanager import TokenManger
 
 from app.components.sidebar import SidebarFrame
 from app.components.chanelbar import ChannelBar
@@ -26,14 +26,9 @@ class App(ctk.CTk):
         # Pagemanagement System
         self.pagemanager = Pagemanager(self)
 
-        # Check if user is logged in
-        token = (
-            Login_token.check_login()
-        )  # This variable is the username. You can use at homepage to fetch data from the server
-        if token is None:
-            self.pagemanager.switch_page(LoginPage)
-        else:
-            self.pagemanager.switch_page(HomePage)
+        # Check if user have token
+        self.token_manager = TokenManger()
+        self.check_user_token()
 
         # Add Header to the top of the app window but make it compact
         self.header = Header(self)  # Create an instance of Header
@@ -52,6 +47,17 @@ class App(ctk.CTk):
 
         if sys.platform.startswith("win"):
             self.after(100, self.__maximize)
+
+    def check_user_token(self):
+        """Check if user have valid token, refresh if expired"""
+        if self.token_manage.check_token_expired():
+            new_token = self.token_manager.refresh_access_token()
+            if new_token:
+                self.pagemanager.switch_page(HomePage)
+            else:
+                self.pagemanager.switch_page(LoginPage)
+        else:
+            self.pagemanager.switch_page(HomePage)
 
     def __maximize(self):
         self.state("zoomed")

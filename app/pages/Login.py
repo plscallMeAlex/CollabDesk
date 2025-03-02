@@ -2,7 +2,7 @@ import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
 from app.pages.pagemanager import Page
-import app.login_token as Login_token
+from app.tokenmanager import TokenManger
 from PIL import Image
 
 
@@ -122,7 +122,12 @@ class LoginPage(Page):
                     message="Login successful!",
                     icon="check",
                 )
-                Login_token.store_token(username)
+                access = response.json()["access"]
+                refresh = response.json()["refresh"]
+
+                # Store the token
+                tokenM = TokenManger()
+                tokenM.store_token({"access": access, "refresh": refresh})
 
                 from app.pages.home import HomePage
 
