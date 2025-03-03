@@ -34,6 +34,9 @@ class TokenManger(object):
         if not token:
             return True
         access = token.get("access")
+        if not access:
+            return True
+
         try:
             decoded_token = jwt.decode(access, options={"verify_signature": False})
             exp_time = datetime.fromtimestamp(decoded_token["exp"], timezone.utc)
