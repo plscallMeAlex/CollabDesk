@@ -1,5 +1,6 @@
 import requests
 import customtkinter as ctk
+from app.make_request import make_request
 from CTkMessagebox import CTkMessagebox
 from app.components.todocard import TodoCard
 import uuid
@@ -89,8 +90,10 @@ class TodoBar(ctk.CTkFrame):
     def __fetch_tasks(self):
         """Fetch all tasks that belong to this bar"""
         params = {"state_id": self.__bar_data["id"]}
-        response = requests.get(
-            self.__configuration.api_url + "/tasks/in_guild_by_state/", params=params
+        response = make_request(
+            self.__configuration.api_url + "/tasks/in_guild_by_state/",
+            "GET",
+            params=params,
         )
 
         if response.status_code == 200:
@@ -123,8 +126,9 @@ class TodoBar(ctk.CTkFrame):
 
         try:
             # send a POST request to the server to create a new task
-            response = requests.post(
+            response = make_request(
                 self.__configuration.api_url + "/tasks/create_task/",
+                method="POST",
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
@@ -284,8 +288,9 @@ class TransferDialog(ctk.CTkToplevel):
                     "state_id": self.__state_id,
                     "new_state_id": selected_state["id"],
                 }
-                response = requests.patch(
+                response = make_request(
                     self.__configuration.api_url + "/taskstates/transfer_state/",
+                    method="PATCH",
                     json=payload,
                     headers={"Content-Type": "application/json"},
                 )
@@ -335,8 +340,10 @@ class TransferDialog(ctk.CTkToplevel):
         """Fetch available states, excluding the current state."""
         try:
             params = {"guild_id": self.__guild_id, "state_id": self.__state_id}
-            response = requests.get(
-                self.__configuration.api_url + "/taskstates/in_guild/", params=params
+            response = make_request(
+                self.__configuration.api_url + "/taskstates/in_guild/",
+                method="GET",
+                params=params,
             )
             if response.status_code == 200:
                 return response.json()  # Returns list of JSON objects

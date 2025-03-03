@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
+from app.make_request import make_request
 import requests
 from app.pages.pagemanager import Page
 from app.tokenmanager import TokenManger
@@ -114,7 +115,7 @@ class LoginPage(Page):
         payload = {"username": username, "password": password}
 
         try:
-            response = requests.post(endpoint, json=payload)
+            response = make_request(endpoint, "POST", json=payload)
             if response.status_code == 200:
                 print("Login successful!")
                 CTkMessagebox(

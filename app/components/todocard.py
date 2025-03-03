@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from app.make_request import make_request as make_request
 import requests
 from CTkMessagebox import CTkMessagebox
 
@@ -79,8 +80,9 @@ class TodoCard(ctk.CTkFrame):
 
     def __delete_task_db(self):
         task_id = self.__task_data.get("id")
-        response = requests.delete(
-            self._configuration.api_url + f"/tasks/{task_id}/delete_task/"
+        response = make_request(
+            self._configuration.api_url + f"/tasks/{task_id}/delete_task/",
+            method="DELETE",
         )
 
         if response.status_code == 204:

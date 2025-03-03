@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
+from app.make_request import make_request
 from app.frames.frame import Frame
 from app.components.todobar import TodoBar
 
@@ -49,8 +50,10 @@ class BulletinBoard(Frame):
             return
 
         payload = {"title": state, "guild": self._guildId}
-        response = requests.post(
-            self.__configuration.api_url + "/taskstates/create_state/", data=payload
+        response = make_request(
+            self.__configuration.api_url + "/taskstates/create_state/",
+            method="POST",
+            data=payload,
         )
         if response.status_code == 201:
             bar_data = response.json()
@@ -67,8 +70,10 @@ class BulletinBoard(Frame):
 
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}
-        response = requests.get(
-            self.__configuration.api_url + "/taskstates/in_guild/", params=params
+        response = make_request(
+            self.__configuration.api_url + "/taskstates/in_guild/",
+            method="GET",
+            params=params,
         )
 
         if response.status_code == 200 and response.json() != []:
