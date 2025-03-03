@@ -5,6 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 from api.models import User
 from api.serializers.user_serializer import UserSerializer
 
@@ -12,6 +13,14 @@ from api.serializers.user_serializer import UserSerializer
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def get_token(self, user):
+        """Generate a token for the given user"""
+        refresh = RefreshToken.for_user(user)
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
 
     @action(detail=False, methods=["POST"])
     def login(self, request):
@@ -30,9 +39,14 @@ class UserViewSet(ModelViewSet):
                 {"error": "Invalid username or password"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        token = self.get_token(user)
+
         return Response(
             {
                 "message": "Login successfully",
+                "access": token["access"],
+                "refresh": token["refresh"],
             },
             status=status.HTTP_200_OK,
         )
