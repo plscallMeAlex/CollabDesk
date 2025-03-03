@@ -50,7 +50,7 @@ class App(ctk.CTk):
 
     def check_user_token(self):
         """Check if user have valid token, refresh if expired"""
-        if self.token_manage.check_token_expired():
+        if self.token_manager.check_token_expired():
             new_token = self.token_manager.refresh_access_token()
             if new_token:
                 self.pagemanager.switch_page(HomePage)
