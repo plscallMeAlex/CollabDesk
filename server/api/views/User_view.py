@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from api.models import User
 from api.serializers.user_serializer import UserSerializer
 
@@ -16,7 +16,7 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_token(self, user):
+    def __get_token(self, user):
         """Generate a token for the given user"""
         refresh = RefreshToken.for_user(user)
         return {
@@ -43,11 +43,12 @@ class UserViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        token = self.get_token(user)
+        token = self.__get_token(user)
 
         return Response(
             {
                 "message": "Login successfully",
+                "user_id": user.id,
                 "access": token["access"],
                 "refresh": token["refresh"],
             },

@@ -123,12 +123,16 @@ class LoginPage(Page):
                     message="Login successful!",
                     icon="check",
                 )
+                # Token
                 access = response.json()["access"]
                 refresh = response.json()["refresh"]
 
                 # Store the token
                 tokenM = TokenManger()
                 tokenM.store_token({"access": access, "refresh": refresh})
+
+                # Set User Id in the configuration
+                self.master.config.user_id = {"id": response.json()["user_id"]}
 
                 from app.pages.home import HomePage
 
