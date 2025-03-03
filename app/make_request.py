@@ -12,7 +12,7 @@ def make_request(url, method, **kwargs):
     token_manager = TokenManger()
     headers = kwargs.pop("headers", {})
 
-    if not any(url.endswith(path) for path in EXCLUDE_PATH):
+    if not any(path in url for path in EXCLUDE_PATH):
         token = token_manager.get_token()
         if token:
             headers["Authorization"] = f"Bearer {token['access']}"
