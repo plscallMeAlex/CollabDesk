@@ -335,12 +335,12 @@ class TaskCalendarWidget(ctk.CTkFrame):
         dialog.grab_set()  # Make dialog modal
         
         # Task title
-        ctk.CTkLabel(dialog, text="Task Title:").pack(padx=10, pady=(10, 0), anchor="w")
+        ctk.CTkLabel(dialog, text="Task Title:").pack(padx=15, pady=(10, 0), anchor="w")
         title_entry = ctk.CTkEntry(dialog, width=280)
         title_entry.pack(padx=10, pady=(0, 10), fill="x")
         
         # Priority
-        ctk.CTkLabel(dialog, text="Priority:").pack(padx=10, pady=(5, 0), anchor="w")
+        ctk.CTkLabel(dialog, text="Priority:").pack(padx=15, pady=(5, 0), anchor="w")
         priority_var = ctk.StringVar(value="normal")
         
         priority_frame = ctk.CTkFrame(dialog, fg_color="transparent")
@@ -419,7 +419,7 @@ if __name__ == "__main__":
     app.grid_rowconfigure(0, weight=1)
     
     # Create the calendar with specified year and month
-    calendar_widget = TaskCalendarWidget(app, year=2023, month=5)
+    calendar_widget = TaskCalendarWidget(app, year=2025, month=5)
     calendar_widget.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
     
     # Example of setting a callback for day clicks
