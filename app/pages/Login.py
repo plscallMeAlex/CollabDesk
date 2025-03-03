@@ -133,7 +133,9 @@ class LoginPage(Page):
                 from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)
+                return
             else:
+                print(response.json())
                 print("Login failed!")
                 CTkMessagebox(
                     title="Login",

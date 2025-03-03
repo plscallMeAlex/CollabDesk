@@ -2,31 +2,47 @@ import jwt
 from datetime import datetime, timezone
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
+from django.conf import settings
+
+EXCLUDE_PATH = [
+    path.rstrip("/")
+    for path in ["/token/refresh/", "/users/login/", "/users/register/"]
+]
 
 
 class JWTMiddleware(MiddlewareMixin):
-    """Middleware to check if access token is valid during request"""
-
-    """Also return 401 if access token is expired to let client refresh token"""
+    """Middleware to check if access token is valid during request and handle expiration."""
 
     def process_request(self, request):
-        # By pass token refresh endpoint
-        if request.path == "/token/refresh/" or request.path == "/users/login/":
-            return None
+        normalize = request.path.rstrip("/")
+        print(f"🔹 Request path: {normalize}")
+        print(f"🔹 Excluded paths: {EXCLUDE_PATH}")
+
+        if normalize in EXCLUDE_PATH:
+            print("✅ Path is excluded from authentication")
+            return None  # Bypass authentication check
 
         auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
-            try:
-                decoded_token = jwt.decode(token, options={"verify_signature": False})
-                exp_time = datetime.fromtimestamp(decoded_token["exp"], timezone.utc)
+        if not auth_header or not auth_header.startswith("Bearer "):
+            print("❌ Missing or invalid Authorization header")
+            return JsonResponse(
+                {"error": "Authentication credentials were not provided"}, status=401
+            )
 
-                if datetime.now(timezone.utc) > exp_time:
-                    return JsonResponse({"error": "Access token expired"}, status=401)
+        token = auth_header.split(" ")[1]
 
-            except jwt.ExpiredSignatureError:
+        try:
+            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            exp_time = datetime.fromtimestamp(decoded_token["exp"], timezone.utc)
+            if datetime.now(timezone.utc) > exp_time:
+                print("❌ Access token expired")
                 return JsonResponse({"error": "Access token expired"}, status=401)
-            except jwt.DecodeError:
-                return JsonResponse({"error": "Invalid token"}, status=401)
 
-        return None
+        except jwt.ExpiredSignatureError:
+            print("❌ JWT Signature Expired")
+            return JsonResponse({"error": "Access token expired"}, status=401)
+        except jwt.InvalidTokenError:
+            print("❌ Invalid JWT Token")
+            return JsonResponse({"error": "Invalid access token"}, status=401)
+
+        return None  # Request is allowed
