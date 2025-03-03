@@ -2,7 +2,6 @@ import os
 import pickle
 import jwt
 import requests
-from app.make_request import make_request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -53,8 +52,8 @@ class TokenManger(object):
         if not token:
             return None
 
-        response = make_request(
-            self.refresh_token_url, method="POST", json={"refresh": token["refresh"]}
+        response = requests.post(
+            self.refresh_token_url, json={"refresh": token["refresh"]}
         )
 
         if response.status_code == 200:
