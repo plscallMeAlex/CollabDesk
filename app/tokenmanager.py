@@ -11,7 +11,7 @@ class TokenManger(object):
         self.appdata_path = Path(os.getenv("APPDATA")) / app_name
         self.file_path = self.appdata_path / "token_data.pkl"
         self.appdata_path.mkdir(parents=True, exist_ok=True)
-        self.refresh_token_url = os.getenv("API_URL") + "/api/token/refresh/"
+        self.refresh_token_url = os.getenv("API_URL") + "/token/refresh/"
 
     def store_token(self, token):
         """Store access and refresh token in a file"""
