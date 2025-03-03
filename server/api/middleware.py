@@ -11,7 +11,7 @@ class JWTMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         # By pass token refresh endpoint
-        if request.path == "/token/refresh/":
+        if request.path == "/token/refresh/" or request.path == "/users/login/":
             return None
 
         auth_header = request.headers.get("Authorization")
