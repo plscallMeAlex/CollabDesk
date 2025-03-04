@@ -3,10 +3,12 @@ from PIL import Image
 import os
 
 class ServerActionDialog(ctk.CTkToplevel):
-    def __init__(self, parent, action_type="create"):
+    def __init__(self, parent,configuration ,action_type="create"):
         super().__init__(parent)
         self.parent = parent
         self.action_type = action_type
+        # add configuration
+        self._configuration = configuration
         
         self.title("Server Action")
         self.geometry("480x400")
