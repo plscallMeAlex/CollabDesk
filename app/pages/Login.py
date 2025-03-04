@@ -16,7 +16,7 @@ class LoginPage(Page):
         self.master = master
         self.__localframe = ctk.CTkFrame(
             self,
-            fg_color=self.master.config.colors["frame-color-main"],
+            fg_color=self.master.configuration.colors["frame-color-main"],
             corner_radius=10,
         )
         self.__localframe.place(relx=0.5, rely=0.5, anchor="center")
@@ -30,8 +30,8 @@ class LoginPage(Page):
         self.project_name_label = ctk.CTkLabel(
             self.__frame0,
             text="CollabDesk",
-            font=(self.master.config.font, 28, "bold"),
-            text_color=self.master.config.colors["green-program"],
+            font=(self.master.configuration.font, 28, "bold"),
+            text_color=self.master.configuration.colors["green-program"],
         )
         self.__frame0_description = ctk.CTkFrame(
             self.__localframe, fg_color="transparent"
@@ -40,8 +40,8 @@ class LoginPage(Page):
         self.description = ctk.CTkLabel(
             self.__frame0_description,
             text="Login to continue to CollabDesk",
-            font=(self.master.config.font, 12),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 12),
+            text_color=self.master.configuration.colors["black-text"],
             fg_color="transparent",
         )
 
@@ -49,7 +49,7 @@ class LoginPage(Page):
         self.username_entry = ctk.CTkEntry(
             self.__frame1,
             placeholder_text="Enter your username or email",
-            font=(self.master.config.font, 12, "normal"),
+            font=(self.master.configuration.font, 12, "normal"),
         )
         self.password_entry = ctk.CTkEntry(
             self.__frame1, show="*", placeholder_text="Password"
@@ -57,25 +57,25 @@ class LoginPage(Page):
         self.login_button = ctk.CTkButton(
             self.__frame1,
             text="Get Started",
-            font=(self.master.config.font, 12),
+            font=(self.master.configuration.font, 12),
             command=self.login,
-            fg_color=self.master.config.colors["green-program"],
-            text_color=self.master.config.colors["white-text"],
+            fg_color=self.master.configuration.colors["green-program"],
+            text_color=self.master.configuration.colors["white-text"],
         )
 
         self.__frame2 = ctk.CTkFrame(self.__localframe, fg_color="transparent")
         self.register_label = ctk.CTkLabel(
             self.__frame2,
             text="Don't have an account?",
-            font=(self.master.config.font, 10),
-            text_color=self.master.config.colors["grey-text"],
+            font=(self.master.configuration.font, 10),
+            text_color=self.master.configuration.colors["grey-text"],
         )
         self.register_button = ctk.CTkButton(
             self.__frame2,
             text="Register",
-            font=(self.master.config.font, 12),
+            font=(self.master.configuration.font, 12),
             fg_color="transparent",
-            text_color=self.master.config.colors["green-program"],
+            text_color=self.master.configuration.colors["green-program"],
             command=self.navigate_to,
             hover_color="lightgrey",
         )
@@ -111,7 +111,7 @@ class LoginPage(Page):
         self.master.pagemanager.switch_page(RegisterPage)
 
     def login(self, event=None):
-        endpoint = f"{self.master.config.api_url}/users/login/"
+        endpoint = f"{self.master.configuration.api_url}/users/login/"
         username = self.username_entry.get()
         password = self.password_entry.get()
         payload = {"username": username, "password": password}
@@ -129,7 +129,7 @@ class LoginPage(Page):
                 tokenM.store_token({"access": access, "refresh": refresh})
 
                 # Set User Id in the configuration
-                self.master.config.user_id = {"id": response.json()["user_id"]}
+                self.master.configuration.user_id = {"id": response.json()["user_id"]}
 
                 from app.pages.home import HomePage
 
