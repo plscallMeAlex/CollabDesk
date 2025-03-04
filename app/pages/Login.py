@@ -122,10 +122,13 @@ class LoginPage(Page):
                 # Token
                 access = response.json()["access"]
                 refresh = response.json()["refresh"]
+                user_id = response.json()["user_id"]
 
                 # Store the token
                 tokenM = TokenManger()
-                tokenM.store_token({"access": access, "refresh": refresh})
+                tokenM.store_token(
+                    {"access": access, "refresh": refresh, "user_id": user_id}
+                )
 
                 # Set User Id in the configuration
                 self.master.configuration.user_id = {"id": response.json()["user_id"]}
