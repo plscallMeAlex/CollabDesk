@@ -120,11 +120,6 @@ class LoginPage(Page):
             response = make_request(endpoint, "POST", json=payload)
             if response.status_code == 200:
                 print("Login successful!")
-                CTkMessagebox(
-                    title="Login",
-                    message="Login successful!",
-                    icon="check",
-                )
                 # Token
                 access = response.json()["access"]
                 refresh = response.json()["refresh"]
