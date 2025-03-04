@@ -2,14 +2,16 @@ import customtkinter as ctk
 from app.pages.pagemanager import Page
 import requests
 from app.frames.bulletinboard import BulletinBoard
+from app.components.sidebar import SidebarFrame
+from app.components.header import Header
+from app.components.chanelbar import ChannelBar
 
 
 class HomePage(Page):
     def __init__(self, master):
         super().__init__(
             master,
-            fg_color=master.configuration.colors["frame-color-main"],
-            corner_radius=10,
+            fg_color=master.configuration.colors["frame-color-secondary"],
         )
         self.master = master
 
@@ -19,11 +21,31 @@ class HomePage(Page):
         self.__mainframe = ctk.CTkFrame(self, fg_color="transparent")
         self.__mainframe.pack(expand=True, fill="both")
 
-        # Frame container for switching
-        self.frame_container = ctk.CTkFrame(self.__mainframe, fg_color="transparent")
-        self.frame_container.pack(pady=20)
+        # Header at the top
+        self.header = Header(self.__mainframe)
+        self.header.pack(side="top", fill="x", pady=10)
 
-        # Create a BulletinBoard instance (First Frame)
+        # Container for sidebar, channel bar, and main content
+        self.content_container = ctk.CTkFrame(self.__mainframe, fg_color="transparent")
+        self.content_container.pack(expand=True, fill="both", padx=10, pady=10)
+
+        # Sidebar on the left
+        self.sidebar = SidebarFrame(self.content_container, self.master.configuration)
+        self.sidebar.pack(side="left", fill="y", padx=(0, 10))
+
+        # Channel bar next to sidebar
+        self.channel_bar = ChannelBar(self.content_container, self.master.configuration)
+        self.channel_bar.pack(side="left", fill="y", padx=(0, 10))
+
+        # Main content area (right side)
+        self.main_content = ctk.CTkFrame(self.content_container, fg_color="transparent")
+        self.main_content.pack(side="right", expand=True, fill="both")
+
+        # Frame container for switching
+        self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
+        self.frame_container.pack(expand=True, fill="both", pady=20)
+
+        # Create a BulletinBoard instance (First Frame Guild)
         self.__frame0 = BulletinBoard(
             self.frame_container, self.master.configuration, guildId=response[0]["id"]
         )
