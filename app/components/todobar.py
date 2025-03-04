@@ -99,13 +99,6 @@ class TodoBar(ctk.CTkFrame):
                 task_card = TodoCard(self.__frame0, self.__configuration, task)
                 task_card.pack(side="top", pady=5)
                 self.__tasks.append(task_card)
-        else:
-            CTkMessagebox(
-                self.master,
-                title="Error",
-                message="Failed to fetch tasks",
-                icon="cancel",
-            )
 
     def __create_task(self, event):
         """Create a new task card"""
