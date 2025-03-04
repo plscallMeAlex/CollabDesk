@@ -1,6 +1,5 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
-from app.make_request import make_request
 import requests
 from app.pages.pagemanager import Page
 from app.tokenmanager import TokenManger
@@ -117,7 +116,7 @@ class LoginPage(Page):
         payload = {"username": username, "password": password}
 
         try:
-            response = make_request(endpoint, "POST", json=payload)
+            response = requests.post(endpoint, json=payload)
             if response.status_code == 200:
                 print("Login successful!")
                 # Token
@@ -130,7 +129,6 @@ class LoginPage(Page):
 
                 # Set User Id in the configuration
                 self.master.configuration.user_id = {"id": response.json()["user_id"]}
-
                 from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)

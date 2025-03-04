@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
-from app.make_request import make_request
 from app.pages.pagemanager import Page
 from PIL import Image
 
@@ -253,7 +252,7 @@ class RegisterPage(Page):
         }
 
         try:
-            response = make_request(api_url, method="POST", json=data)
+            response = requests.post(api_url, json=data)
             if response.status_code == 201:
                 CTkMessagebox(
                     title="Success",
