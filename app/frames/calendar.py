@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 import calendar
 
 class TaskCalendarWidget(ctk.CTkFrame):
-    def __init__(self, master, configuration,year=None, month=None, **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, master, configuration,year=None, month=None,guildId =None, **kwargs):
+        super().__init__(master, configuration,guildId,**kwargs)
         
         # Set initial date
         self.current_date = datetime.now()

@@ -5,9 +5,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.patches as mpatches
 from datetime import datetime
 
+
 class Dashboard(Frame):
-    def __init__(self, master, configuration, **kwargs):
-        super().__init__(master, configuration, **kwargs)
+    def __init__(self, master, configuration, guildId=None,**kwargs):
+        super().__init__(master, configuration,guildId ,**kwargs)
         
         # Sample data
         self.announcements = [
