@@ -3,8 +3,8 @@ from datetime import datetime
 from app.components.userSidebar import UserSideBar  # Importing the UserSideBar class
 
 class ChatApplication(ctk.CTk):
-    def __init__(self, configuration):
-        super().__init__()
+    def __init__(self,master,configuration,guildId=None,**kwargs):
+        super().__init__(master,configuration,configuration,guildId,**kwargs)
         
         # Configure window
         self.title("Discord-like Chat")
