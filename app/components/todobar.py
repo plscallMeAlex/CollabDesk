@@ -90,7 +90,7 @@ class TodoBar(ctk.CTkFrame):
         """Fetch all tasks that belong to this bar"""
         params = {"state_id": self.__bar_data["id"]}
         response = requests.get(
-            self.__configuration.api_url + "/tasks/in_state/",
+            self.__configuration.api_url + "/tasks/in_guild_by_state/",
             params=params,
         )
         if response.status_code == 200:
@@ -106,7 +106,7 @@ class TodoBar(ctk.CTkFrame):
         if title == "":
             return
         user_id = self.__configuration.load_user_data()
-        
+
         # Require Title, Guild, Assigner, State
         payload = {
             "title": title,
