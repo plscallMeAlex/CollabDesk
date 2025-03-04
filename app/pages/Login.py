@@ -103,12 +103,14 @@ class LoginPage(Page):
         self.username_entry.configure(width=300)  # Make entries wider
         self.password_entry.configure(width=300)
 
+        self.password_entry.bind("<Return>", self.login)
+
     def navigate_to(self):
         from app.pages.register import RegisterPage
 
         self.master.pagemanager.switch_page(RegisterPage)
 
-    def login(self):
+    def login(self, event=None):
         endpoint = f"{self.master.config.api_url}/users/login/"
         username = self.username_entry.get()
         password = self.password_entry.get()
@@ -158,4 +160,3 @@ class LoginPage(Page):
         self.username_entry.delete(0, "end")
         self.password_entry.delete(0, "end")
         self.username_entry.focus_set()
-        self.password_entry.focus_set()
