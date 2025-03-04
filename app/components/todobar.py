@@ -105,12 +105,13 @@ class TodoBar(ctk.CTkFrame):
         title = self.__entry.get()
         if title == "":
             return
-
+        user_id = self.__configuration.load_user_data()
+        
         # Require Title, Guild, Assigner, State
         payload = {
             "title": title,
             "guild": self.__bar_data["guild"],
-            "assigner": self.__configuration.user_data["id"],
+            "assigner": user_id,
             "state": self.__bar_data["id"],
         }
 
