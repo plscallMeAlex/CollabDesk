@@ -55,7 +55,9 @@ class BulletinBoard(Frame):
         )
         if response.status_code == 201:
             bar_data = response.json()
-            bar = TodoBar(self.__frame0, self.__configuration, bar_data)
+            bar = TodoBar(
+                self.__frame0, self.__configuration, bar_data, self.refresh_bars
+            )
             bar.pack(side="left", fill="y", padx=10)
             self.__bar[state] = bar
         else:
