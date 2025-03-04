@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import requests
 from CTkMessagebox import CTkMessagebox
+from app.components.todocardedit import TodoCardEditing
 
 
 # This class to representing the task as a card.
@@ -17,9 +18,9 @@ class TodoCard(ctk.CTkFrame):
         self.__normal_color = configuration.colors["snow-white"]
         self.__hover_color = configuration.colors["hover-snow-white"]
 
+        # Bind hover events to the entire frame
         self.bind("<Enter>", self.__on_hover)
         self.bind("<Leave>", self.__on_leave)
-
         self.bind("<Button-1>", self.__open_editor)
 
     def pack(self, **kwargs):
@@ -36,7 +37,7 @@ class TodoCard(ctk.CTkFrame):
         )
         self.__label.pack(side="left", padx=5, pady=2)
 
-        # Button to delete the task1x
+        # Button to delete the task
         self.__delBut = ctk.CTkButton(
             self,
             text="X",
@@ -48,14 +49,28 @@ class TodoCard(ctk.CTkFrame):
         )
         self.__delBut.pack(side="right", padx=5, pady=2)
 
+        # Bind hover events to all widgets
         self.__label.bind("<Enter>", self.__on_hover)
         self.__label.bind("<Leave>", self.__on_leave)
         self.__delBut.bind("<Enter>", self.__on_hover)
         self.__delBut.bind("<Leave>", self.__on_leave)
 
+        # Bind click event to all widgets except delete button
+        self.__label.bind("<Button-1>", self.__open_editor)
+
     # Open a modal to edit the task
     def __open_editor(self, event):
-        print("Editing task")
+        # Prevent event from propagating to parent widgets
+        event.widget.focus_set()
+        event.widget.focus_force()
+        # Create and show the editor dialog
+        editor = TodoCardEditing(self.master, self._configuration, self.__task_data)
+        editor.transient(self.master)  # Make dialog transient to master
+        editor.grab_set()  # Make dialog modal
+        editor.focus_set()  # Ensure dialog gets focus
+        editor.focus_force()  # Force focus to dialog
+        editor.lift()  # Bring dialog to front
+        return "break"  # Stop event propagation
 
     # Delete the task
     def __delete_task(self):
