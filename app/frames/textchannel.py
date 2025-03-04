@@ -3,12 +3,13 @@ from datetime import datetime
 from app.components.userSidebar import UserSideBar  # Importing the UserSideBar class
 
 class ChatApplication(ctk.CTk):
-    def __init__(self):
+    def __init__(self, configuration):
         super().__init__()
         
         # Configure window
         self.title("Discord-like Chat")
         self.geometry("1200x800")
+        self._configuration = configuration
         
         # Set theme
         ctk.set_appearance_mode("light")  # Set to light mode for a white theme
