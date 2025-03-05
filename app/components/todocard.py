@@ -6,13 +6,23 @@ from app.components.todocardedit import TodoCardEditing
 
 # This class to representing the task as a card.
 class TodoCard(ctk.CTkFrame):
-    def __init__(self, master, configuration, task_data, **kwargs):
+    def __init__(
+        self,
+        master,
+        configuration,
+        task_data,
+        refresh_callback=None,
+        bar_refresh_callback=None,
+        **kwargs,
+    ):
         super().__init__(
             master, fg_color=configuration.colors["snow-white"], height=30, **kwargs
         )
         self.master = master
         self._configuration = configuration
         self.__task_data = task_data
+        self.__refresh_callback = refresh_callback
+        self.__bar_refresh_callback = bar_refresh_callback
 
         # color for changing
         self.__normal_color = configuration.colors["snow-white"]
@@ -64,7 +74,13 @@ class TodoCard(ctk.CTkFrame):
         event.widget.focus_set()
         event.widget.focus_force()
         # Create and show the editor dialog
-        editor = TodoCardEditing(self.master, self._configuration, self.__task_data)
+        editor = TodoCardEditing(
+            self.master,
+            self._configuration,
+            self.__task_data,
+            self.__refresh_callback,
+            self.__bar_refresh_callback,
+        )
         editor.transient(self.master)  # Make dialog transient to master
         editor.grab_set()  # Make dialog modal
         editor.focus_set()  # Ensure dialog gets focus
@@ -99,6 +115,10 @@ class TodoCard(ctk.CTkFrame):
         )
 
         if response.status_code == 204:
+            if self.__refresh_callback:
+                self.__refresh_callback()  # Refresh the specific bar
+            if self.__bar_refresh_callback:
+                self.__bar_refresh_callback()  # Refresh all bars
             return CTkMessagebox(
                 self.master,
                 icon="check",

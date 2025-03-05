@@ -96,7 +96,13 @@ class TodoBar(ctk.CTkFrame):
         if response.status_code == 200:
             tasks = response.json()
             for task in tasks:
-                task_card = TodoCard(self.__frame0, self.__configuration, task)
+                task_card = TodoCard(
+                    self.__frame0,
+                    self.__configuration,
+                    task,
+                    self.refresh_tasks,  # Pass the refresh callback for this bar
+                    self.__bar_refresh,  # Pass the refresh callback for all bars
+                )
                 task_card.pack(side="top", pady=5)
                 self.__tasks.append(task_card)
 
@@ -124,7 +130,13 @@ class TodoBar(ctk.CTkFrame):
 
             if response.status_code == 201:
                 data = response.json()
-                task = TodoCard(self.__frame0, self.__configuration, data)
+                task = TodoCard(
+                    self.__frame0,
+                    self.__configuration,
+                    data,
+                    self.refresh_tasks,  # Pass the refresh callback for this bar
+                    self.__bar_refresh,  # Pass the refresh callback for all bars
+                )
                 task.pack(side="top", pady=5)
                 self.__tasks.append(task)
 
