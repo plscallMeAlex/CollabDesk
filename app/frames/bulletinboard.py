@@ -120,6 +120,5 @@ class BulletinBoard(Frame):
     # This method will be called once to initialize the bars if there not have any bars in the db
     def __init_bars(self):
         # POST request to create the default bars
-        states = ["Todo", "Doing", "Done"]
-        for state in states:
+        for state in DEFAULT_BARS:
             self.create_bar(state)
