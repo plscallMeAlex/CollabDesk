@@ -129,6 +129,8 @@ class TodoCardEditing(ctk.CTkToplevel):
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
         due_date_label.pack(pady=5)
+        due_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
+        due_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
 
         # Announce date label vertically
         announce_date_label = ctk.CTkLabel(
@@ -137,6 +139,8 @@ class TodoCardEditing(ctk.CTkToplevel):
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
         announce_date_label.pack(pady=5)
+        announce_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
+        announce_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
 
     def __save_changes(self, event=None):
         pass
@@ -195,6 +199,50 @@ class TodoCardEditing(ctk.CTkToplevel):
                 self.grab_set()  # Set grab
         except tk.TclError:
             pass
+
+    def __on_hover_enter(self, event):
+        """Change text color when mouse enters"""
+        widget = event.widget
+        try:
+            # For standard tkinter Labels
+            if isinstance(widget, tk.Label):
+                widget.configure(fg=self.__configuration.colors["green-program"])
+            # For CustomTkinter CTkLabel
+            elif hasattr(widget, "configure") and hasattr(widget, "_text_label"):
+                widget.configure(
+                    text_color=self.__configuration.colors["green-program"]
+                )
+            # For CustomTkinter CTkCanvas
+            elif hasattr(widget, "itemconfigure"):
+                # Find all text items in the canvas and change their fill color
+                for item_id in widget.find_all():
+                    if widget.type(item_id) == "text":
+                        widget.itemconfigure(
+                            item_id, fill=self.__configuration.colors["green-program"]
+                        )
+        except Exception as e:
+            print(f"Error in hover enter: {e}")
+
+    def __on_hover_leave(self, event):
+        """Restore text color when mouse leaves"""
+        widget = event.widget
+        try:
+            # For standard tkinter Labels
+            if isinstance(widget, tk.Label):
+                widget.configure(fg=self.__configuration.colors["black-text"])
+            # For CustomTkinter CTkLabel
+            elif hasattr(widget, "configure") and hasattr(widget, "_text_label"):
+                widget.configure(text_color=self.__configuration.colors["black-text"])
+            # For CustomTkinter CTkCanvas
+            elif hasattr(widget, "itemconfigure"):
+                # Find all text items in the canvas and restore their fill color
+                for item_id in widget.find_all():
+                    if widget.type(item_id) == "text":
+                        widget.itemconfigure(
+                            item_id, fill=self.__configuration.colors["black-text"]
+                        )
+        except Exception as e:
+            print(f"Error in hover leave: {e}")
 
     # Format date belong to user's timezone
     def __date_formatter(self, date):
