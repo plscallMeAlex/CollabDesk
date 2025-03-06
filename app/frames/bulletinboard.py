@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from tkinter import ttk
 from CTkMessagebox import CTkMessagebox
 import requests
 from app.frames.frame import Frame
@@ -19,7 +20,7 @@ class BulletinBoard(Frame):
         self.__localframe = ctk.CTkScrollableFrame(
             self,
             fg_color=self._configuration.colors["snow-white"],
-            height=600,
+            height=800,
         )
         self.__localframe.pack(expand=True, fill="both")
 
@@ -38,7 +39,16 @@ class BulletinBoard(Frame):
         )  # for storing the
 
         self.__frame0.pack(expand=True, fill="both")
+        # Line separator
+        self.__line_separator = ttk.Separator(
+            self.__localframe,
+            orient="horizontal",
+            style="Horizontal.TFrame",
+        )
+        self.__line_separator.pack(expand=True, fill="both")
         self.__frame1.pack(expand=True, fill="both")
+
+        # User task
         self.__user_task = UserTask(self.__frame1, self.__configuration)
         self.__user_task.pack(expand=True, fill="both")
 

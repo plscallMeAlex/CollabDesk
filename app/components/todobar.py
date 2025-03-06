@@ -6,10 +6,13 @@ import uuid
 
 
 # TaskState frontend component
-class TodoBar(ctk.CTkFrame):
+class TodoBar(ctk.CTkScrollableFrame):
     def __init__(self, master, configuration, bar_data, bar_refresh):
         super().__init__(
-            master, fg_color=configuration.colors["frame-color-main"], corner_radius=10
+            master,
+            fg_color=configuration.colors["frame-color-main"],
+            corner_radius=10,
+            height=400,  # Increased height
         )
         self.master = master
         self.__configuration = configuration
@@ -53,7 +56,7 @@ class TodoBar(ctk.CTkFrame):
 
         # Frame for storing the task cards
         self.__frame0 = ctk.CTkFrame(self, fg_color="transparent")
-        self.__frame0.pack(fill="both", expand=True, padx=10, pady=10)
+        self.__frame0.pack(fill="both", expand=True, padx=10, pady=5)
 
         self.__taskButt = ctk.CTkButton(
             self.__frame0,
