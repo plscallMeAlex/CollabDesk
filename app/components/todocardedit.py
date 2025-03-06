@@ -1,3 +1,5 @@
+from datetime import datetime
+import pytz
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import ttk
@@ -186,4 +188,18 @@ class TodoCardEditing(ctk.CTkToplevel):
 
     # Format date belong to user's timezone
     def __date_formatter(self, date):
-        pass
+        # Determine the correct format
+        if "." in date:
+            fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
+        else:
+            fmt = "%Y-%m-%dT%H:%M:%SZ"
+
+        # Parse the UTC timestamp
+        utc_time = datetime.strptime(date, fmt)
+
+        # Convert to local timezone
+        local_tz = pytz.timezone("Asia/Bangkok")
+        local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(local_tz)
+
+        # Format for readability
+        return local_time.strftime("%A, %B %d, %Y %I:%M %p %Z")
