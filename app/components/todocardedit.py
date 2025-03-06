@@ -106,27 +106,37 @@ class TodoCardEditing(ctk.CTkToplevel):
         date_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         date_frame.pack(fill="both", expand=True, pady=10)
 
-        # Create date label horizontally
+        # Create date label vertically
         create_date_label = ctk.CTkLabel(
             date_frame,
             text=f"Created: {self.__date_formatter(self.__task_data['created_at'])}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
-        create_date_label.pack(side="left", padx=10)
-        # Update date label horizontally
+        create_date_label.pack(pady=5)
+
+        # Update date label vertically
         update_date_label = ctk.CTkLabel(
             date_frame,
             text=f"Updated: {self.__date_formatter(self.__task_data['updated_at'])}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
-        update_date_label.pack(side="left", padx=10)
-        # Due date label horizontally
+        update_date_label.pack(pady=5)
+
+        # Due date label vertically
         due_date_label = ctk.CTkLabel(
             date_frame,
             text=f"Due: {self.__date_formatter(self.__task_data['due_date'])}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
-        due_date_label.pack(side="left", padx=10)
+        due_date_label.pack(pady=5)
+
+        # Announce date label vertically
+        announce_date_label = ctk.CTkLabel(
+            date_frame,
+            text=f"Announce: {self.__date_formatter(self.__task_data['announce_date'])}",
+            font=ctk.CTkFont(self.__configuration.font, size=12),
+        )
+        announce_date_label.pack(pady=5)
 
     def __save_changes(self, event=None):
         pass
