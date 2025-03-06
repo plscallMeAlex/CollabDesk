@@ -105,13 +105,13 @@ class TodoCardEditing(ctk.CTkToplevel):
         main_container = ctk.CTkFrame(self, fg_color="transparent")
         main_container.pack(fill="both", expand=True)
 
-        # Title label
+        # Title label with fixed position
         title_label = ctk.CTkLabel(
             main_container,
             text=self.__task_data["title"],
             font=ctk.CTkFont(self.__configuration.font, size=20, weight="bold"),
         )
-        title_label.pack(pady=10)
+        title_label.pack(pady=10, anchor="w", padx=20)  # Align to left with padding
         title_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
         title_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
         title_label.bind(
@@ -219,15 +219,21 @@ class TodoCardEditing(ctk.CTkToplevel):
 
     def __show_text_editor(self, label, field_name):
         """Show text entry for editing"""
-        # Create entry widget
+        # Get the label's position and size
+        x, y = label.winfo_x(), label.winfo_y()
+        width, height = label.winfo_width(), label.winfo_height()
+
+        # Create entry widget with same position and size
         entry = ctk.CTkEntry(
             label.master,
             font=ctk.CTkFont(self.__configuration.font, size=20, weight="bold"),
             fg_color=self.__configuration.colors["snow-white"],
             border_width=1,
+            width=width,
+            height=height,
         )
         entry.insert(0, self.__task_data[field_name])
-        entry.pack(pady=10)
+        entry.place(x=x, y=y)  # Use place instead of pack for precise positioning
         entry.focus_set()
         entry.focus_force()
 
@@ -242,7 +248,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         entry.bind("<Escape>", lambda e: self.__cancel_text_edit(field_name))
 
         # Hide the label
-        label.pack_forget()
+        label.place_forget()
 
     def __save_text_value(self, new_value, field_name):
         """Save the text value"""
@@ -259,7 +265,7 @@ class TodoCardEditing(ctk.CTkToplevel):
             del self.__editing_fields[field_name]
             del self.__original_values[field_name]
 
-            # Show the label again
+            # Show the label again with pack
             label.pack(pady=10)
         except Exception as e:
             print(f"Error saving text: {e}")
@@ -284,7 +290,7 @@ class TodoCardEditing(ctk.CTkToplevel):
             del self.__editing_fields[field_name]
             del self.__original_values[field_name]
 
-            # Show the label again
+            # Show the label again with pack
             label.pack(pady=10)
         except Exception as e:
             print(f"Error canceling text edit: {e}")
@@ -399,10 +405,12 @@ class TodoCardEditing(ctk.CTkToplevel):
                 # For other fields, they're already updated in __task_data when edited
                 else:
                     # Get the original value from the task data when it was loaded
-                    if field in self.__original_values:
-                        original_value = self.__original_values[field]
-                        if self.__task_data[field] != original_value:
-                            changed_data[field] = self.__task_data[field]
+                    original_value = self.__original_values.get(field)
+                    current_value = self.__task_data.get(field)
+
+                    # Compare values and add to changed_data if different
+                    if original_value != current_value:
+                        changed_data[field] = current_value
 
             # Check for assignee changes
             selected_username = self.__assignee_combo.get()
