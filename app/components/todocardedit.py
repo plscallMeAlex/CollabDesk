@@ -33,7 +33,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         }
 
         self.title("Edit Task")
-        self.geometry("400x600")  # Increased height for more fields
+        self.geometry("400x800")  # Increased height for more fields
         self.configure(fg_color=configuration.colors["snow-white"])
         self.resizable(False, False)
 
