@@ -91,6 +91,7 @@ class BulletinBoard(Frame):
                 bar_data,
                 self.refresh_bars,
                 True if state not in DEFAULT_BARS else False,
+                self.__fetch_bars,
             )
             bar.pack(side="left", fill="y", padx=10)
             self.__bar[state] = bar
@@ -117,6 +118,12 @@ class BulletinBoard(Frame):
 
         if response.status_code == 200 and response.json() != []:
             bar_datas = response.json()
+            # Clear the existing bars
+            for bar in self.__bar.values():
+                # unpack the bar
+                bar.pack_forget()
+                bar.destroy()
+            self.__bar.clear()
             for data in bar_datas:
                 bar = TodoBar(
                     self.__frame0,
@@ -124,6 +131,7 @@ class BulletinBoard(Frame):
                     data,
                     self.refresh_bars,
                     True if data["title"] not in DEFAULT_BARS else False,
+                    self.__fetch_bars,
                 )
                 bar.pack(side="left", fill="y", padx=10)
                 self.__bar[data["title"]] = bar
