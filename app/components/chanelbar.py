@@ -5,10 +5,10 @@ import os
 
 
 class ChannelBar(ctk.CTkFrame):
-    def __init__(self, parent, page_manager=None):
+    def __init__(self, parent,configuration,page_manager=None):
         super().__init__(parent)
         self.page_manager = page_manager  
-        
+        self._conguration = configuration
         self.configure(width=250, height=600, corner_radius=10)
 
         self.server_label = ctk.CTkLabel(self, text="CollabDesk", font=("Arial", 16, "bold"), text_color="black", anchor="w")
