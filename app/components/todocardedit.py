@@ -36,7 +36,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         self.__fetch_users()  # Fetch users when dialog opens
 
         self.title("Edit Task")
-        self.geometry("400x800")  # Increased height for more fields
+        self.geometry("400x600")  # Increased height for more fields
         self.configure(fg_color=configuration.colors["snow-white"])
         self.resizable(False, False)
 
@@ -166,9 +166,10 @@ class TodoCardEditing(ctk.CTkToplevel):
         text_description = ctk.CTkTextbox(
             main_container,
             font=ctk.CTkFont(self.__configuration.font, size=12),
+            height=150,  # Set a fixed height
         )
         text_description.insert("1.0", self.__task_data["description"])
-        text_description.pack(fill="both", expand=True, pady=10)
+        text_description.pack(fill="x", pady=10)  # Changed from fill="both" to fill="x"
 
         # Date Frame for create, update, due date
         date_frame = ctk.CTkFrame(main_container, fg_color="transparent")
