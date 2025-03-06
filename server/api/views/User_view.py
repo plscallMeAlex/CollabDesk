@@ -25,7 +25,6 @@ class UserViewSet(ModelViewSet):
 
     @action(detail=False, methods=["POST"], permission_classes=[AllowAny])
     def login(self, request):
-        print("Login request")
         username, password = (
             request.data.get("username", "").strip(),
             request.data.get("password", "").strip(),

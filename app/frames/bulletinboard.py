@@ -3,6 +3,7 @@ from CTkMessagebox import CTkMessagebox
 import requests
 from app.frames.frame import Frame
 from app.components.todobar import TodoBar
+from app.components.usertask import UserTask
 
 
 class BulletinBoard(Frame):
@@ -36,6 +37,8 @@ class BulletinBoard(Frame):
 
         self.__frame0.pack(expand=True, fill="both")
         self.__frame1.pack(expand=True, fill="both")
+        self.__user_task = UserTask(self.__frame1, self.__configuration)
+        self.__user_task.pack(expand=True, fill="both")
 
     def create_bar(self, state):
         # Check if it reach the limit of bars
@@ -68,6 +71,12 @@ class BulletinBoard(Frame):
         for bar in self.__bar.values():
             bar.refresh_tasks()
 
+        # refresh user task
+        try:
+            self.__user_task.refresh_tasks()
+        except Exception as e:
+            print(f"Error refreshing user task: {e}")
+
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}
         response = requests.get(
@@ -95,17 +104,3 @@ class BulletinBoard(Frame):
         states = ["Todo", "Doing", "Done"]
         for state in states:
             self.create_bar(state)
-
-
-# Testing the bulletin board frame with the following code function
-if __name__ == "__main__":
-    from app.configuration import Configuration
-
-    app = ctk.CTk()
-    config = Configuration()
-    app.title("Bulletin Board")
-
-    bullet = BulletinBoard(app, config, guildId="ec5bae5a-c003-45b6-90b5-f3a9729273d2")
-    bullet.pack(expand=True, fill="both")
-
-    app.mainloop()
