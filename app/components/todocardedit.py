@@ -30,7 +30,10 @@ class TodoCardEditing(ctk.CTkToplevel):
             "description": task_data["description"],
             "due_date": task_data["due_date"],
             "announce_date": task_data["announce_date"],
+            "assignee": task_data["assignee"],
         }
+        self.__users = {}  # Store users data
+        self.__fetch_users()  # Fetch users when dialog opens
 
         self.title("Edit Task")
         self.geometry("400x800")  # Increased height for more fields
@@ -44,6 +47,30 @@ class TodoCardEditing(ctk.CTkToplevel):
 
         self.create_widgets()
         self.create_close_button()
+
+    def __fetch_users(self):
+        """Fetch all users from the backend"""
+        try:
+            # Prepare headers
+            headers = {
+                "Content-Type": "application/json",
+            }
+
+            # Send GET request to fetch users
+            response = requests.get(
+                f"{self.__configuration.api_url}/users/get_all_users/", headers=headers
+            )
+
+            if response.status_code == 200:
+                users_data = response.json()
+                # Create a dictionary with username as key and user object as value
+                self.__users = {user["username"]: user for user in users_data}
+                # Add "None" option for no assignee
+                self.__users["None"] = None
+            else:
+                print(f"Failed to fetch users: {response.status_code}")
+        except Exception as e:
+            print(f"Error fetching users: {e}")
 
     def create_close_button(self):
         """Create a button frame with Save Changes and Close buttons"""
@@ -94,6 +121,45 @@ class TodoCardEditing(ctk.CTkToplevel):
         # line separator
         line_separator = ttk.Separator(main_container, orient="horizontal")
         line_separator.pack(fill="x", pady=10)
+
+        """Assignee Selection"""
+        # Assignee frame
+        assignee_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        assignee_frame.pack(fill="x", pady=5)
+
+        # Assignee label
+        assignee_label = ctk.CTkLabel(
+            assignee_frame,
+            text="Assignee:",
+            font=ctk.CTkFont(self.__configuration.font, size=12),
+        )
+        assignee_label.pack(side="left", padx=5)
+
+        # Assignee combobox
+        self.__assignee_combo = ctk.CTkComboBox(
+            assignee_frame,
+            values=list(self.__users.keys()),
+            font=ctk.CTkFont(self.__configuration.font, size=12),
+            width=200,
+        )
+        self.__assignee_combo.pack(side="left", padx=5)
+
+        # Set current assignee
+        current_assignee = self.__task_data.get("assignee")
+        if current_assignee:
+            # Handle both string and dictionary assignee values
+            if isinstance(current_assignee, dict):
+                assignee_id = current_assignee.get("id")
+            else:
+                assignee_id = current_assignee
+
+            # Find the username for the current assignee ID
+            for username, user in self.__users.items():
+                if user and user.get("id") == assignee_id:
+                    self.__assignee_combo.set(username)
+                    break
+        else:
+            self.__assignee_combo.set("None")
 
         """Task description"""
         # Task description label
@@ -336,6 +402,17 @@ class TodoCardEditing(ctk.CTkToplevel):
                         original_value = self.__original_values[field]
                         if self.__task_data[field] != original_value:
                             changed_data[field] = self.__task_data[field]
+
+            # Check for assignee changes
+            selected_username = self.__assignee_combo.get()
+            selected_user = self.__users.get(selected_username)
+            current_assignee = self.__task_data.get("assignee")
+
+            if selected_user != current_assignee:
+                if selected_user:
+                    changed_data["assignee"] = selected_user["id"]
+                else:
+                    changed_data["assignee"] = None
 
             # If no changes, show message and return
             if not changed_data:

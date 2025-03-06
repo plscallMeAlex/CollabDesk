@@ -14,7 +14,6 @@ from api.serializers.user_serializer import UserSerializer
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
 
     def __get_token(self, user):
         """Generate a token for the given user"""
