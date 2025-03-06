@@ -7,7 +7,7 @@ import uuid
 
 # TaskState frontend component
 class TodoBar(ctk.CTkScrollableFrame):
-    def __init__(self, master, configuration, bar_data, bar_refresh):
+    def __init__(self, master, configuration, bar_data, bar_refresh, deletable):
         super().__init__(
             master,
             fg_color=configuration.colors["frame-color-main"],
@@ -20,6 +20,7 @@ class TodoBar(ctk.CTkScrollableFrame):
         self.__configuration = configuration
         self.__bar_data = bar_data
         self.__bar_refresh = bar_refresh
+        self.__deletable = deletable
         self.__tasks = []
         self.__entry_open = False
 
@@ -200,6 +201,14 @@ class TodoBar(ctk.CTkScrollableFrame):
         self.__entry_open = False
 
     def __open_dialog(self, event):
+        if not self.__deletable:
+            CTkMessagebox(
+                self.master,
+                title="Error",
+                message="This bar can not be deleted",
+                icon="cancel",
+            )
+            return
         """Open a dialog to delete the bar"""
         transfer_dialog = TransferDialog(
             self.master,

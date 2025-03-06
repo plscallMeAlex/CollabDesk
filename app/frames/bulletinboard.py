@@ -6,6 +6,8 @@ from app.frames.frame import Frame
 from app.components.todobar import TodoBar
 from app.components.usertask import UserTask
 
+DEFAULT_BARS = ["Todo", "Doing", "Done"]
+
 
 class BulletinBoard(Frame):
     def __init__(self, master, configuration, **kwargs):
@@ -71,7 +73,11 @@ class BulletinBoard(Frame):
         if response.status_code == 201:
             bar_data = response.json()
             bar = TodoBar(
-                self.__frame0, self.__configuration, bar_data, self.refresh_bars
+                self.__frame0,
+                self.__configuration,
+                bar_data,
+                self.refresh_bars,
+                True if state not in DEFAULT_BARS else False,
             )
             bar.pack(side="left", fill="y", padx=10)
             self.__bar[state] = bar
@@ -104,6 +110,7 @@ class BulletinBoard(Frame):
                     self.__configuration,
                     data,
                     self.refresh_bars,
+                    True if data["title"] not in DEFAULT_BARS else False,
                 )
                 bar.pack(side="left", fill="y", padx=10)
                 self.__bar[data["title"]] = bar
