@@ -28,6 +28,13 @@ class TokenManger(object):
         except FileNotFoundError:
             return None
 
+    def user_from_token(self):
+        token = self.get_token()
+        if not token:
+            return None
+        decoded_token = jwt.decode(token["access"], options={"verify_signature": False})
+        return decoded_token["user_id"]
+
     def check_token_expired(self):
         """Check if token is expired"""
         token = self.get_token()

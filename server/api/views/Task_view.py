@@ -99,6 +99,28 @@ class TaskViewSet(ModelViewSet):
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=["GET"])
+    def user_tasks(self, request):
+        user_id = request.query_params.get("user_id")
+        tasks = Task.objects.filter(assignee=user_id)
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # update a task
+    @action(detail=True, methods=["PATCH"])
+    def update_task(self, request, pk=None):
+        task = Task.objects.filter(id=pk).first()
+        if task is None:
+            return Response(
+                {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = TaskSerializer(task, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=["DELETE"])
     def delete_task(self, request, pk=None):
         task = Task.objects.filter(id=pk).first()

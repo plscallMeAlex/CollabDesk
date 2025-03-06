@@ -1,16 +1,20 @@
 import requests
 import customtkinter as ctk
-from app.make_request import make_request
 from CTkMessagebox import CTkMessagebox
 from app.components.todocard import TodoCard
 import uuid
 
 
 # TaskState frontend component
-class TodoBar(ctk.CTkFrame):
+class TodoBar(ctk.CTkScrollableFrame):
     def __init__(self, master, configuration, bar_data, bar_refresh):
         super().__init__(
-            master, fg_color=configuration.colors["frame-color-main"], corner_radius=10
+            master,
+            fg_color=configuration.colors["frame-color-main"],
+            corner_radius=10,
+            height=400,  # Increased height
+            scrollbar_button_color=configuration.colors["frame-color-main"],
+            scrollbar_button_hover_color=configuration.colors["grey-text"],
         )
         self.master = master
         self.__configuration = configuration
@@ -18,6 +22,10 @@ class TodoBar(ctk.CTkFrame):
         self.__bar_refresh = bar_refresh
         self.__tasks = []
         self.__entry_open = False
+
+        # Bind hover events for scrollbar visibility
+        self.bind("<Enter>", self.__show_scrollbar)
+        self.bind("<Leave>", self.__hide_scrollbar)
 
     def pack(self, **kwargs):
         super().pack(pady=10, **kwargs)
@@ -54,7 +62,7 @@ class TodoBar(ctk.CTkFrame):
 
         # Frame for storing the task cards
         self.__frame0 = ctk.CTkFrame(self, fg_color="transparent")
-        self.__frame0.pack(fill="both", expand=True, padx=10, pady=10)
+        self.__frame0.pack(fill="both", expand=True, padx=10, pady=5)
 
         self.__taskButt = ctk.CTkButton(
             self.__frame0,
@@ -90,52 +98,54 @@ class TodoBar(ctk.CTkFrame):
     def __fetch_tasks(self):
         """Fetch all tasks that belong to this bar"""
         params = {"state_id": self.__bar_data["id"]}
-        response = make_request(
+        response = requests.get(
             self.__configuration.api_url + "/tasks/in_guild_by_state/",
-            "GET",
             params=params,
         )
-
         if response.status_code == 200:
             tasks = response.json()
             for task in tasks:
-                task_card = TodoCard(self.__frame0, self.__configuration, task)
+                task_card = TodoCard(
+                    self.__frame0,
+                    self.__configuration,
+                    task,
+                    self.refresh_tasks,  # Pass the refresh callback for this bar
+                    self.__bar_refresh,  # Pass the refresh callback for all bars
+                )
                 task_card.pack(side="top", pady=5)
                 self.__tasks.append(task_card)
-        else:
-            CTkMessagebox(
-                self.master,
-                title="Error",
-                message="Failed to fetch tasks",
-                icon="cancel",
-            )
 
     def __create_task(self, event):
         """Create a new task card"""
         title = self.__entry.get()
         if title == "":
             return
+        user_id = self.__configuration.load_user_data()
 
         # Require Title, Guild, Assigner, State
         payload = {
             "title": title,
             "guild": self.__bar_data["guild"],
-            "assigner": self.__configuration.user_data["id"],
+            "assigner": user_id,
             "state": self.__bar_data["id"],
         }
 
         try:
             # send a POST request to the server to create a new task
-            response = make_request(
+            response = requests.post(
                 self.__configuration.api_url + "/tasks/create_task/",
-                method="POST",
                 json=payload,
-                headers={"Content-Type": "application/json"},
             )
 
             if response.status_code == 201:
                 data = response.json()
-                task = TodoCard(self.__frame0, self.__configuration, data)
+                task = TodoCard(
+                    self.__frame0,
+                    self.__configuration,
+                    data,
+                    self.refresh_tasks,  # Pass the refresh callback for this bar
+                    self.__bar_refresh,  # Pass the refresh callback for all bars
+                )
                 task.pack(side="top", pady=5)
                 self.__tasks.append(task)
 
@@ -215,6 +225,18 @@ class TodoBar(ctk.CTkFrame):
     def __add_task_leave(self, event):
         self.__taskButt.lower()
 
+    def __show_scrollbar(self, event):
+        """Show the scrollbar when hovering over the frame"""
+        self._parent_canvas.configure(
+            scrollbar_button_color=self.__configuration.colors["grey-text"]
+        )
+
+    def __hide_scrollbar(self, event):
+        """Hide the scrollbar when leaving the frame"""
+        self._parent_canvas.configure(
+            scrollbar_button_color=self.__configuration.colors["frame-color-main"]
+        )
+
 
 class TransferDialog(ctk.CTkToplevel):
     def __init__(
@@ -288,11 +310,9 @@ class TransferDialog(ctk.CTkToplevel):
                     "state_id": self.__state_id,
                     "new_state_id": selected_state["id"],
                 }
-                response = make_request(
+                response = requests.patch(
                     self.__configuration.api_url + "/taskstates/transfer_state/",
-                    method="PATCH",
                     json=payload,
-                    headers={"Content-Type": "application/json"},
                 )
                 if response.status_code == 200:
                     box = CTkMessagebox(
@@ -340,9 +360,8 @@ class TransferDialog(ctk.CTkToplevel):
         """Fetch available states, excluding the current state."""
         try:
             params = {"guild_id": self.__guild_id, "state_id": self.__state_id}
-            response = make_request(
+            response = requests.get(
                 self.__configuration.api_url + "/taskstates/in_guild/",
-                method="GET",
                 params=params,
             )
             if response.status_code == 200:

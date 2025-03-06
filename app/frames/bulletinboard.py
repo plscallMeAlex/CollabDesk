@@ -1,9 +1,10 @@
 import customtkinter as ctk
+from tkinter import ttk
 from CTkMessagebox import CTkMessagebox
 import requests
-from app.make_request import make_request
 from app.frames.frame import Frame
 from app.components.todobar import TodoBar
+from app.components.usertask import UserTask
 
 
 class BulletinBoard(Frame):
@@ -12,12 +13,14 @@ class BulletinBoard(Frame):
             master,
             configuration,
             fg_color=configuration.colors["frame-color-main"],
-            **kwargs
+            **kwargs,
         )
         self.master = master
         self.__configuration = configuration
-        self.__localframe = ctk.CTkFrame(
-            self, fg_color=self._configuration.colors["snow-white"]
+        self.__localframe = ctk.CTkScrollableFrame(
+            self,
+            fg_color=self._configuration.colors["snow-white"],
+            height=800,
         )
         self.__localframe.pack(expand=True, fill="both")
 
@@ -36,7 +39,18 @@ class BulletinBoard(Frame):
         )  # for storing the
 
         self.__frame0.pack(expand=True, fill="both")
+        # Line separator
+        self.__line_separator = ttk.Separator(
+            self.__localframe,
+            orient="horizontal",
+            style="Horizontal.TFrame",
+        )
+        self.__line_separator.pack(expand=True, fill="both")
         self.__frame1.pack(expand=True, fill="both")
+
+        # User task
+        self.__user_task = UserTask(self.__frame1, self.__configuration)
+        self.__user_task.pack(expand=True, fill="both")
 
     def create_bar(self, state):
         # Check if it reach the limit of bars
@@ -50,14 +64,15 @@ class BulletinBoard(Frame):
             return
 
         payload = {"title": state, "guild": self._guildId}
-        response = make_request(
+        response = requests.post(
             self.__configuration.api_url + "/taskstates/create_state/",
-            method="POST",
-            data=payload,
+            json=payload,
         )
         if response.status_code == 201:
             bar_data = response.json()
-            bar = TodoBar(self.__frame0, self.__configuration, bar_data)
+            bar = TodoBar(
+                self.__frame0, self.__configuration, bar_data, self.refresh_bars
+            )
             bar.pack(side="left", fill="y", padx=10)
             self.__bar[state] = bar
         else:
@@ -68,11 +83,16 @@ class BulletinBoard(Frame):
         for bar in self.__bar.values():
             bar.refresh_tasks()
 
+        # refresh user task
+        try:
+            self.__user_task.refresh_tasks()
+        except Exception as e:
+            print(f"Error refreshing user task: {e}")
+
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}
-        response = make_request(
+        response = requests.get(
             self.__configuration.api_url + "/taskstates/in_guild/",
-            method="GET",
             params=params,
         )
 
@@ -96,17 +116,3 @@ class BulletinBoard(Frame):
         states = ["Todo", "Doing", "Done"]
         for state in states:
             self.create_bar(state)
-
-
-# Testing the bulletin board frame with the following code function
-if __name__ == "__main__":
-    from app.configuration import Configuration
-
-    app = ctk.CTk()
-    config = Configuration()
-    app.title("Bulletin Board")
-
-    bullet = BulletinBoard(app, config, guildId="ec5bae5a-c003-45b6-90b5-f3a9729273d2")
-    bullet.pack(expand=True, fill="both")
-
-    app.mainloop()

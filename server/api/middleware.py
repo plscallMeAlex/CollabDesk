@@ -15,6 +15,7 @@ class JWTMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         normalize = request.path.rstrip("/")
+        return None
         print(f"🔹 Request path: {normalize}")
         print(f"🔹 Excluded paths: {EXCLUDE_PATH}")
 

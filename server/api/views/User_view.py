@@ -14,7 +14,6 @@ from api.serializers.user_serializer import UserSerializer
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
 
     def __get_token(self, user):
         """Generate a token for the given user"""
@@ -26,7 +25,6 @@ class UserViewSet(ModelViewSet):
 
     @action(detail=False, methods=["POST"], permission_classes=[AllowAny])
     def login(self, request):
-        print("Login request")
         username, password = (
             request.data.get("username", "").strip(),
             request.data.get("password", "").strip(),
@@ -63,3 +61,10 @@ class UserViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # To get all users
+    @action(detail=False, methods=["GET"])
+    def get_all_users(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
