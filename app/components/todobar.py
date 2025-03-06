@@ -13,6 +13,8 @@ class TodoBar(ctk.CTkScrollableFrame):
             fg_color=configuration.colors["frame-color-main"],
             corner_radius=10,
             height=400,  # Increased height
+            scrollbar_button_color=configuration.colors["frame-color-main"],
+            scrollbar_button_hover_color=configuration.colors["grey-text"],
         )
         self.master = master
         self.__configuration = configuration
@@ -20,6 +22,10 @@ class TodoBar(ctk.CTkScrollableFrame):
         self.__bar_refresh = bar_refresh
         self.__tasks = []
         self.__entry_open = False
+
+        # Bind hover events for scrollbar visibility
+        self.bind("<Enter>", self.__show_scrollbar)
+        self.bind("<Leave>", self.__hide_scrollbar)
 
     def pack(self, **kwargs):
         super().pack(pady=10, **kwargs)
@@ -218,6 +224,18 @@ class TodoBar(ctk.CTkScrollableFrame):
 
     def __add_task_leave(self, event):
         self.__taskButt.lower()
+
+    def __show_scrollbar(self, event):
+        """Show the scrollbar when hovering over the frame"""
+        self._parent_canvas.configure(
+            scrollbar_button_color=self.__configuration.colors["grey-text"]
+        )
+
+    def __hide_scrollbar(self, event):
+        """Hide the scrollbar when leaving the frame"""
+        self._parent_canvas.configure(
+            scrollbar_button_color=self.__configuration.colors["frame-color-main"]
+        )
 
 
 class TransferDialog(ctk.CTkToplevel):
