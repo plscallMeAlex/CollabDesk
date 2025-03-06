@@ -27,7 +27,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         self.__editing_fields = {}  # Store editing widgets
         self.__original_values = {
             "title": task_data["title"],
-            "description": task_data["description"],
+            "description": task_data.get("description", ""),
             "due_date": task_data["due_date"],
             "announce_date": task_data["announce_date"],
             "assignee": task_data["assignee"],
@@ -168,7 +168,9 @@ class TodoCardEditing(ctk.CTkToplevel):
             font=ctk.CTkFont(self.__configuration.font, size=12),
             height=150,  # Set a fixed height
         )
-        text_description.insert("1.0", self.__task_data["description"])
+        # Only insert text if description exists and is not empty
+        if self.__task_data.get("description"):
+            text_description.insert("1.0", self.__task_data["description"])
         text_description.pack(fill="x", pady=10)  # Changed from fill="both" to fill="x"
 
         # Date Frame for create, update, due date
@@ -547,6 +549,9 @@ class TodoCardEditing(ctk.CTkToplevel):
 
     # Format date belong to user's timezone
     def __date_formatter(self, date):
+        if date is None:
+            return "No date"
+
         # Determine the correct format
         if "." in date:
             fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
