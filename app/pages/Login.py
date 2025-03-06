@@ -149,7 +149,7 @@ class LoginPage(Page):
             CTkMessagebox(
                 title="Connection Error",
                 message="Unable to connect to the server!",
-                icon="error",
+                icon="cancel",
             )
 
         # Clear the entries

@@ -7,7 +7,6 @@ from tkcalendar import Calendar
 from datetime import datetime
 import requests
 from CTkMessagebox import CTkMessagebox
-from app.tokenmanager import TokenManger
 
 
 class TodoCardEditing(ctk.CTkToplevel):
@@ -26,7 +25,12 @@ class TodoCardEditing(ctk.CTkToplevel):
         self.__refresh_callback = refresh_callback
         self.__bar_refresh_callback = bar_refresh_callback
         self.__editing_fields = {}  # Store editing widgets
-        self.__original_values = {}  # Store original values
+        self.__original_values = {
+            "title": task_data["title"],
+            "description": task_data["description"],
+            "due_date": task_data["due_date"],
+            "announce_date": task_data["announce_date"],
+        }
 
         self.title("Edit Task")
         self.geometry("400x600")  # Increased height for more fields
@@ -300,7 +304,102 @@ class TodoCardEditing(ctk.CTkToplevel):
             )
 
     def __save_changes(self, event=None):
-        pass
+        """Save all changes to the backend via PATCH request"""
+        try:
+            # Create a dictionary to store only the changed fields
+            changed_data = {}
+
+            # Check for changes in fields we allow editing
+            editable_fields = ["title", "description", "due_date", "announce_date"]
+            for field in editable_fields:
+                # For description, we need to get it from the textbox widget
+                if field == "description":
+                    # Find the textbox in the main container
+                    for widget in self.winfo_children():
+                        if isinstance(widget, ctk.CTkFrame):  # Main container
+                            for child in widget.winfo_children():
+                                if isinstance(child, ctk.CTkTextbox):
+                                    # Get text and compare with original
+                                    new_description = child.get("1.0", "end-1c")
+                                    if (
+                                        new_description
+                                        != self.__task_data["description"]
+                                    ):
+                                        changed_data["description"] = new_description
+                                        self.__task_data["description"] = (
+                                            new_description
+                                        )
+                # For other fields, they're already updated in __task_data when edited
+                else:
+                    # Get the original value from the task data when it was loaded
+                    if field in self.__original_values:
+                        original_value = self.__original_values[field]
+                        if self.__task_data[field] != original_value:
+                            changed_data[field] = self.__task_data[field]
+
+            # If no changes, show message and return
+            if not changed_data:
+                CTkMessagebox(
+                    title="No Changes",
+                    message="No changes were made to the task.",
+                    icon="info",
+                )
+                return
+
+            # Get the task ID
+            task_id = self.__task_data["id"]
+
+            headers = {
+                "Content-Type": "application/json",
+            }
+
+            response = requests.patch(
+                f"{self.__configuration.api_url}/tasks/{task_id}/update_task/",
+                json=changed_data,
+                headers=headers,
+            )
+
+            if response.status_code == 200:
+                # Show success message
+                CTkMessagebox(
+                    title="Success",
+                    message="Task updated successfully!",
+                    icon="check",
+                )
+
+                # Call refresh callbacks if provided
+                if self.__refresh_callback:
+                    self.__refresh_callback()
+                if self.__bar_refresh_callback:
+                    self.__bar_refresh_callback()
+
+                # Close the dialog
+                self.__close_dialog()
+            else:
+                # Show error message
+                error_msg = "Failed to update task."
+                try:
+                    error_data = response.json()
+                    if "error" in error_data:
+                        error_msg = f"Error: {error_data['error']}"
+                    elif "detail" in error_data:
+                        error_msg = f"Error: {error_data['detail']}"
+                except:
+                    pass
+
+                CTkMessagebox(
+                    title="Error",
+                    message=error_msg,
+                    icon="cancel",
+                )
+
+        except Exception as e:
+            print(f"Error saving changes: {e}")
+            CTkMessagebox(
+                title="Error",
+                message=f"An error occurred: {str(e)}",
+                icon="cancel",
+            )
 
     def __close_dialog(self, event=None):
         """Close the dialog safely"""
