@@ -83,6 +83,9 @@ class TodoCardEditing(ctk.CTkToplevel):
         title_label.pack(pady=10)
         title_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
         title_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
+        title_label.bind(
+            "<Button-1>", lambda e: self.__show_text_editor(title_label, "title")
+        )
 
         # line separator
         line_separator = ttk.Separator(main_container, orient="horizontal")
@@ -126,6 +129,9 @@ class TodoCardEditing(ctk.CTkToplevel):
         due_date_label.pack(pady=5)
         due_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
         due_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
+        due_date_label.bind(
+            "<Button-1>", lambda e: self.__show_date_picker(e, "due_date")
+        )
 
         # Announce date label vertically
         announce_date_label = ctk.CTkLabel(
@@ -136,6 +142,162 @@ class TodoCardEditing(ctk.CTkToplevel):
         announce_date_label.pack(pady=5)
         announce_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
         announce_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
+        announce_date_label.bind(
+            "<Button-1>", lambda e: self.__show_date_picker(e, "announce_date")
+        )
+
+    def __show_text_editor(self, label, field_name):
+        """Show text entry for editing"""
+        # Create entry widget
+        entry = ctk.CTkEntry(
+            label.master,
+            font=ctk.CTkFont(self.__configuration.font, size=20, weight="bold"),
+            fg_color=self.__configuration.colors["snow-white"],
+            border_width=1,
+        )
+        entry.insert(0, self.__task_data[field_name])
+        entry.pack(pady=10)
+        entry.focus_set()
+        entry.focus_force()
+
+        # Store original widget and value
+        self.__editing_fields[field_name] = entry
+        self.__original_values[field_name] = self.__task_data[field_name]
+
+        # Bind events
+        entry.bind(
+            "<Return>", lambda e: self.__save_text_value(entry.get(), field_name)
+        )
+        entry.bind("<Escape>", lambda e: self.__cancel_text_edit(field_name))
+
+        # Hide the label
+        label.pack_forget()
+
+    def __save_text_value(self, new_value, field_name):
+        """Save the text value"""
+        try:
+            # Update the task data
+            self.__task_data[field_name] = new_value
+
+            # Update the label text
+            label = self.__editing_fields[field_name].master.winfo_children()[0]
+            label.configure(text=new_value)
+
+            # Remove the entry widget
+            self.__editing_fields[field_name].destroy()
+            del self.__editing_fields[field_name]
+            del self.__original_values[field_name]
+
+            # Show the label again
+            label.pack(pady=10)
+        except Exception as e:
+            print(f"Error saving text: {e}")
+            CTkMessagebox(
+                title="Error",
+                message="Failed to save text",
+                icon="cancel",
+            )
+
+    def __cancel_text_edit(self, field_name):
+        """Cancel text editing"""
+        try:
+            # Restore original value
+            self.__task_data[field_name] = self.__original_values[field_name]
+
+            # Update the label text
+            label = self.__editing_fields[field_name].master.winfo_children()[0]
+            label.configure(text=self.__original_values[field_name])
+
+            # Remove the entry widget
+            self.__editing_fields[field_name].destroy()
+            del self.__editing_fields[field_name]
+            del self.__original_values[field_name]
+
+            # Show the label again
+            label.pack(pady=10)
+        except Exception as e:
+            print(f"Error canceling text edit: {e}")
+
+    def __show_date_picker(self, event, field_name):
+        """Show date picker for editing"""
+        # Create a new top-level window for the date picker
+        picker_window = ctk.CTkToplevel(self)
+        picker_window.title("Select Date")
+        picker_window.geometry("300x400")
+        picker_window.transient(self)  # Make it modal
+        picker_window.grab_set()  # Grab focus
+
+        # Create calendar
+        cal = Calendar(
+            picker_window,
+            selectmode="day",
+            year=datetime.now().year,
+            month=datetime.now().month,
+            day=datetime.now().day,
+        )
+        cal.pack(pady=10)
+
+        # Create buttons frame
+        button_frame = ctk.CTkFrame(picker_window, fg_color="transparent")
+        button_frame.pack(pady=10)
+
+        # Save button
+        save_button = ctk.CTkButton(
+            button_frame,
+            text="Save",
+            command=lambda: self.__save_date_value(
+                cal.get_date(), field_name, picker_window
+            ),
+            fg_color=self.__configuration.colors["black-text"],
+            text_color=self.__configuration.colors["white-text"],
+            width=100,
+        )
+        save_button.pack(side="left", padx=5)
+
+        # Cancel button
+        cancel_button = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=picker_window.destroy,
+            fg_color=self.__configuration.colors["black-text"],
+            text_color=self.__configuration.colors["white-text"],
+            width=100,
+        )
+        cancel_button.pack(side="left", padx=5)
+
+    def __save_date_value(self, new_date, field_name, picker_window):
+        """Save the selected date"""
+        try:
+            # Convert the date string to a datetime object
+            date_obj = datetime.strptime(new_date, "%m/%d/%y")
+            # Format it as YYYY-MM-DD
+            formatted_date = date_obj.strftime("%Y-%m-%d")
+
+            # Update the task data
+            self.__task_data[field_name] = formatted_date
+
+            # Update the label text
+            for widget in self.winfo_children():
+                if isinstance(widget, ctk.CTkFrame):
+                    for child in widget.winfo_children():
+                        if isinstance(child, ctk.CTkFrame):  # date_frame
+                            for label in child.winfo_children():
+                                if isinstance(label, ctk.CTkLabel):
+                                    if field_name in label.cget("text").lower():
+                                        label.configure(
+                                            text=f"{field_name.title()}: {self.__date_formatter(formatted_date)}"
+                                        )
+                                        break
+
+            # Close the picker window
+            picker_window.destroy()
+        except Exception as e:
+            print(f"Error saving date: {e}")
+            CTkMessagebox(
+                title="Error",
+                message="Failed to save date",
+                icon="cancel",
+            )
 
     def __save_changes(self, event=None):
         pass
