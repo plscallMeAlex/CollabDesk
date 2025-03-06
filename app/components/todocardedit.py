@@ -31,7 +31,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         self.title("Edit Task")
         self.geometry("400x600")  # Increased height for more fields
         self.configure(fg_color=configuration.colors["snow-white"])
-        self.overrideredirect(True)
+        self.resizable(False, False)
 
         # Set up focus and grab immediately
         self.focus_set()
@@ -40,13 +40,6 @@ class TodoCardEditing(ctk.CTkToplevel):
 
         self.create_widgets()
         self.create_close_button()
-
-        # Bind focus events to handle alt+tab
-        self.bind("<FocusIn>", self.__handle_focus_in)
-        self.bind("<FocusOut>", self.__handle_focus_out)
-        # Bind window state changes
-        self.bind("<Unmap>", self.__handle_unmap)
-        self.bind("<Map>", self.__handle_map)
 
     def create_close_button(self):
         """Create a button frame with Save Changes and Close buttons"""
@@ -78,7 +71,6 @@ class TodoCardEditing(ctk.CTkToplevel):
     def create_widgets(self):
         """Main container"""
         # Main container frame
-        print(f"Task data: {self.__task_data}")
         main_container = ctk.CTkFrame(self, fg_color="transparent")
         main_container.pack(fill="both", expand=True)
 
@@ -89,6 +81,9 @@ class TodoCardEditing(ctk.CTkToplevel):
             font=ctk.CTkFont(self.__configuration.font, size=20, weight="bold"),
         )
         title_label.pack(pady=10)
+        title_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
+        title_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
+
         # line separator
         line_separator = ttk.Separator(main_container, orient="horizontal")
         line_separator.pack(fill="x", pady=10)
@@ -158,47 +153,6 @@ class TodoCardEditing(ctk.CTkToplevel):
         except tk.TclError:
             # If there's an error, just destroy
             self.destroy()
-
-    def __handle_unmap(self, event):
-        """Handle when window is minimized or hidden"""
-        try:
-            if self.winfo_exists():
-                self.deiconify()  # Show the window
-                self.lift()  # Bring to front
-                self.focus_set()  # Set focus
-                self.grab_set()  # Set grab
-        except tk.TclError:
-            pass
-
-    def __handle_map(self, event):
-        """Handle when window is restored"""
-        try:
-            if self.winfo_exists():
-                self.lift()  # Bring to front
-                self.focus_set()  # Set focus
-                self.grab_set()  # Set grab
-        except tk.TclError:
-            pass
-
-    def __handle_focus_in(self, event):
-        """Handle when the window gains focus"""
-        try:
-            if self.winfo_exists():
-                self.lift()  # Bring to front
-                self.focus_set()  # Set focus
-                self.grab_set()  # Set grab
-        except tk.TclError:
-            pass
-
-    def __handle_focus_out(self, event):
-        """Handle when the window loses focus"""
-        try:
-            if self.winfo_exists():
-                self.lift()  # Bring to front
-                self.focus_set()  # Set focus
-                self.grab_set()  # Set grab
-        except tk.TclError:
-            pass
 
     def __on_hover_enter(self, event):
         """Change text color when mouse enters"""

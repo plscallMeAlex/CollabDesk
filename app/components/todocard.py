@@ -81,11 +81,7 @@ class TodoCard(ctk.CTkFrame):
             self.__refresh_callback,
             self.__bar_refresh_callback,
         )
-        editor.transient(self.master)  # Make dialog transient to master
-        editor.grab_set()  # Make dialog modal
-        editor.focus_set()  # Ensure dialog gets focus
-        editor.focus_force()  # Force focus to dialog
-        editor.lift()  # Bring dialog to front
+        self.master.wait_window(editor)
         return "break"  # Stop event propagation
 
     # Delete the task
