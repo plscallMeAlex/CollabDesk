@@ -13,7 +13,6 @@ class UserTask(ctk.CTkFrame):
             border_color=configuration.colors["black-text"],
         )
         self.__task_labels = []  # List to store task labels
-        self.pack(fill="both", expand=True)
 
     def pack(self, **kwargs):
         super().pack(**kwargs)
@@ -36,13 +35,9 @@ class UserTask(ctk.CTkFrame):
         self.__task_list_frame = ctk.CTkFrame(self.__frame, fg_color="transparent")
         self.__task_list_frame.pack(fill="both", expand=True)
 
-        # Scrollable frame
-        self.__scrollable_frame = ctk.CTkScrollableFrame(
-            self.__task_list_frame,
-            fg_color="transparent",
-            height=400,
-        )
-        self.__scrollable_frame.pack(fill="both", expand=True)
+        # Frame
+        self.__task_frame = ctk.CTkFrame(self.__task_list_frame, fg_color="transparent")
+        self.__task_frame.pack(fill="both", expand=True)
 
         # Fill the task list inside the scrollable frame
         self.__fetch_task()
@@ -58,7 +53,7 @@ class UserTask(ctk.CTkFrame):
             tasks = response.json()
             for task in tasks:
                 task_label = ctk.CTkLabel(
-                    self.__scrollable_frame,
+                    self.__task_frame,
                     text=task["title"],
                     font=ctk.CTkFont(self.__configuration.font, size=16),
                 )

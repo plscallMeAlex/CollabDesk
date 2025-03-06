@@ -16,8 +16,10 @@ class BulletinBoard(Frame):
         )
         self.master = master
         self.__configuration = configuration
-        self.__localframe = ctk.CTkFrame(
-            self, fg_color=self._configuration.colors["snow-white"]
+        self.__localframe = ctk.CTkScrollableFrame(
+            self,
+            fg_color=self._configuration.colors["snow-white"],
+            height=600,
         )
         self.__localframe.pack(expand=True, fill="both")
 
