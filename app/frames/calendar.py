@@ -18,50 +18,6 @@ class TaskCalendarWidget(Frame):
         # Tasks and events storage with mock data based on current date
         current_day = self.current_date.day
         self.tasks = self.__formating_tasks_data()
-        # {
-
-        #     current_day: [
-        #         {
-        #             "title": "Team Meeting",
-        #             "priority": "high",
-        #             "color": "#ff7f7f",
-        #         },  # Red
-        #         {
-        #             "title": "Project Review",
-        #             "priority": "medium",
-        #             "color": "#ffd700",
-        #         },  # Yellow
-        #     ],
-        #     (current_day + 1)
-        #     % 31: [
-        #         {
-        #             "title": "Design Review",
-        #             "priority": "medium",
-        #             "color": "#ffd700",
-        #         },  # Yellow
-        #         {
-        #             "title": "Code Review",
-        #             "priority": "low",
-        #             "color": "#90EE90",
-        #         },  # Green
-        #     ],
-        #     (current_day + 2)
-        #     % 31: [
-        #         {
-        #             "title": "Client Meeting",
-        #             "priority": "high",
-        #             "color": "#ff7f7f",
-        #         },  # Red
-        #     ],
-        #     (current_day + 3)
-        #     % 31: [
-        #         {
-        #             "title": "Documentation",
-        #             "priority": "low",
-        #             "color": "#90EE90",
-        #         },  # Green
-        #     ],
-        # }
 
         # Configure grid to expand
         self.grid_columnconfigure(0, weight=1)
@@ -88,16 +44,13 @@ class TaskCalendarWidget(Frame):
 
     def __formating_tasks_data(self):
         tasks = self.__fetch_tasks()
-        new_tasks = {}
+        formatted_tasks = []
         current_date = datetime.now()
 
         for task in tasks:
             due_date = self.__format_to_datetime(task["due_date"])
             if due_date is None:
                 continue
-
-            # Get the day of the month for the due date
-            day = due_date.day
 
             # Calculate days until due
             days_until_due = (due_date - current_date).days
@@ -120,16 +73,14 @@ class TaskCalendarWidget(Frame):
                 "title": task["title"],
                 "priority": priority,
                 "color": color,
-                "due_date": due_date.strftime("%Y-%m-%d"),  # Store formatted date
+                "due_date": due_date.strftime("%Y-%m-%d"),
+                "day": due_date.day,
+                "month": due_date.month,
+                "year": due_date.year,
             }
+            formatted_tasks.append(task_details)
 
-            # Add task to the dictionary
-            if day in new_tasks:
-                new_tasks[day].append(task_details)
-            else:
-                new_tasks[day] = [task_details]
-
-        return new_tasks
+        return formatted_tasks
 
     def __format_to_datetime(self, date):
         if date is None:
@@ -285,14 +236,21 @@ class TaskCalendarWidget(Frame):
                     day_frame.grid(row=row, column=col, padx=1, pady=1, sticky="nsew")
                 elif day <= days_in_month:
                     # Current month days
-                    has_tasks = day in self.tasks
+                    # Filter tasks for this day
+                    day_tasks = [
+                        task
+                        for task in self.tasks
+                        if task["day"] == day
+                        and task["month"] == self.month
+                        and task["year"] == self.year
+                    ]
 
                     # Create day cell
                     day_frame = self.create_day_cell(
                         day,
                         True,
-                        has_tasks=has_tasks,
-                        tasks=self.tasks.get(day, []),
+                        has_tasks=len(day_tasks) > 0,
+                        tasks=day_tasks,
                         is_today=(
                             day == self.current_date.day
                             and self.month == self.current_date.month
