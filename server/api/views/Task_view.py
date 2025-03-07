@@ -28,9 +28,7 @@ class TaskViewSet(ModelViewSet):
         serializer = TaskCreateSerializer(data=request.data)
         if serializer.is_valid():
             task = serializer.save()
-            return Response(
-                TaskCreateSerializer(task).data, status=status.HTTP_201_CREATED
-            )
+            return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
 
         # Return validation errors if serializer is not valid
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
