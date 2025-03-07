@@ -63,3 +63,10 @@ class TaskStateViewSet(ModelViewSet):
         task.update(state=new_state_id)
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["DELETE"])
+    def delete_state(self, request):
+        state_id = request.data.get("state_id")
+        TaskState.objects.filter(id=state_id).delete()
+        return Response(status=status.HTTP_200_OK)
+

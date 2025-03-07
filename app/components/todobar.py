@@ -7,7 +7,9 @@ import uuid
 
 # TaskState frontend component
 class TodoBar(ctk.CTkScrollableFrame):
-    def __init__(self, master, configuration, bar_data, bar_refresh):
+    def __init__(
+        self, master, configuration, bar_data, bar_refresh, deletable, bar_ref
+    ):
         super().__init__(
             master,
             fg_color=configuration.colors["frame-color-main"],
@@ -20,6 +22,8 @@ class TodoBar(ctk.CTkScrollableFrame):
         self.__configuration = configuration
         self.__bar_data = bar_data
         self.__bar_refresh = bar_refresh
+        self.__bar_ref = bar_ref
+        self.__deletable = deletable
         self.__tasks = []
         self.__entry_open = False
 
@@ -200,6 +204,14 @@ class TodoBar(ctk.CTkScrollableFrame):
         self.__entry_open = False
 
     def __open_dialog(self, event):
+        if not self.__deletable:
+            CTkMessagebox(
+                self.master,
+                title="Error",
+                message="This bar can not be deleted",
+                icon="cancel",
+            )
+            return
         """Open a dialog to delete the bar"""
         transfer_dialog = TransferDialog(
             self.master,
@@ -207,6 +219,7 @@ class TodoBar(ctk.CTkScrollableFrame):
             guild=self.__bar_data["guild"],
             state=self.__bar_data["id"],
             bar_refresh=self.__bar_refresh,
+            bar_ref=self.__bar_ref,
         )
         transfer_dialog.grab_set()
         transfer_dialog.focus_force()
@@ -246,6 +259,7 @@ class TransferDialog(ctk.CTkToplevel):
         guild,
         state,
         bar_refresh,
+        bar_ref,
         fg_color=None,
         **kwargs,
     ):
@@ -254,6 +268,7 @@ class TransferDialog(ctk.CTkToplevel):
         self.__guild_id = guild
         self.__state_id = state
         self.__bar_refresh = bar_refresh
+        self.__bar_ref = bar_ref
         self.title("Transfer Tasks")
         self.geometry("300x150")
 
@@ -323,6 +338,8 @@ class TransferDialog(ctk.CTkToplevel):
                     )
                     self.__bar_refresh()
                     self.wait_window(box)
+                    self.__delete_bar()
+                    self.__bar_ref()  # Callback to refetch the bar
                     self.destroy()
                     return True
                 else:
@@ -372,3 +389,28 @@ class TransferDialog(ctk.CTkToplevel):
             return []
         except Exception:
             return []
+
+    def __delete_bar(self):
+        """Delete the bar"""
+        payload = {"state_id": self.__state_id}
+        response = requests.delete(
+            self.__configuration.api_url + "/taskstates/delete_state/",
+            json=payload,
+        )
+
+        if response.status_code == 200:
+            box = CTkMessagebox(
+                self,
+                title="Success",
+                message="Bar deleted successfully",
+                icon="info",
+            )
+            self.wait_window(box)
+        else:
+            box = CTkMessagebox(
+                self,
+                title="Error",
+                message="Failed to delete bar",
+                icon="cancel",
+            )
+            self.wait_window(box)
