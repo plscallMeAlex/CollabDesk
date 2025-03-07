@@ -196,7 +196,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         # Due date label vertically
         self.due_date_label = ctk.CTkLabel(
             date_frame,
-            text=f"Due: {self.__date_formatter(self.__task_data['due_date'])}",
+            text=f"Due: {self.__date_formatter(self.__task_data['due_date'], 'due_date')}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
         self.due_date_label.pack(pady=5)
@@ -209,7 +209,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         # Announce date label vertically
         self.announce_date_label = ctk.CTkLabel(
             date_frame,
-            text=f"Announce: {self.__date_formatter(self.__task_data['announce_date'])}",
+            text=f"Announce: {self.__date_formatter(self.__task_data['announce_date'], 'announce_date')}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
         self.announce_date_label.pack(pady=5)
@@ -360,11 +360,11 @@ class TodoCardEditing(ctk.CTkToplevel):
             # Update the label based on the field name
             if field_name == "due_date":
                 self.due_date_label.configure(
-                    text=f"Due: {self.__date_formatter(display_date)}"
+                    text=f"Due: {self.__date_formatter(display_date, field_name)}"
                 )
             elif field_name == "announce_date":
                 self.announce_date_label.configure(
-                    text=f"Announce: {self.__date_formatter(display_date)}"
+                    text=f"Announce: {self.__date_formatter(display_date, field_name)}"
                 )
 
             # Close the picker window
@@ -546,7 +546,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         except Exception as e:
             print(f"Error in hover leave: {e}")
 
-    def __date_formatter(self, date):
+    def __date_formatter(self, date, field_name=None):
         """Format date to user-friendly string, handling multiple input formats"""
         if date is None:
             return "No date"
@@ -567,8 +567,11 @@ class TodoCardEditing(ctk.CTkToplevel):
             local_tz = pytz.timezone("Asia/Bangkok")
             local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(local_tz)
 
-            # Format for readability
-            return local_time.strftime("%A, %B %d, %Y %I:%M %p %Z")
+            # Different format for different types of dates
+            if field_name in ["due_date", "announce_date"]:
+                return local_time.strftime("%A, %B %d, %Y")
+            else:
+                return local_time.strftime("%A, %B %d, %Y %I:%M %p %Z")
         except ValueError as e:
             print(f"Error formatting date {date}: {e}")
             return "Invalid date format"
