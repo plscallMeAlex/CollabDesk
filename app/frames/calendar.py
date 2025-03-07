@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from datetime import datetime, timedelta
+import requests
 from app.frames.frame import Frame
 import calendar
 
@@ -16,50 +17,51 @@ class TaskCalendarWidget(Frame):
 
         # Tasks and events storage with mock data based on current date
         current_day = self.current_date.day
-        self.tasks = {
-            # 
-            current_day: [
-                {
-                    "title": "Team Meeting",
-                    "priority": "high",
-                    "color": "#ff7f7f",
-                },  # Red
-                {
-                    "title": "Project Review",
-                    "priority": "medium",
-                    "color": "#ffd700",
-                },  # Yellow
-            ],
-            (current_day + 1)
-            % 31: [
-                {
-                    "title": "Design Review",
-                    "priority": "medium",
-                    "color": "#ffd700",
-                },  # Yellow
-                {
-                    "title": "Code Review",
-                    "priority": "low",
-                    "color": "#90EE90",
-                },  # Green
-            ],
-            (current_day + 2)
-            % 31: [
-                {
-                    "title": "Client Meeting",
-                    "priority": "high",
-                    "color": "#ff7f7f",
-                },  # Red
-            ],
-            (current_day + 3)
-            % 31: [
-                {
-                    "title": "Documentation",
-                    "priority": "low",
-                    "color": "#90EE90",
-                },  # Green
-            ],
-        }
+        self.tasks = self.__formating_tasks_data()
+        # {
+
+        #     current_day: [
+        #         {
+        #             "title": "Team Meeting",
+        #             "priority": "high",
+        #             "color": "#ff7f7f",
+        #         },  # Red
+        #         {
+        #             "title": "Project Review",
+        #             "priority": "medium",
+        #             "color": "#ffd700",
+        #         },  # Yellow
+        #     ],
+        #     (current_day + 1)
+        #     % 31: [
+        #         {
+        #             "title": "Design Review",
+        #             "priority": "medium",
+        #             "color": "#ffd700",
+        #         },  # Yellow
+        #         {
+        #             "title": "Code Review",
+        #             "priority": "low",
+        #             "color": "#90EE90",
+        #         },  # Green
+        #     ],
+        #     (current_day + 2)
+        #     % 31: [
+        #         {
+        #             "title": "Client Meeting",
+        #             "priority": "high",
+        #             "color": "#ff7f7f",
+        #         },  # Red
+        #     ],
+        #     (current_day + 3)
+        #     % 31: [
+        #         {
+        #             "title": "Documentation",
+        #             "priority": "low",
+        #             "color": "#90EE90",
+        #         },  # Green
+        #     ],
+        # }
 
         # Configure grid to expand
         self.grid_columnconfigure(0, weight=1)
@@ -70,6 +72,77 @@ class TaskCalendarWidget(Frame):
 
         # Create the calendar layout
         self.create_widgets()
+
+    def __fetch_tasks(self):
+        try:
+            params = {
+                "guild_id": self._guildId,
+            }
+            response = requests.get(
+                f"{self._configuration.api_url}/tasks/in_guild", params=params
+            )
+            return response.json()
+        except Exception as e:
+            print(f"Error fetching tasks: {e}")
+            return []
+
+    def __formating_tasks_data(self):
+        tasks = self.__fetch_tasks()
+        new_tasks = {}
+        current_date = datetime.now()
+
+        for task in tasks:
+            due_date = self.__format_to_datetime(task["due_date"])
+            if due_date is None:
+                continue
+
+            # Get the day of the month for the due date
+            day = due_date.day
+
+            # Calculate days until due
+            days_until_due = (due_date - current_date).days
+
+            # Determine priority based on days until due
+            if days_until_due < 0:  # Overdue
+                priority = "high"
+                color = "#ff7f7f"  # Red
+            elif days_until_due <= 1:  # Due today or tomorrow
+                priority = "high"
+                color = "#ff7f7f"  # Red
+            elif days_until_due <= 3:  # Due within 3 days
+                priority = "medium"
+                color = "#ffd700"  # Yellow
+            else:  # Due in more than 3 days
+                priority = "low"
+                color = "#90EE90"  # Green
+
+            task_details = {
+                "title": task["title"],
+                "priority": priority,
+                "color": color,
+                "due_date": due_date.strftime("%Y-%m-%d"),  # Store formatted date
+            }
+
+            # Add task to the dictionary
+            if day in new_tasks:
+                new_tasks[day].append(task_details)
+            else:
+                new_tasks[day] = [task_details]
+
+        return new_tasks
+
+    def __format_to_datetime(self, date):
+        if date is None:
+            return None
+        try:
+            # Handle different date formats
+            if "." in date:  # Format with milliseconds
+                return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            else:  # Format without milliseconds
+                return datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError as e:
+            print(f"Error parsing date {date}: {e}")
+            return None
 
     def set_on_day_click(self, callback):
         """Set callback function for day click events"""
