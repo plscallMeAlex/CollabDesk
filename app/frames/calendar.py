@@ -5,26 +5,60 @@ import calendar
 
 
 class TaskCalendarWidget(Frame):
-    def __init__(
-        self, master, configuration, year=None, month=None, guildId=None, **kwargs
-    ):
+    def __init__(self, master, configuration, guildId=None, **kwargs):
         super().__init__(master, configuration, guildId, **kwargs)
 
-        # Set initial date
+        # Set initial date to current time
         self.current_date = datetime.now()
-        self.year = year if year else self.current_date.year
-        self.month = month if month else self.current_date.month
+        self.year = self.current_date.year
+        self.month = self.current_date.month
         self._configuration = configuration
 
-        # Tasks and events storage
+        # Tasks and events storage with mock data based on current date
+        current_day = self.current_date.day
         self.tasks = {
-            # Example format: day: [{"title": "Task name", "priority": "high", "color": "#ff7f7f"}]
-            4: [{"title": "UX/UI Research", "priority": "medium", "color": "#e2efd9"}],
-            5: [{"title": "UX/UI Design", "priority": "medium", "color": "#e2efd9"}],
-            6: [{"title": "UX/UI Testing", "priority": "medium", "color": "#e2efd9"}],
-            7: [{"title": "UX/UI Review", "priority": "medium", "color": "#e2efd9"}],
-            18: [{"title": "Team Meeting", "priority": "high", "color": "#474e90"}],
-            20: [{"title": "Project Deadline", "priority": "high", "color": "#ff7f7f"}],
+            # 
+            current_day: [
+                {
+                    "title": "Team Meeting",
+                    "priority": "high",
+                    "color": "#ff7f7f",
+                },  # Red
+                {
+                    "title": "Project Review",
+                    "priority": "medium",
+                    "color": "#ffd700",
+                },  # Yellow
+            ],
+            (current_day + 1)
+            % 31: [
+                {
+                    "title": "Design Review",
+                    "priority": "medium",
+                    "color": "#ffd700",
+                },  # Yellow
+                {
+                    "title": "Code Review",
+                    "priority": "low",
+                    "color": "#90EE90",
+                },  # Green
+            ],
+            (current_day + 2)
+            % 31: [
+                {
+                    "title": "Client Meeting",
+                    "priority": "high",
+                    "color": "#ff7f7f",
+                },  # Red
+            ],
+            (current_day + 3)
+            % 31: [
+                {
+                    "title": "Documentation",
+                    "priority": "low",
+                    "color": "#90EE90",
+                },  # Green
+            ],
         }
 
         # Configure grid to expand
@@ -46,11 +80,11 @@ class TaskCalendarWidget(Frame):
         # Determine color based on priority if not specified
         if color is None:
             if priority == "high":
-                color = "#ff7f7f"  # Light red
+                color = "#ff7f7f"  # Red
             elif priority == "medium":
-                color = "#e2efd9"  # Light green
+                color = "#ffd700"  # Yellow
             else:
-                color = "#e6f3ff"  # Light blue
+                color = "#90EE90"  # Green
 
         # Initialize task list for this day if it doesn't exist
         if day not in self.tasks:
