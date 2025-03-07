@@ -194,28 +194,28 @@ class TodoCardEditing(ctk.CTkToplevel):
         update_date_label.pack(pady=5)
 
         # Due date label vertically
-        due_date_label = ctk.CTkLabel(
+        self.due_date_label = ctk.CTkLabel(
             date_frame,
             text=f"Due: {self.__date_formatter(self.__task_data['due_date'])}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
-        due_date_label.pack(pady=5)
-        due_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
-        due_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
-        due_date_label.bind(
+        self.due_date_label.pack(pady=5)
+        self.due_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
+        self.due_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
+        self.due_date_label.bind(
             "<Button-1>", lambda e: self.__show_date_picker(e, "due_date")
         )
 
         # Announce date label vertically
-        announce_date_label = ctk.CTkLabel(
+        self.announce_date_label = ctk.CTkLabel(
             date_frame,
             text=f"Announce: {self.__date_formatter(self.__task_data['announce_date'])}",
             font=ctk.CTkFont(self.__configuration.font, size=12),
         )
-        announce_date_label.pack(pady=5)
-        announce_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
-        announce_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
-        announce_date_label.bind(
+        self.announce_date_label.pack(pady=5)
+        self.announce_date_label.bind("<Enter>", lambda e: self.__on_hover_enter(e))
+        self.announce_date_label.bind("<Leave>", lambda e: self.__on_hover_leave(e))
+        self.announce_date_label.bind(
             "<Button-1>", lambda e: self.__show_date_picker(e, "announce_date")
         )
 
@@ -345,28 +345,27 @@ class TodoCardEditing(ctk.CTkToplevel):
         cancel_button.pack(side="left", padx=5)
 
     def __save_date_value(self, new_date, field_name, picker_window):
-        """Save the selected date"""
+        """Save the selected date to UI only"""
         try:
             # Convert the date string to a datetime object
             date_obj = datetime.strptime(new_date, "%m/%d/%y")
-            # Format it as YYYY-MM-DD
+            # Format it as YYYY-MM-DD for backend
             formatted_date = date_obj.strftime("%Y-%m-%d")
+            # Format it as YYYY-MM-DDT00:00:00Z for UI display
+            display_date = f"{formatted_date}T00:00:00Z"
 
-            # Update the task data
+            # Update only the task data
             self.__task_data[field_name] = formatted_date
 
-            # Update the label text
-            for widget in self.winfo_children():
-                if isinstance(widget, ctk.CTkFrame):
-                    for child in widget.winfo_children():
-                        if isinstance(child, ctk.CTkFrame):  # date_frame
-                            for label in child.winfo_children():
-                                if isinstance(label, ctk.CTkLabel):
-                                    if field_name in label.cget("text").lower():
-                                        label.configure(
-                                            text=f"{field_name.title()}: {self.__date_formatter(formatted_date)}"
-                                        )
-                                        break
+            # Update the label based on the field name
+            if field_name == "due_date":
+                self.due_date_label.configure(
+                    text=f"Due: {self.__date_formatter(display_date)}"
+                )
+            elif field_name == "announce_date":
+                self.announce_date_label.configure(
+                    text=f"Announce: {self.__date_formatter(display_date)}"
+                )
 
             # Close the picker window
             picker_window.destroy()
@@ -547,23 +546,29 @@ class TodoCardEditing(ctk.CTkToplevel):
         except Exception as e:
             print(f"Error in hover leave: {e}")
 
-    # Format date belong to user's timezone
     def __date_formatter(self, date):
+        """Format date to user-friendly string, handling multiple input formats"""
         if date is None:
             return "No date"
 
-        # Determine the correct format
-        if "." in date:
-            fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
-        else:
-            fmt = "%Y-%m-%dT%H:%M:%SZ"
+        try:
+            # Try parsing as full datetime with timezone
+            if "T" in date:
+                if "." in date:  # Format with milliseconds
+                    fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
+                else:  # Format without milliseconds
+                    fmt = "%Y-%m-%dT%H:%M:%SZ"
+                utc_time = datetime.strptime(date, fmt)
+            else:
+                # Try parsing as simple date
+                utc_time = datetime.strptime(date, "%Y-%m-%d")
 
-        # Parse the UTC timestamp
-        utc_time = datetime.strptime(date, fmt)
+            # Convert to local timezone
+            local_tz = pytz.timezone("Asia/Bangkok")
+            local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(local_tz)
 
-        # Convert to local timezone
-        local_tz = pytz.timezone("Asia/Bangkok")
-        local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(local_tz)
-
-        # Format for readability
-        return local_time.strftime("%A, %B %d, %Y %I:%M %p %Z")
+            # Format for readability
+            return local_time.strftime("%A, %B %d, %Y %I:%M %p %Z")
+        except ValueError as e:
+            print(f"Error formatting date {date}: {e}")
+            return "Invalid date format"
