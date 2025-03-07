@@ -48,7 +48,7 @@ class HomePage(Page):
 
         # Create a BulletinBoard instance (First Frame Guild)
         self.__frame0 = TaskCalendarWidget(
-            self.frame_container, self.master.configuration, year=2025, month=5
+            self.frame_container, self.master.configuration
         )
         self.__frame0.pack(expand=True, fill="both")
 
