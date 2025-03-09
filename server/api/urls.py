@@ -14,6 +14,7 @@ router.register(r"tasks", TaskViewSet, basename="tasks")  # ip/tasks
 router.register(r"roles", RoleViewSet, basename="roles")  # ip/roles
 router.register(r"taskstates", TaskStateViewSet, basename="taskstates")  # ip/taskstates
 router.register(r"announcements", AnnouncementViewSet, basename="announcements")  # ip/announcements
+router.register(r"guilds", GuildViewSet, basename="guilds")  # ip/guilds
 
 urlpatterns = [
     path("", home, name="home"),
