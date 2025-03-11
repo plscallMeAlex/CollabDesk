@@ -9,7 +9,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         self.parent = parent
         self.action_type = action_type
         # add configuration
-        self._configuration = configuration
+        self.__configuration = configuration
 
         self.title("Server Action")
         self.geometry("480x400")
@@ -223,6 +223,8 @@ class ServerNameDialog(ctk.CTkToplevel):
 
 class SidebarFrame(ctk.CTkFrame):
     def __init__(self, master, configuration, **kwargs):
+        # Remove width from kwargs if it exists to avoid conflict
+        kwargs.pop("width", None)
         super().__init__(master, **kwargs)
         self.__configuration = configuration
 
@@ -232,24 +234,28 @@ class SidebarFrame(ctk.CTkFrame):
             else "#D9D9D9"
         )
 
-        self.configure(
-            border_width=2, border_color="black", fg_color=bg_color, width=100
-        )
+        # Set width and configure grid
+        self.configure(fg_color=bg_color, width=72)
+        self.grid_propagate(False)  # Prevent frame from resizing to fit contents
+        self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
 
+        # Adjust logo size
         logo_path = os.path.join("app", "assets", "logo.png")
         if os.path.exists(logo_path):
             self.logo_image = ctk.CTkImage(
-                light_image=Image.open(logo_path), size=(100, 100)
+                light_image=Image.open(logo_path), size=(60, 60)
             )
             self.logo_label = ctk.CTkLabel(self, image=self.logo_image, text="")
-            self.logo_label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+            self.logo_label.grid(row=0, column=0, padx=6, pady=5)
 
         self.sidebar_component = SidebarComponent(self, self.__configuration)
-        self.sidebar_component.grid(row=1, column=0, pady=0)
+        self.sidebar_component.grid(row=1, column=0, pady=0, sticky="nsew")
 
 
 class SidebarComponent(ctk.CTkFrame):
     def __init__(self, master, configuration, **kwargs):
+        # Remove width from kwargs if it exists
+        kwargs.pop("width", None)
         super().__init__(master, **kwargs)
 
         self.__configuration = configuration
@@ -259,10 +265,14 @@ class SidebarComponent(ctk.CTkFrame):
             else "#D9D9D9"
         )
 
-        self.configure(fg_color=bg_color)
+        # Configure frame
+        self.configure(fg_color=bg_color, width=72)
+        self.grid_propagate(False)  # Prevent frame from resizing
+        self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
 
         self.load_images()
 
+        # Adjust plus label size and position
         self.plus_label = ctk.CTkLabel(
             self, image=self.normal_image, text="", fg_color=bg_color
         )
@@ -283,27 +293,28 @@ class SidebarComponent(ctk.CTkFrame):
         group_path = os.path.join(assets_path, "Group.png")
         group_hover_path = os.path.join(assets_path, "Group_hover.png")
 
+        # Adjust image sizes
         if os.path.exists(plus_path):
             self.normal_image = ctk.CTkImage(
-                light_image=Image.open(plus_path), size=(60, 60)
+                light_image=Image.open(plus_path), size=(48, 48)
             )
         if os.path.exists(plus_hover_path):
             self.hover_image = ctk.CTkImage(
-                light_image=Image.open(plus_hover_path), size=(60, 60)
+                light_image=Image.open(plus_hover_path), size=(48, 48)
             )
         if os.path.exists(group_path):
             self.group_image = ctk.CTkImage(
-                light_image=Image.open(group_path), size=(60, 60)
+                light_image=Image.open(group_path), size=(48, 48)
             )
         if os.path.exists(group_hover_path):
             self.group_hover_image = ctk.CTkImage(
-                light_image=Image.open(group_hover_path), size=(60, 60)
+                light_image=Image.open(group_hover_path), size=(48, 48)
             )
 
     def on_button_click(self):
         """Handle plus button click"""
         dialog = ServerActionDialog(self, self.__configuration)
-        dialog.focus()
+        dialog.grab_set()
 
     def on_hover_enter(self, event):
         self.plus_label.configure(image=self.hover_image)
@@ -312,13 +323,13 @@ class SidebarComponent(ctk.CTkFrame):
         self.plus_label.configure(image=self.normal_image)
 
     def add_server_icon(self, server_name):
-        """Add a new server icon to the sidebar, keeping the '+' button at the bottom."""
+        """Add a new server icon to the sidebar"""
         new_link = ctk.CTkLabel(
             self,
             image=self.group_image,
-            text=server_name,
+            text="",  # Remove text to keep width consistent
             fg_color=self.cget("fg_color"),
         )
-        new_link.grid(row=len(self.created_links), column=0, pady=5, sticky="w")
+        new_link.grid(row=len(self.created_links), column=0, pady=5)
         self.created_links.append(new_link)
         self.plus_label.grid(row=len(self.created_links), column=0, pady=5)
