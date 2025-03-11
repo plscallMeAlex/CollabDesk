@@ -1,10 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from api.views.task_view import TaskViewSet
 from api.views.taskstate_view import TaskStateViewSet
 from api.views.role_view import RoleViewSet
 from api.views.user_view import UserViewSet
+
 from api.views.announcement_view import AnnouncementViewSet
+from api.views.guild_view import GuildViewSet
 from api.views.view import home
 
 
@@ -19,4 +22,6 @@ router.register(r"guilds", GuildViewSet, basename="guilds")  # ip/guilds
 urlpatterns = [
     path("", home, name="home"),
     path("", include(router.urls)),
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]

@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
+
 class GuildViewSet(ModelViewSet):
     queryset = Guild.objects.all()
     serializer_class = GuildSerializer
@@ -21,4 +22,9 @@ class GuildViewSet(ModelViewSet):
         guilds = [membership.guild for membership in memberships]
         serializer = GuildSerializer(guilds, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
+    @action(detail=False, methods=["GET"])
+    def list_guilds(self, request):
+        guilds = Guild.objects.all()
+        serializer = GuildSerializer(guilds, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
