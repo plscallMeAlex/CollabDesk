@@ -237,6 +237,9 @@ class SidebarFrame(ctk.CTkFrame):
         # Set width and configure grid
         self.configure(fg_color=bg_color, width=72)
         self.grid_propagate(False)  # Prevent frame from resizing to fit contents
+        self.grid_rowconfigure(
+            1, weight=1
+        )  # Make the sidebar component expand vertically
         self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
 
         # Adjust logo size
@@ -249,7 +252,9 @@ class SidebarFrame(ctk.CTkFrame):
             self.logo_label.grid(row=0, column=0, padx=6, pady=5)
 
         self.sidebar_component = SidebarComponent(self, self.__configuration)
-        self.sidebar_component.grid(row=1, column=0, pady=0, sticky="nsew")
+        self.sidebar_component.grid(
+            row=1, column=0, sticky="nsew"
+        )  # Make it fill the space
 
 
 class SidebarComponent(ctk.CTkFrame):
@@ -270,19 +275,46 @@ class SidebarComponent(ctk.CTkFrame):
         self.grid_propagate(False)  # Prevent frame from resizing
         self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
 
+        # Create a canvas for scrolling
+        self.canvas = ctk.CTkCanvas(self, bg=bg_color, highlightthickness=0)
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+
+        # Create a frame inside canvas to hold the icons
+        self.icons_frame = ctk.CTkFrame(self.canvas, fg_color=bg_color)
+        self.canvas.create_window((0, 0), window=self.icons_frame, anchor="nw")
+
+        # Configure grid
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         self.load_images()
 
-        # Adjust plus label size and position
+        # Add plus button at the top
         self.plus_label = ctk.CTkLabel(
-            self, image=self.normal_image, text="", fg_color=bg_color
+            self.icons_frame, image=self.normal_image, text="", fg_color=bg_color
         )
-        self.plus_label.grid(row=0, column=0, pady=5)
+        self.plus_label.pack(pady=5)
 
         self.plus_label.bind("<Button-1>", lambda event: self.on_button_click())
         self.plus_label.bind("<Enter>", self.on_hover_enter)
         self.plus_label.bind("<Leave>", self.on_hover_leave)
 
         self.created_links = []
+
+        # Bind mouse wheel to scroll
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+        # Bind frame configure to update scroll region
+        self.icons_frame.bind("<Configure>", self._configure_scroll_region)
+
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling"""
+        if self.canvas.winfo_height() < self.icons_frame.winfo_height():
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def _configure_scroll_region(self, event):
+        """Update the scroll region when the frame size changes"""
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def load_images(self):
         """Load all required images for the sidebar"""
@@ -325,11 +357,14 @@ class SidebarComponent(ctk.CTkFrame):
     def add_server_icon(self, server_name):
         """Add a new server icon to the sidebar"""
         new_link = ctk.CTkLabel(
-            self,
+            self.icons_frame,
             image=self.group_image,
             text="",  # Remove text to keep width consistent
             fg_color=self.cget("fg_color"),
         )
-        new_link.grid(row=len(self.created_links), column=0, pady=5)
+        new_link.pack(pady=5)
         self.created_links.append(new_link)
-        self.plus_label.grid(row=len(self.created_links), column=0, pady=5)
+
+        # Move plus button to the end
+        self.plus_label.pack_forget()
+        self.plus_label.pack(pady=5)
