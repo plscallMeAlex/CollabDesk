@@ -48,11 +48,11 @@ class HomePage(Page):
 
         # Create a BulletinBoard instance (First Frame Guild)
         self.__frame0 = TaskCalendarWidget(
-            self.frame_container, self.master.configuration
+            self.frame_container, self.master.configuration, guildId=response[0]["id"]
         )
         self.__frame0.pack(expand=True, fill="both")
 
-        # BulletinBoard(
+        # self.__frame0 = BulletinBoard(
         #     self.frame_container, self.master.configuration, guildId=response[0]["id"]
         # )
         # self.__frame0.pack(expand=True, fill="both")

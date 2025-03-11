@@ -99,37 +99,6 @@ class TaskCalendarWidget(Frame):
         """Set callback function for day click events"""
         self.on_day_click_callback = callback
 
-    def add_task(self, day, title, priority="normal", color=None):
-        """Add a task to a specific day"""
-        # Determine color based on priority if not specified
-        if color is None:
-            if priority == "high":
-                color = "#ff7f7f"  # Red
-            elif priority == "medium":
-                color = "#ffd700"  # Yellow
-            else:
-                color = "#90EE90"  # Green
-
-        # Initialize task list for this day if it doesn't exist
-        if day not in self.tasks:
-            self.tasks[day] = []
-
-        # Add the task
-        self.tasks[day].append({"title": title, "priority": priority, "color": color})
-
-        # Update calendar to reflect changes
-        self.update_calendar()
-
-    def remove_task(self, day, task_index):
-        """Remove a task from a specific day"""
-        if day in self.tasks and task_index < len(self.tasks[day]):
-            self.tasks[day].pop(task_index)
-            if not self.tasks[day]:
-                del self.tasks[day]
-
-            # Update calendar to reflect changes
-            self.update_calendar()
-
     def create_widgets(self):
         # Create header with month/year and navigation
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -324,22 +293,6 @@ class TaskCalendarWidget(Frame):
         if has_tasks and current_month and tasks:
             self._display_tasks(task_container, tasks)
 
-        # Add "+" icon for adding new tasks if current month
-        if current_month:
-            add_btn = ctk.CTkButton(
-                cell_frame,
-                text="+",
-                width=20,
-                height=20,
-                corner_radius=10,
-                fg_color="transparent",
-                text_color="#6c757d",
-                hover_color="#e0e0e0",
-                font=("Arial", 12),
-                command=lambda d=day: self._on_add_task(d),
-            )
-            add_btn.place(relx=1.0, y=5, anchor="ne", x=-5)
-
         return cell_frame
 
     def _display_tasks(self, container, tasks):
@@ -382,74 +335,6 @@ class TaskCalendarWidget(Frame):
             task_text.bind(
                 "<Button-1>", lambda e, t=task, idx=i: self._on_task_click(t, idx)
             )
-
-    def _on_day_click(self, day):
-        """Handle day click event"""
-        if self.on_day_click_callback:
-            self.on_day_click_callback(day, self.month, self.year)
-
-    def _on_add_task(self, day):
-        """Open dialog to add a new task"""
-        # Create task dialog
-        dialog = ctk.CTkToplevel(self)
-        dialog.title(f"Add Task - {calendar.month_name[self.month]} {day}, {self.year}")
-        dialog.geometry("300x200")
-        dialog.grab_set()  # Make dialog modal
-
-        # Task title
-        ctk.CTkLabel(dialog, text="Task Title:").pack(padx=15, pady=(10, 0), anchor="w")
-        title_entry = ctk.CTkEntry(dialog, width=280)
-        title_entry.pack(padx=10, pady=(0, 10), fill="x")
-
-        # Priority
-        ctk.CTkLabel(dialog, text="Priority:").pack(padx=15, pady=(5, 0), anchor="w")
-        priority_var = ctk.StringVar(value="normal")
-
-        priority_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        priority_frame.pack(padx=10, pady=(0, 10), fill="x")
-
-        priorities = [("High", "high"), ("Medium", "medium"), ("Normal", "normal")]
-        for i, (text, value) in enumerate(priorities):
-            ctk.CTkRadioButton(
-                priority_frame, text=text, variable=priority_var, value=value
-            ).grid(row=0, column=i, padx=10)
-
-        # Buttons
-        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        button_frame.pack(padx=10, pady=10, fill="x")
-
-        # Cancel button
-        ctk.CTkButton(
-            button_frame,
-            text="Cancel",
-            fg_color="#6c757d",
-            hover_color="#5c636a",
-            command=dialog.destroy,
-        ).pack(side="left", padx=5)
-
-        # Save button
-        def save_task():
-            title = title_entry.get().strip()
-            if title:
-                priority = priority_var.get()
-                self.add_task(day, title, priority)
-                dialog.destroy()
-
-        ctk.CTkButton(
-            button_frame,
-            text="Save",
-            fg_color="#28a745",
-            hover_color="#218838",
-            command=save_task,
-        ).pack(side="right", padx=5)
-
-        # Focus on title entry
-        title_entry.focus_set()
-
-    def _on_task_click(self, task, task_index):
-        """Handle task click for editing"""
-        # Implementation would be similar to _on_add_task but with editing functionality
-        pass
 
     def prev_month(self):
         if self.month == 1:
