@@ -1,7 +1,4 @@
-from api.models import Role
-from api.models import Guild
-from api.models import User
-from api.models import GuildMembership
+from api.models import User, Role, Guild, GuildMembership
 from api.serializers.role_serializer import RoleSerializer
 from api.serializers.user_serializer import UserSerializer
 from rest_framework.viewsets import ModelViewSet
