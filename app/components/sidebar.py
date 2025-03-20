@@ -147,7 +147,7 @@ class ServerNameDialog(ctk.CTkToplevel):
             font=("Arial", 14),
             fg_color="transparent",
             border_color="#1E1F22",
-            text_color="white",
+            text_color="black",
             placeholder_text="Enter server name",
         )
 
@@ -157,7 +157,7 @@ class ServerNameDialog(ctk.CTkToplevel):
             font=("Arial", 14),
             fg_color="transparent",
             border_color="#1E1F22",
-            text_color="white",
+            text_color="black",
             placeholder_text="Enter invitation link",
         )
 
@@ -249,12 +249,15 @@ class SidebarFrame(ctk.CTkFrame):
                 light_image=Image.open(logo_path), size=(60, 60)
             )
             self.logo_label = ctk.CTkLabel(self, image=self.logo_image, text="")
-            self.logo_label.grid(row=0, column=0, padx=6, pady=5)
+            self.logo_label.pack(pady=5)
+            # self.logo_label.grid(row=0, column=0, pady=5)
+            self.logo_label.bind("<Button-1>", lambda event: print("Logo clicked"))
 
         self.sidebar_component = SidebarComponent(self, self.__configuration)
-        self.sidebar_component.grid(
-            row=1, column=0, sticky="nsew"
-        )  # Make it fill the space
+        self.sidebar_component.pack()
+        # self.sidebar_component.grid(
+        #     row=1, column=0, sticky="nsew"
+        # )  # Make it fill the space
 
 
 class SidebarComponent(ctk.CTkFrame):
@@ -271,7 +274,7 @@ class SidebarComponent(ctk.CTkFrame):
         )
 
         # Configure frame
-        self.configure(fg_color=bg_color, width=72)
+        self.configure(fg_color=bg_color, width=65)
         self.grid_propagate(False)  # Prevent frame from resizing
         self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
 
@@ -293,7 +296,7 @@ class SidebarComponent(ctk.CTkFrame):
         self.plus_label = ctk.CTkLabel(
             self.icons_frame, image=self.normal_image, text="", fg_color=bg_color
         )
-        self.plus_label.pack(pady=5)
+        self.plus_label.pack(pady=5, padx=5)
 
         self.plus_label.bind("<Button-1>", lambda event: self.on_button_click())
         self.plus_label.bind("<Enter>", self.on_hover_enter)

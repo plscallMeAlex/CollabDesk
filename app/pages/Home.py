@@ -32,11 +32,11 @@ class HomePage(Page):
 
         # Sidebar on the left
         self.sidebar = SidebarFrame(self.content_container, self.master.configuration)
-        self.sidebar.pack(side="left", fill="y", padx=(0, 10))
+        self.sidebar.pack(side="left", fill="y")
 
         # Channel bar next to sidebar
         self.channel_bar = ChannelBar(self.content_container, self.master.configuration)
-        self.channel_bar.pack(side="left", fill="y", padx=(0, 10))
+        self.channel_bar.pack(side="left", fill="y")
 
         # Main content area (right side)
         self.main_content = ctk.CTkFrame(self.content_container, fg_color="transparent")
