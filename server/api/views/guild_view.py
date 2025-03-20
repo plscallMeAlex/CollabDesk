@@ -1,5 +1,6 @@
 from api.models import User, Guild, GuildMembership, Role
 from api.serializers.guild_serializer import GuildSerializer
+from django.shortcuts import get_object_or_404
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -43,8 +44,9 @@ class GuildViewSet(ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             # create a guild membership for the creator
+            user_instance = get_object_or_404(User, id=request.data["user_id"])
             guild_membership = GuildMembership.objects.create(
-                user=request.user,
+                user=user_instance,
                 guild=serializer.instance,
                 role=None,
             )

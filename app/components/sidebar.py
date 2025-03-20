@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import requests
 from PIL import Image
 import os
 
@@ -208,9 +209,25 @@ class ServerNameDialog(ctk.CTkToplevel):
     def on_create_or_join(self):
         server_name = self.name_entry.get() if self.action_type == "create" else None
         invite_link = self.link_entry.get() if self.action_type == "join" else None
+        user_id = self.__configuration.load_user_data()
+        server_id = None
 
         if self.action_type == "create" and server_name:
             print(f"Creating server: {server_name}")
+            # Request to create the server
+            response = requests.post(
+                self.__configuration.api_url + "/guilds/create_guild/",
+                json={
+                    "name": server_name,
+                    "user_id": user_id,
+                },
+            )
+            if response.status_code == 201:
+                server_id = response.json()["id"]
+                print("Server created successfully")
+            else:
+                print("Failed to create server")
+
             # Here you could add further actions to create the server
         elif self.action_type == "join" and invite_link:
             print(f"Joining server with invite link: {invite_link}")
@@ -357,15 +374,19 @@ class SidebarComponent(ctk.CTkFrame):
     def on_hover_leave(self, event):
         self.plus_label.configure(image=self.normal_image)
 
-    def add_server_icon(self, server_name):
+    def add_server_icon(self, server_name, id=None):
         """Add a new server icon to the sidebar"""
+        first_char = server_name[0].upper()
+        if len(self.created_links) > 0:
+            self.plus_label.pack_forget()
         new_link = ctk.CTkLabel(
             self.icons_frame,
             image=self.group_image,
-            text="",  # Remove text to keep width consistent
+            text=str(first_char),  # Remove text to keep width consistent
             fg_color=self.cget("fg_color"),
         )
         new_link.pack(pady=5)
+        print(new_link)
         self.created_links.append(new_link)
 
         # Move plus button to the end
