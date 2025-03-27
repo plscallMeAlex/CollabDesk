@@ -239,11 +239,12 @@ class ServerNameDialog(ctk.CTkToplevel):
 
 
 class SidebarFrame(ctk.CTkFrame):
-    def __init__(self, master, configuration, **kwargs):
+    def __init__(self, master, configuration, pagemanager, **kwargs):
         # Remove width from kwargs if it exists to avoid conflict
         kwargs.pop("width", None)
         super().__init__(master, **kwargs)
         self.__configuration = configuration
+        self.__pagemanager = pagemanager
 
         bg_color = (
             self.__configuration.colors["frame-color-secondary"]
@@ -270,7 +271,9 @@ class SidebarFrame(ctk.CTkFrame):
             # self.logo_label.grid(row=0, column=0, pady=5)
             self.logo_label.bind("<Button-1>", lambda event: print("Logo clicked"))
 
-        self.sidebar_component = SidebarComponent(self, self.__configuration)
+        self.sidebar_component = SidebarComponent(
+            self, self.__configuration, self.__pagemanager
+        )
         self.sidebar_component.pack()
         # self.sidebar_component.grid(
         #     row=1, column=0, sticky="nsew"
@@ -278,12 +281,13 @@ class SidebarFrame(ctk.CTkFrame):
 
 
 class SidebarComponent(ctk.CTkFrame):
-    def __init__(self, master, configuration, **kwargs):
+    def __init__(self, master, configuration, pagemanager, **kwargs):
         # Remove width from kwargs if it exists
         kwargs.pop("width", None)
         super().__init__(master, **kwargs)
 
         self.__configuration = configuration
+        self.__pagemanager = pagemanager
         bg_color = (
             self.__configuration.colors["frame-color-secondary"]
             if self.__configuration
@@ -387,12 +391,17 @@ class SidebarComponent(ctk.CTkFrame):
             fg_color=self.cget("fg_color"),
         )
         new_link.pack(pady=5, padx=5)
-        print(new_link)
         self.created_links.append(new_link)
+
+        # Bind the label with the server
+        new_link.bind("<Button-1>", lambda event, id=id: self.guild_clicked(id, event))
 
         # Move plus button to the end
         self.plus_label.pack_forget()
         self.plus_label.pack(pady=5, padx=5)
+
+    def guild_clicked(self, id, event):
+        print(f"Guild {id} clicked")
 
     def load_server(self):
         # fetch to the server to get the server

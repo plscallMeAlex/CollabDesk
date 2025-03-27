@@ -31,7 +31,9 @@ class HomePage(Page):
         self.content_container.pack(expand=True, fill="both", padx=10, pady=10)
 
         # Sidebar on the left
-        self.sidebar = SidebarFrame(self.content_container, self.master.configuration)
+        self.sidebar = SidebarFrame(
+            self.content_container, self.master.configuration, self.master.pagemanager
+        )
         self.sidebar.pack(side="left", fill="y")
 
         # Channel bar next to sidebar
