@@ -35,8 +35,8 @@ class GuildViewSet(ModelViewSet):
             can_manage_announcements=False,
         )
 
-        # return the role
-        return Role.objects.get(name="admin")
+        # return the role which is admin in that server
+        return Role.objects.filter(guild=guild, name="admin").first()
 
     @action(detail=False, methods=["POST"])
     def create_guild(self, request):

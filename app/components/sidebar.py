@@ -234,7 +234,9 @@ class ServerNameDialog(ctk.CTkToplevel):
             # Here you could add further actions to join the server
 
         if hasattr(self.parent, "add_server_icon"):
-            self.parent.add_server_icon(server_name if server_name else invite_link)
+            self.parent.add_server_icon(
+                server_name if server_name else invite_link, server_id
+            )
         self.destroy()
 
 
@@ -373,6 +375,12 @@ class SidebarComponent(ctk.CTkFrame):
         dialog = ServerActionDialog(self, self.__configuration)
         dialog.grab_set()
 
+    def on_hover_enter_guild(self, cmp, event):
+        cmp.configure(image=self.group_hover_image)
+
+    def on_hover_leave_guild(self, cmp, event):
+        cmp.configure(image=self.group_image)
+
     def on_hover_enter(self, event):
         self.plus_label.configure(image=self.hover_image)
 
@@ -394,14 +402,22 @@ class SidebarComponent(ctk.CTkFrame):
         self.created_links.append(new_link)
 
         # Bind the label with the server
-        new_link.bind("<Button-1>", lambda event, id=id: self.guild_clicked(id, event))
+        new_link.bind(
+            "<Button-1>",
+            lambda event, id=id: self.guild_clicked(id, event),
+        )
+        new_link.bind(
+            "<Enter>", lambda event, cmp=new_link: self.on_hover_enter_guild(cmp, event)
+        )
+        new_link.bind(
+            "<Leave>", lambda event, cmp=new_link: self.on_hover_leave_guild(cmp, event)
+        )
 
         # Move plus button to the end
         self.plus_label.pack_forget()
         self.plus_label.pack(pady=5, padx=5)
 
     def guild_clicked(self, id, event):
-        print(f"Guild {id} clicked")
         self.__change_guild_callback(id)
 
     def load_server(self):
