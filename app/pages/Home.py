@@ -6,6 +6,7 @@ from app.components.sidebar import SidebarFrame
 from app.components.header import Header
 from app.components.channelbar import ChannelBar
 from app.frames.calendar import TaskCalendarWidget
+from app.frames.dashboard import Dashboard
 
 
 class HomePage(Page):
@@ -51,16 +52,18 @@ class HomePage(Page):
         # Fetch the guilds
         response = self.__fetch_guilds()
 
+        self.__frame0 = Dashboard(self.frame_container, self.master.configuration)
+        self.__frame0.pack(expand=True, fill="both")
         # Create a BulletinBoard instance (First Frame Guild)
         # self.__frame0 = TaskCalendarWidget(
         #     self.frame_container, self.master.configuration, guildId=response[0]["id"]
         # )
         # self.__frame0.pack(expand=True, fill="both")
 
-        self.__frame0 = BulletinBoard(
-            self.frame_container, self.master.configuration, guildId=response[0]["id"]
-        )
-        self.__frame0.pack(expand=True, fill="both")
+        # self.__frame0 = BulletinBoard(
+        #     self.frame_container, self.master.configuration, guildId=response[0]["id"]
+        # )
+        # self.__frame0.pack(expand=True, fill="both")
 
     def __but1_click(self):
         self.__frame1 = ctk.CTkFrame(self.frame_container, fg_color="transparent")
