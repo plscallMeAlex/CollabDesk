@@ -239,12 +239,12 @@ class ServerNameDialog(ctk.CTkToplevel):
 
 
 class SidebarFrame(ctk.CTkFrame):
-    def __init__(self, master, configuration, pagemanager, **kwargs):
+    def __init__(self, master, configuration, change_guild_callback, **kwargs):
         # Remove width from kwargs if it exists to avoid conflict
         kwargs.pop("width", None)
         super().__init__(master, **kwargs)
         self.__configuration = configuration
-        self.__pagemanager = pagemanager
+        self.__change_guild_callback = change_guild_callback
 
         bg_color = (
             self.__configuration.colors["frame-color-secondary"]
@@ -272,7 +272,7 @@ class SidebarFrame(ctk.CTkFrame):
             self.logo_label.bind("<Button-1>", lambda event: print("Logo clicked"))
 
         self.sidebar_component = SidebarComponent(
-            self, self.__configuration, self.__pagemanager
+            self, self.__configuration, self.__change_guild_callback
         )
         self.sidebar_component.pack()
         # self.sidebar_component.grid(
@@ -281,13 +281,13 @@ class SidebarFrame(ctk.CTkFrame):
 
 
 class SidebarComponent(ctk.CTkFrame):
-    def __init__(self, master, configuration, pagemanager, **kwargs):
+    def __init__(self, master, configuration, change_guild_callback, **kwargs):
         # Remove width from kwargs if it exists
         kwargs.pop("width", None)
         super().__init__(master, **kwargs)
 
         self.__configuration = configuration
-        self.__pagemanager = pagemanager
+        self.__change_guild_callback = change_guild_callback
         bg_color = (
             self.__configuration.colors["frame-color-secondary"]
             if self.__configuration
@@ -402,6 +402,7 @@ class SidebarComponent(ctk.CTkFrame):
 
     def guild_clicked(self, id, event):
         print(f"Guild {id} clicked")
+        self.__change_guild_callback(id)
 
     def load_server(self):
         # fetch to the server to get the server

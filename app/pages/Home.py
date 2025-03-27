@@ -30,7 +30,9 @@ class HomePage(Page):
 
         # Sidebar on the left
         self.sidebar = SidebarFrame(
-            self.content_container, self.master.configuration, self.master.pagemanager
+            self.content_container,
+            self.master.configuration,
+            self.change_guild_callback,
         )
         self.sidebar.pack(side="left", fill="y")
 
@@ -67,6 +69,14 @@ class HomePage(Page):
         self.__label2.pack()
 
         self.master.pagemanager.switch_frame(self.__frame0, self.__frame1)
+
+    # use for changing guild via sidebar
+    def change_guild_callback(self, guild_id):
+        self.__frame0.destroy()
+        self.__frame0 = BulletinBoard(
+            self.frame_container, self.master.configuration, guildId=guild_id
+        )
+        self.__frame0.pack(expand=True, fill="both")
 
     def __fetch_guilds(self):
         params = {"user_id": self.master.configuration.load_user_data()}
