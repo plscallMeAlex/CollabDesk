@@ -64,7 +64,7 @@ class BulletinBoard(Frame):
         )
         self.__add_bar_button.pack(side="left", padx=10, pady=10, fill="y")
         # User task
-        self.__user_task = UserTask(self.__frame1, self.__configuration)
+        self.__user_task = UserTask(self.__frame1, self.__configuration, self._guildId)
         self.__user_task.pack(expand=True, fill="both")
 
     def create_bar(self, state):

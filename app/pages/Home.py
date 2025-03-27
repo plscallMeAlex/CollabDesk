@@ -17,8 +17,6 @@ class HomePage(Page):
         self.master = master
 
     def create_widgets(self):
-        response = self.__fetch_guilds()
-
         self.__mainframe = ctk.CTkFrame(self, fg_color="transparent")
         self.__mainframe.pack(expand=True, fill="both")
 
@@ -48,16 +46,19 @@ class HomePage(Page):
         self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
         self.frame_container.pack(expand=True, fill="both", pady=20)
 
-        # Create a BulletinBoard instance (First Frame Guild)
-        self.__frame0 = TaskCalendarWidget(
-            self.frame_container, self.master.configuration, guildId=response[0]["id"]
-        )
-        self.__frame0.pack(expand=True, fill="both")
+        # Fetch the guilds
+        response = self.__fetch_guilds()
 
-        # self.__frame0 = BulletinBoard(
+        # Create a BulletinBoard instance (First Frame Guild)
+        # self.__frame0 = TaskCalendarWidget(
         #     self.frame_container, self.master.configuration, guildId=response[0]["id"]
         # )
         # self.__frame0.pack(expand=True, fill="both")
+
+        self.__frame0 = BulletinBoard(
+            self.frame_container, self.master.configuration, guildId=response[0]["id"]
+        )
+        self.__frame0.pack(expand=True, fill="both")
 
     def __but1_click(self):
         self.__frame1 = ctk.CTkFrame(self.frame_container, fg_color="transparent")
@@ -68,7 +69,13 @@ class HomePage(Page):
         self.master.pagemanager.switch_frame(self.__frame0, self.__frame1)
 
     def __fetch_guilds(self):
-        guilds = requests.get(
-            self.master.configuration.api_url + "/guilds/list_guilds/",
+        params = {"user_id": self.master.configuration.load_user_data()}
+        reponse = requests.get(
+            self.master.configuration.api_url + "/guilds/get_guilds_by_user/",
+            params=params,
         )
-        return guilds.json()
+
+        if reponse.status_code == 200:
+            return reponse.json()
+        else:
+            return []
