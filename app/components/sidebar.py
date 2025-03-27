@@ -234,7 +234,9 @@ class ServerNameDialog(ctk.CTkToplevel):
             # Here you could add further actions to join the server
 
         if hasattr(self.parent, "add_server_icon"):
-            self.parent.add_server_icon(server_name if server_name else invite_link)
+            self.parent.add_server_icon(
+                server_name if server_name else invite_link, server_id
+            )
         self.destroy()
 
 
