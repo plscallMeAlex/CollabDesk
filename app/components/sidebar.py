@@ -320,6 +320,7 @@ class SidebarComponent(ctk.CTkFrame):
         self.plus_label.bind("<Leave>", self.on_hover_leave)
 
         self.created_links = []
+        self.load_server()
 
         # Bind mouse wheel to scroll
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -394,4 +395,16 @@ class SidebarComponent(ctk.CTkFrame):
         self.plus_label.pack(pady=5, padx=5)
 
     def load_server(self):
-        pass
+        # fetch to the server to get the server
+        params = {"user_id": self.__configuration.load_user_data()}
+        response = requests.get(
+            self.__configuration.api_url + "/guilds/get_guilds_by_user/",
+            params=params,
+        )
+
+        if response.status_code == 200:
+            guilds = response.json()
+            for guild in guilds:
+                self.add_server_icon(guild["name"], guild["id"])
+        else:
+            print("Failed to fetch the guilds")
