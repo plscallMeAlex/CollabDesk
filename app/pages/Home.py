@@ -4,7 +4,7 @@ import requests
 from app.frames.bulletinboard import BulletinBoard
 from app.components.sidebar import SidebarFrame
 from app.components.header import Header
-from app.components.chanelbar import ChannelBar
+from app.components.channelbar import ChannelBar
 from app.frames.calendar import TaskCalendarWidget
 
 
