@@ -385,10 +385,13 @@ class SidebarComponent(ctk.CTkFrame):
             text=str(first_char),  # Remove text to keep width consistent
             fg_color=self.cget("fg_color"),
         )
-        new_link.pack(pady=5)
+        new_link.pack(pady=5, padx=5)
         print(new_link)
         self.created_links.append(new_link)
 
         # Move plus button to the end
         self.plus_label.pack_forget()
-        self.plus_label.pack(pady=5)
+        self.plus_label.pack(pady=5, padx=5)
+
+    def load_server(self):
+        pass
