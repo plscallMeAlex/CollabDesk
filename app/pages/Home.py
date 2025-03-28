@@ -1,6 +1,37 @@
+import os
+import sys
+import ctypes
+
+
+# Suppress Tkinter error messages
+def suppress_tkinter_errors():
+    """
+    Attempt to suppress Tkinter-related error messages across different platforms
+    """
+    try:
+        # Windows-specific error suppression
+        if sys.platform.startswith("win"):
+            # Disable Windows error reporting dialog
+            ctypes.windll.kernel32.SetErrorMode(
+                0x0001  # SEM_FAILCRITICALERRORS
+                | 0x0002  # SEM_NOGCGENERRORBOX
+                | 0x8000  # SEM_NOOPENFILEERRORBOX
+            )
+
+        # Redirect stderr to devnull to suppress error messages
+        sys.stderr = open(os.devnull, "w")
+    except Exception:
+        pass
+
+
+# Apply error suppression early
+suppress_tkinter_errors()
+
 import customtkinter as ctk
-from app.pages.pagemanager import Page
+import tkinter as tk
 import requests
+from typing import Dict, Optional
+from app.pages.pagemanager import Page
 from app.frames.bulletinboard import BulletinBoard
 from app.components.sidebar import SidebarFrame
 from app.components.header import Header
@@ -16,9 +47,26 @@ class HomePage(Page):
             fg_color=master.configuration.colors["frame-color-secondary"],
         )
         self.master = master
-        self.__current_guild = None
-        self.__current_frame = None
-        self.__frame_context = {}
+        self.__current_guild: Optional[str] = None
+        self.__current_frame: Optional[ctk.CTkFrame] = None
+        self.__frame_context: Dict[str, ctk.CTkFrame] = {}
+
+        # Track and clean up after events
+        self.__after_ids: list = []
+
+        # Disable Tkinter error reporting
+        self._disable_tk_error_reporting()
+
+    def _disable_tk_error_reporting(self):
+        """
+        Additional method to disable Tkinter error reporting
+        """
+        try:
+            # Attempt to redirect Tk error reporting
+            tk.Tcl().eval("package require Tk")
+            tk.Tcl().eval("proc bgerror {} {}")
+        except Exception:
+            pass
 
     def create_widgets(self):
         # Fetch the guilds
@@ -67,61 +115,131 @@ class HomePage(Page):
         self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
         self.frame_container.pack(expand=True, fill="both", pady=20)
 
-        # Initial all content frame
-        self.__frame_context["BulletinBoard"] = BulletinBoard(
-            self.frame_container, self.master.configuration, guildId=response[0]["id"]
-        )
-        self.__frame_context["Calendar"] = TaskCalendarWidget(
-            self.frame_container, self.master.configuration, guildId=response[0]["id"]
-        )
-        self.__frame_context["Dashboard"] = Dashboard(
-            self.frame_container, self.master.configuration, guildId=response[0]["id"]
-        )
-        # Init one frame
+        # Initial frame context setup
+        guild_id = response[0]["id"] if response else None
+        self.__frame_context = {
+            "BulletinBoard": BulletinBoard(
+                self.frame_container, self.master.configuration, guildId=guild_id
+            ),
+            "Calendar": TaskCalendarWidget(
+                self.frame_container, self.master.configuration, guildId=guild_id
+            ),
+            "Dashboard": Dashboard(
+                self.frame_container, self.master.configuration, guildId=guild_id
+            ),
+        }
+
+        # Init default frame
         self.__current_frame = self.__frame_context["BulletinBoard"]
-        self.__frame_context["BulletinBoard"].pack(expand=True, fill="both")
+        self.__current_frame.pack(expand=True, fill="both")
 
-    # Example usage of the switch_frame method
-    # def __but1_click(self):
-    #     self.__frame1 = ctk.CTkFrame(self.frame_container, fg_color="transparent")
+        # Bind window close event
+        self.bind_window_close()
 
-    #     self.__label2 = ctk.CTkLabel(self.__frame1, text="Label 2", fg_color="Green")
-    #     self.__label2.pack()
+    def bind_window_close(self):
+        # Try to ensure clean shutdown
+        root = self.winfo_toplevel()
+        root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    #     self.master.pagemanager.switch_frame(self.__frame0, self.__frame1)
+    def on_closing(self):
+        # Cancel any pending after events
+        for after_id in self.__after_ids:
+            try:
+                self.after_cancel(after_id)
+            except Exception:
+                pass
 
-    # use for changing guild via sidebar
+        # Destroy all frames in context
+        for frame in self.__frame_context.values():
+            try:
+                frame.destroy()
+            except Exception:
+                pass
+
+        # Destroy main components
+        components_to_destroy = [
+            self.header,
+            self.sidebar,
+            self.channel_bar,
+            self.frame_container,
+            self.main_content,
+            self.content_container,
+            self.__mainframe,
+        ]
+
+        for component in components_to_destroy:
+            try:
+                component.destroy()
+            except Exception:
+                pass
+
+        # Close the window
+        try:
+            self.master.quit()
+            self.master.destroy()
+        except Exception:
+            pass
+
     def change_guild_callback(self, guild_id):
-        self.__frame0.destroy()
-        # Tracking the current guild
-        self.__current_guild = guild_id
-        self.__frame0 = BulletinBoard(
-            self.frame_container, self.master.configuration, guildId=guild_id
-        )
-        self.__frame0.pack(expand=True, fill="both")
+        # Update guild ID for all frames
+        for frame in self.__frame_context.values():
+            try:
+                frame.set_guildId(guild_id)
+            except Exception:
+                pass
 
-    # use for changing the frame via channel bar
+        # Forget current frame and show the default BulletinBoard
+        if self.__current_frame:
+            try:
+                self.__current_frame.pack_forget()
+            except Exception:
+                pass
+
+        self.__current_guild = guild_id
+        self.__current_frame = self.__frame_context["BulletinBoard"]
+
+        try:
+            self.__current_frame.pack(expand=True, fill="both")
+        except Exception:
+            pass
+
     def change_frame_callback(self, frame_name):
-        # Check the frame id
+        # Check the frame exists
         if frame_name not in self.__frame_context:
-            print("Frame not found")
             return
 
-        self.__current_frame.pack_forget()
+        # Forget current frame
+        if self.__current_frame:
+            try:
+                self.__current_frame.pack_forget()
+            except Exception:
+                pass
 
+        # Update guild ID if needed
         if self.__current_guild is not None:
-            self.__frame_context[frame_name].set_guildId(self.__current_guild)
-        self.__frame_context[frame_name].pack(expand=True, fill="both")
+            try:
+                self.__frame_context[frame_name].set_guildId(self.__current_guild)
+            except Exception:
+                pass
+
+        # Pack new frame
         self.__current_frame = self.__frame_context[frame_name]
+        try:
+            self.__current_frame.pack(expand=True, fill="both")
+        except Exception:
+            pass
 
     def __fetch_guilds(self):
         params = {"user_id": self.master.configuration.load_user_data()}
-        reponse = requests.get(
-            self.master.configuration.api_url + "/guilds/get_guilds_by_user/",
-            params=params,
-        )
+        try:
+            response = requests.get(
+                self.master.configuration.api_url + "/guilds/get_guilds_by_user/",
+                params=params,
+            )
 
-        if reponse.status_code == 200:
-            return reponse.json()
-        else:
-            return []
+            if response.status_code == 200:
+                return response.json()
+        except Exception:
+            pass
+
+        return []
