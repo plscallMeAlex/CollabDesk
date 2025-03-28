@@ -126,6 +126,17 @@ class Dashboard(Frame):
         nav_buttons_frame = ctk.CTkFrame(announcement_header, fg_color="transparent")
         nav_buttons_frame.pack(side="right", padx=20)
 
+        # Add annoucement button
+        self.add_announcement_btn = ctk.CTkButton(
+            nav_buttons_frame,
+            text="+ New",
+            width=80,
+            fg_color="#4CAF50",
+            hover_color="#45a049",
+            command=self.show_new_announcement_dialog,
+        )
+        self.add_announcement_btn.pack(side="left", padx=5)
+
         self.prev_announcement_btn = ctk.CTkButton(
             nav_buttons_frame,
             text="◀",
@@ -174,6 +185,8 @@ class Dashboard(Frame):
             activate_scrollbars=True,
         )
         self.announcement_text.pack(fill="both", expand=True, padx=15, pady=5)
+
+        self.announcement_text.configure(state="disabled")  # Make it read-only
 
         # Author and date
         self.announcement_footer = ctk.CTkLabel(
@@ -311,6 +324,68 @@ class Dashboard(Frame):
         # Initialize with first announcement and activities
         self.display_announcement(0)
         self.display_activities(0)
+
+    def show_new_announcement_dialog(self):
+        """Show dialog for creating a new announcement"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Create New Announcement")
+        dialog.geometry("500x600")
+        dialog.resizable(False, False)
+        dialog.grab_set()  # Make modal
+
+        # Title field
+        ctk.CTkLabel(dialog, text="Title:", font=("Arial", 12)).pack(
+            pady=(10, 5), padx=20, anchor="w"
+        )
+        title_entry = ctk.CTkEntry(dialog, width=400)
+        title_entry.pack(pady=5, padx=20, fill="x")
+
+        # Content field
+        ctk.CTkLabel(dialog, text="Content:", font=("Arial", 12)).pack(
+            pady=(10, 5), padx=20, anchor="w"
+        )
+        content_text = ctk.CTkTextbox(dialog, height=200)
+        content_text.pack(pady=5, padx=20, fill="both", expand=True)
+
+        # Button frame
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(pady=10, padx=20, fill="x")
+
+        def add_announcement():
+            title = title_entry.get()
+            content = content_text.get("1.0", "end-1c")
+
+            if title and content:
+                new_announcement = {
+                    "title": title,
+                    "content": content,
+                    "author": "You",  # Could be replaced with actual username
+                    "date": datetime.now().strftime("%b %d, %Y"),
+                }
+
+                # Add to beginning of list
+                self.announcements.insert(0, new_announcement)
+                self.current_announcement = 0
+                self.display_announcement(0)
+                dialog.destroy()
+
+        # Add button
+        ctk.CTkButton(
+            button_frame,
+            text="Publish",
+            fg_color="#4CAF50",
+            hover_color="#45a049",
+            command=add_announcement,
+        ).pack(side="right", padx=5)
+
+        # Cancel button
+        ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            fg_color="#f44336",
+            hover_color="#d32f2f",
+            command=dialog.destroy,
+        ).pack(side="right", padx=5)
 
     def set_guildId(self, guildId):
         self.guildId = guildId

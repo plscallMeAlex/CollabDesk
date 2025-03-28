@@ -50,9 +50,7 @@ class ChannelBar(ctk.CTkFrame):
             fg_color="transparent",
             hover_color="gray",
             anchor="w",
-            command=lambda: print(
-                "Dashboard"
-            ),  # self.change_frame_callback("Dashboard"),
+            command=lambda: self.change_frame_callback("Dashboard"),
         )
         self.dashboard_btn.pack(fill="x", padx=10, pady=2)
 
