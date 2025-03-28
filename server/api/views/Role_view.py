@@ -1,6 +1,5 @@
 from api.models import Role, Guild, User, GuildMembership
-from api.serializers.role_serializer import RoleSerializer
-from api.serializers.user_serializer import UserSerializer
+from api.serializers import RoleSerializer, UserSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response

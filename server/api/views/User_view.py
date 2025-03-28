@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from api.models import User
-from api.serializers.user_serializer import UserSerializer
+from api.serializers import UserSerializer
 
 
 class UserViewSet(ModelViewSet):
