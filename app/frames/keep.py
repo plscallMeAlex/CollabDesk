@@ -1,435 +1,335 @@
 import customtkinter as ctk
-from datetime import datetime, timedelta
-import calendar
+from app.frames.frame import Frame
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.patches as mpatches
+from datetime import datetime
 
-class TaskCalendarWidget(ctk.CTkFrame):
-    def __init__(self, master, year=None, month=None, **kwargs):
-        super().__init__(master, **kwargs)
+
+class Dashboard(Frame):
+    def __init__(self, master, configuration, guildId=None,**kwargs):
+        super().__init__(master, configuration,guildId ,**kwargs)
         
-        # Set initial date
-        self.current_date = datetime.now()
-        self.year = year if year else self.current_date.year
-        self.month = month if month else self.current_date.month
+        # Sample data
+        self.announcements = [
+            {
+                "title": "Sprint 5 Kickoff",
+                "content": "Team,\n\nWe're making great progress on our current sprint. As you can see from our dashboard, we still have 50% of tasks in the backlog, but we're moving steadily with 30% of tasks currently in progress.\n\nRemember our upcoming deadline on March 15th. Alex and D are handling most of the workload, so please offer support where needed.\n\nGreat job everyone!",
+                "author": "Project Manager",
+                "date": "Feb 25, 2025"
+            },
+            {
+                "title": "New Team Member Onboarding",
+                "content": "Please welcome Jon to our development team. He'll be focusing on frontend tasks starting next week.",
+                "author": "HR Department",
+                "date": "Feb 24, 2025" 
+            },
+            {
+                "title": "Infrastructure Update",
+                "content": "Server maintenance scheduled for this weekend. Please save all work by Friday 5PM.",
+                "author": "IT Support",
+                "date": "Feb 23, 2025"
+            }
+        ]
         
-        # Tasks and events storage
-        self.tasks = {
-            # Example format: day: [{"title": "Task name", "priority": "high", "color": "#ff7f7f"}]
-            4: [{"title": "UX/UI Research", "priority": "medium", "color": "#e2efd9"}],
-            5: [{"title": "UX/UI Design", "priority": "medium", "color": "#e2efd9"}],
-            6: [{"title": "UX/UI Testing", "priority": "medium", "color": "#e2efd9"}],
-            7: [{"title": "UX/UI Review", "priority": "medium", "color": "#e2efd9"}],
-            18: [{"title": "Team Meeting", "priority": "high", "color": "#474e90"}],
-            20: [{"title": "Project Deadline", "priority": "high", "color": "#ff7f7f"}]
-        }
+        self.activities = [
+            {"user": "Alex", "action": "updated task 'Database integration' to 'In Progress'", "time": "Feb 26, 2025 - 10:45 AM"},
+            {"user": "Jon", "action": "completed task 'User authentication flow'", "time": "Feb 26, 2025 - 09:30 AM"},
+            {"user": "D", "action": "added comments to task 'API documentation'", "time": "Feb 25, 2025 - 04:15 PM"},
+            {"user": "Thun", "action": "created new task 'Frontend testing'", "time": "Feb 25, 2025 - 02:20 PM"},
+            {"user": "Alex", "action": "completed task 'Login page design'", "time": "Feb 25, 2025 - 11:05 AM"},
+            {"user": "D", "action": "updated task 'Backend optimization' to 'In Progress'", "time": "Feb 24, 2025 - 03:40 PM"},
+            {"user": "Jon", "action": "commented on task 'Mobile responsiveness'", "time": "Feb 24, 2025 - 01:15 PM"},
+            {"user": "Thun", "action": "assigned task 'Security audit' to Alex", "time": "Feb 24, 2025 - 11:30 AM"},
+            {"user": "Alex", "action": "updated task 'User profile page' to 'Done'", "time": "Feb 23, 2025 - 04:50 PM"},
+            {"user": "D", "action": "created task 'Database optimization'", "time": "Feb 23, 2025 - 02:10 PM"},
+        ]
         
-        # Configure grid to expand
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        self.current_announcement = 0
+        self.current_activity_page = 0
+        self.activities_per_page = 5
         
-        # Callbacks
-        self.on_day_click_callback = None
-        
-        # Create the calendar layout
         self.create_widgets()
         
-    def set_on_day_click(self, callback):
-        """Set callback function for day click events"""
-        self.on_day_click_callback = callback
-        
-    def add_task(self, day, title, priority="normal", color=None):
-        """Add a task to a specific day"""
-        # Determine color based on priority if not specified
-        if color is None:
-            if priority == "high":
-                color = "#ff7f7f"  # Light red
-            elif priority == "medium":
-                color = "#e2efd9"  # Light green
-            else:
-                color = "#e6f3ff"  # Light blue
-        
-        # Initialize task list for this day if it doesn't exist
-        if day not in self.tasks:
-            self.tasks[day] = []
-            
-        # Add the task
-        self.tasks[day].append({
-            "title": title,
-            "priority": priority,
-            "color": color
-        })
-        
-        # Update calendar to reflect changes
-        self.update_calendar()
-        
-    def remove_task(self, day, task_index):
-        """Remove a task from a specific day"""
-        if day in self.tasks and task_index < len(self.tasks[day]):
-            self.tasks[day].pop(task_index)
-            if not self.tasks[day]:
-                del self.tasks[day]
-            
-            # Update calendar to reflect changes
-            self.update_calendar()
-            
     def create_widgets(self):
-        # Create header with month/year and navigation
-        header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-        header_frame.grid_columnconfigure(0, weight=1)
+        # Configure the main layout
+        self.configure(fg_color="#f5f5f5")
         
-        # Month and year label
-        month_name = calendar.month_name[self.month]
-        self.header_label = ctk.CTkLabel(
-            header_frame, 
-            text=f"{month_name} {self.year}", 
-            font=("Arial", 18, "bold")
+        # Main content area - split into left and right sections
+        content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Left section
+        left_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+        left_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        
+        # Team Leader Announcement
+        announcement_frame = ctk.CTkFrame(left_frame, fg_color="#e0e0e0", corner_radius=10)
+        announcement_frame.pack(fill="x", pady=(0, 20))
+        
+        announcement_header = ctk.CTkFrame(announcement_frame, fg_color="transparent", height=40)
+        announcement_header.pack(fill="x")
+        
+        announcement_label = ctk.CTkLabel(announcement_header, text="Team Leader Announcement", 
+                                         font=("Arial", 16, "bold"), fg_color="transparent")
+        announcement_label.pack(side="left", padx=20, pady=10)
+        
+        # Navigation buttons for announcements
+        nav_buttons_frame = ctk.CTkFrame(announcement_header, fg_color="transparent")
+        nav_buttons_frame.pack(side="right", padx=20)
+        
+        self.prev_announcement_btn = ctk.CTkButton(nav_buttons_frame, text="◀", width=30, 
+                                               fg_color="#d0d0d0", text_color="black", 
+                                               corner_radius=5, command=self.prev_announcement)
+        self.prev_announcement_btn.pack(side="left", padx=5)
+        
+        self.next_announcement_btn = ctk.CTkButton(nav_buttons_frame, text="▶", width=30, 
+                                               fg_color="#d0d0d0", text_color="black", 
+                                               corner_radius=5, command=self.next_announcement)
+        self.next_announcement_btn.pack(side="left", padx=5)
+        
+        # Announcement content
+        self.announcement_content_frame = ctk.CTkFrame(announcement_frame, fg_color="white", corner_radius=5)
+        self.announcement_content_frame.pack(fill="both", padx=20, pady=(0, 20), ipady=10)
+        
+        # Title
+        self.announcement_title = ctk.CTkLabel(self.announcement_content_frame, text="", 
+                                          font=("Arial", 14, "bold"), fg_color="transparent")
+        self.announcement_title.pack(anchor="w", padx=15, pady=(15, 5))
+        
+        # Content
+        self.announcement_text = ctk.CTkTextbox(self.announcement_content_frame, fg_color="transparent", 
+                                           height=150, wrap="word", activate_scrollbars=True)
+        self.announcement_text.pack(fill="both", expand=True, padx=15, pady=5)
+        
+        # Author and date
+        self.announcement_footer = ctk.CTkLabel(self.announcement_content_frame, text="", 
+                                           font=("Arial", 10), fg_color="transparent", text_color="gray")
+        self.announcement_footer.pack(anchor="e", padx=15, pady=(5, 15))
+        
+        # Recent Activities
+        activities_frame = ctk.CTkFrame(left_frame, fg_color="#e0e0e0", corner_radius=10)
+        activities_frame.pack(fill="both", expand=True)
+        
+        activities_header = ctk.CTkFrame(activities_frame, fg_color="transparent", height=40)
+        activities_header.pack(fill="x")
+        
+        activities_label = ctk.CTkLabel(activities_header, text="Recent Activities", 
+                                       font=("Arial", 16, "bold"), fg_color="transparent")
+        activities_label.pack(side="left", padx=20, pady=10)
+        
+        # Navigation buttons for activities
+        activities_nav = ctk.CTkFrame(activities_header, fg_color="transparent")
+        activities_nav.pack(side="right", padx=20)
+        
+        self.prev_activities_btn = ctk.CTkButton(activities_nav, text="◀", width=30, 
+                                             fg_color="#d0d0d0", text_color="black", 
+                                             corner_radius=5, command=self.prev_activities_page)
+        self.prev_activities_btn.pack(side="left", padx=5)
+        
+        self.next_activities_btn = ctk.CTkButton(activities_nav, text="▶", width=30, 
+                                             fg_color="#d0d0d0", text_color="black", 
+                                             corner_radius=5, command=self.next_activities_page)
+        self.next_activities_btn.pack(side="left", padx=5)
+        
+        # Activities content
+        self.activities_content = ctk.CTkFrame(activities_frame, fg_color="white", corner_radius=5)
+        self.activities_content.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        
+        # Right section
+        right_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+        right_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
+        
+        # Current Progress Chart
+        progress_frame = ctk.CTkFrame(right_frame, fg_color="#e0e0e0", corner_radius=10, border_width=1, border_color="#d0d0d0")
+        progress_frame.pack(fill="x", pady=(0, 20), ipady=20)
+        
+        progress_label = ctk.CTkLabel(progress_frame, text="Current Progress", 
+                                     font=("Arial", 16, "bold"), fg_color="transparent")
+        progress_label.pack(anchor="nw", padx=20, pady=10)
+        
+        # Create progress chart figure
+        self.create_donut_chart(progress_frame, 
+                               {"Todo": 50, "Doing": 30, "DONE": 10, "Requirement": 10},
+                               {"Todo": "#3483eb", "Doing": "#4dc6ff", "DONE": "#57e5a1", "Requirement": "#e5e5e5"})
+        
+        # Task ownership chart
+        ownership_frame = ctk.CTkFrame(right_frame, fg_color="#e0e0e0", corner_radius=10, border_width=1, border_color="#d0d0d0")
+        ownership_frame.pack(fill="both", expand=True)
+        
+        ownership_label = ctk.CTkLabel(ownership_frame, text="Each task take owner", 
+                                      font=("Arial", 16, "bold"), fg_color="transparent")
+        ownership_label.pack(anchor="nw", padx=20, pady=10)
+        
+        # Create ownership chart
+        self.create_donut_chart(ownership_frame, 
+                               {"Alex": 50, "D": 30, "Jon": 10, "Thun": 10},
+                               {"Alex": "#3483eb", "D": "#4dc6ff", "Jon": "#57e5a1", "Thun": "#e5e5e5"})
+        
+        # Settings button at bottom
+        settings_frame = ctk.CTkFrame(self, height=40, fg_color="transparent")
+        settings_frame.pack(fill="x", side="bottom")
+        
+        settings_button = ctk.CTkButton(settings_frame, text="⚙️", width=30, fg_color="transparent", text_color="black")
+        settings_button.pack(side="left", padx=20, pady=10)
+        
+        # Initialize with first announcement and activities
+        self.display_announcement(0)
+        self.display_activities(0)
+    
+    def create_donut_chart(self, parent_frame, data, colors):
+        # Create a frame to hold the chart and legend
+        chart_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
+        chart_frame.pack(fill="x", padx=10, pady=5)  # Reduced padding
+    
+        # Create chart on the left
+        chart_left = ctk.CTkFrame(chart_frame, fg_color="transparent")
+        chart_left.pack(side="left", fill="both", expand=True)
+    
+        fig, ax = plt.subplots(figsize=(2.5, 1.5), facecolor='#e0e0e0')  # Smaller figure size
+        wedges, texts, autotexts = ax.pie(
+            data.values(), 
+            labels=None, 
+            colors=colors.values(),
+            autopct='%1.0f%%', 
+            startangle=90,
+            wedgeprops=dict(width=0.4),  # For donut shape
+            pctdistance=0.85
         )
-        self.header_label.grid(row=0, column=0, sticky="w", padx=10)
-        
-        # Navigation buttons
-        nav_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
-        nav_frame.grid(row=0, column=1, sticky="e", padx=10)
-        
-        self.prev_btn = ctk.CTkButton(
-            nav_frame, 
-            text="<", 
-            width=30, 
-            corner_radius=5,
-            fg_color="transparent",
-            text_color="black",
-            hover_color="#e0e0e0",
-            command=self.prev_month
-        )
-        self.prev_btn.pack(side="left", padx=5)
-        
-        self.next_btn = ctk.CTkButton(
-            nav_frame, 
-            text=">", 
-            width=30, 
-            corner_radius=5,
-            fg_color="transparent",
-            text_color="black",
-            hover_color="#e0e0e0",
-            command=self.next_month
-        )
-        self.next_btn.pack(side="left", padx=5)
-        
-        # Main calendar container
-        main_calendar = ctk.CTkFrame(self, fg_color="transparent", border_width=1, border_color="#e0e0e0")
-        main_calendar.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
-        
-        # Configure the main calendar container to expand
-        for i in range(7):  # 7 columns for days
-            main_calendar.grid_columnconfigure(i, weight=1)
-        for i in range(7):  # 1 row for headers + 6 rows for days (max needed)
-            main_calendar.grid_rowconfigure(i, weight=1)
-        
-        # Create weekday headers
-        weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-        
-        # Grid for days of week headers
-        for col, day in enumerate(weekdays):
-            day_label = ctk.CTkLabel(
-                main_calendar, 
-                text=day, 
-                font=("Arial", 12, "bold"),
-                anchor="center"
-            )
-            day_label.grid(row=0, column=col, padx=1, pady=3, sticky="nsew")
-        
-        # Store reference to calendar frame for updates
-        self.calendar_frame = main_calendar
-        
-        # Populate calendar
-        self.update_calendar()
     
-    def update_calendar(self):
-        # Clear existing calendar days (except headers)
-        for widget in self.calendar_frame.winfo_children():
-            if isinstance(widget, ctk.CTkFrame):
-                widget.destroy()
-        
-        # Update header label
-        month_name = calendar.month_name[self.month]
-        self.header_label.configure(text=f"{month_name} {self.year}")
-        
-        # Get first day of month and number of days
-        first_day = datetime(self.year, self.month, 1)
-        days_in_month = calendar.monthrange(self.year, self.month)[1]
-        
-        # Adjust first weekday (0 is Monday in our calendar)
-        first_weekday = first_day.weekday()  # 0 = Monday, 6 = Sunday
-        
-        # Get days from previous month
-        if first_weekday > 0:
-            prev_month = self.month - 1 if self.month > 1 else 12
-            prev_year = self.year if self.month > 1 else self.year - 1
-            prev_days = calendar.monthrange(prev_year, prev_month)[1]
-        
-        # Populate calendar grid
-        day = 1
-        for row in range(1, 7):  # Start from row 1 (after headers)
-            if day > days_in_month and row > 1:
-                break
-                
-            for col in range(7):  # 7 days per week
-                if row == 1 and col < first_weekday:
-                    # Previous month days
-                    prev_day = prev_days - first_weekday + col + 1
-                    day_frame = self.create_day_cell(prev_day, False)
-                    day_frame.grid(row=row, column=col, padx=1, pady=1, sticky="nsew")
-                elif day <= days_in_month:
-                    # Current month days
-                    has_tasks = day in self.tasks
-                    
-                    # Create day cell
-                    day_frame = self.create_day_cell(
-                        day, 
-                        True, 
-                        has_tasks=has_tasks,
-                        tasks=self.tasks.get(day, []),
-                        is_today=(day == self.current_date.day and 
-                                 self.month == self.current_date.month and 
-                                 self.year == self.current_date.year)
-                    )
-                    day_frame.grid(row=row, column=col, padx=1, pady=1, sticky="nsew")
-                    day += 1
-                else:
-                    # Next month days
-                    next_day = day - days_in_month
-                    day_frame = self.create_day_cell(next_day, False)
-                    day_frame.grid(row=row, column=col, padx=1, pady=1, sticky="nsew")
-                    day += 1
+        # Make the center circle for the donut
+        centre_circle = plt.Circle((0, 0), 0.3, fc='white')
+        ax.add_patch(centre_circle)
     
-    def create_day_cell(self, day, current_month, has_tasks=False, tasks=None, is_today=False):
-        # Create frame for the day cell
-        cell_frame = ctk.CTkFrame(
-            self.calendar_frame,
-            corner_radius=0,
-            fg_color="#f8f9fa" if not current_month else ("white"),
-            border_width=1,
-            # border_color="#dee2e6"
-            border_color="#e0e0e0"
-        )
-        
-        # Configure cell to fill space
-        cell_frame.grid_columnconfigure(0, weight=1)
-        
-        # Today indicator
-        if is_today:
-            day_container = ctk.CTkFrame(
-                cell_frame,
-                corner_radius=15,
-                fg_color="#007bff",
-                width=30,
-                height=30
-            )
-            day_container.place(x=5, y=5)
-            
-            day_label = ctk.CTkLabel(
-                day_container,
-                text=str(day),
-                text_color="white",
-                font=("Arial", 12, "bold"),
-                width=30,
-                height=30
-            )
-            day_label.place(relx=0.5, rely=0.5, anchor="center")
-        else:
-            # Day number label
-            day_label = ctk.CTkLabel(
-                cell_frame,
-                text=str(day),
-                text_color="gray" if not current_month else "black",
-                font=("Arial", 12, "bold" if current_month else "normal"),
-                anchor="nw"
-            )
-            day_label.place(x=5, y=5)
-        
-        # Add event container that will expand with the cell
-        task_container = ctk.CTkFrame(
-            cell_frame,
-            corner_radius=0,
-            fg_color="transparent"
-        )
-        task_container.place(x=0, y=30, relwidth=1, relheight=0.8)
-        
-        # Make the cell clickable if it's in the current month
-        if current_month:
-            cell_frame.bind("<Button-1>", lambda e, d=day: self._on_day_click(d))
-            day_label.bind("<Button-1>", lambda e, d=day: self._on_day_click(d))
-            task_container.bind("<Button-1>", lambda e, d=day: self._on_day_click(d))
-        
-        # Add tasks if present
-        if has_tasks and current_month and tasks:
-            self._display_tasks(task_container, tasks)
-        
-        # Add "+" icon for adding new tasks if current month
-        if current_month:
-            add_btn = ctk.CTkButton(
-                cell_frame,
-                text="+",
-                width=20,
-                height=20,
-                corner_radius=10,
-                fg_color="transparent",
-                text_color="#6c757d",
-                hover_color="#e0e0e0",
-                font=("Arial", 12),
-                command=lambda d=day: self._on_add_task(d)
-            )
-            add_btn.place(relx=1.0, y=5, anchor="ne", x=-5)
-        
-        return cell_frame
+        # Equal aspect ratio ensures that pie is drawn as a circle
+        ax.axis('equal')
+        plt.tight_layout()
     
-    def _display_tasks(self, container, tasks):
-        """Display tasks in the container"""
-        # Create a scrollable frame if many tasks
-        if len(tasks) > 3:
-            scrollable_frame = ctk.CTkScrollableFrame(
-                container,
-                fg_color="transparent",
-                scrollbar_button_color="#dee2e6",
-                scrollbar_button_hover_color="#ced4da"
-            )
-            scrollable_frame.pack(fill="both", expand=True, padx=2, pady=2)
-            task_frame = scrollable_frame
-        else:
-            task_frame = container
-        
-        # Add tasks
-        for i, task in enumerate(tasks):
-            task_bg = ctk.CTkFrame(
-                task_frame,
-                corner_radius=3,
-                fg_color=task["color"],
-                height=20
-            )
-            task_bg.pack(fill="x", expand=False, padx=2, pady=1)
-            
-            # Add task text
-            task_text = ctk.CTkLabel(
-                task_bg,
-                text=task["title"],
-                text_color="black",
-                font=("Arial", 10),
-                anchor="w",
-                padx=5
-            )
-            task_text.pack(fill="x", expand=True)
-            
-            # Make task clickable to edit
-            task_bg.bind("<Button-1>", lambda e, t=task, idx=i: self._on_task_click(t, idx))
-            task_text.bind("<Button-1>", lambda e, t=task, idx=i: self._on_task_click(t, idx))
+        canvas = FigureCanvasTkAgg(fig, master=chart_left)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
     
-    def _on_day_click(self, day):
-        """Handle day click event"""
-        if self.on_day_click_callback:
-            self.on_day_click_callback(day, self.month, self.year)
+        # Create legend on the right
+        legend_frame = ctk.CTkFrame(chart_frame, fg_color="transparent")
+        legend_frame.pack(side="right", fill="y", padx=10)  # Reduced padding
     
-    def _on_add_task(self, day):
-        """Open dialog to add a new task"""
-        # Create task dialog
-        dialog = ctk.CTkToplevel(self)
-        dialog.configure(fg_color="white")
-        dialog.title(f"Add Task - {calendar.month_name[self.month]} {day}, {self.year}")
-        dialog.geometry("300x200")
-        dialog.grab_set()  # Make dialog modal
+        # Add items to the legend
+        for key, value in data.items():
+            item_frame = ctk.CTkFrame(legend_frame, fg_color="transparent")
+            item_frame.pack(fill="x", pady=3, anchor="e")  # Reduced vertical spacing
         
-        # Task title
-        ctk.CTkLabel(dialog, text="Task Title:").pack(padx=15, pady=(10, 0), anchor="w")
-        title_entry = ctk.CTkEntry(dialog, width=280)
-        title_entry.pack(padx=10, pady=(0, 10), fill="x")
+            item_label = ctk.CTkLabel(item_frame, text=key, font=("Arial", 10))  # Smaller font size
+            item_label.pack(side="left", padx=(0, 10))
         
-        # Priority
-        ctk.CTkLabel(dialog, text="Priority:").pack(padx=15, pady=(5, 0), anchor="w")
-        priority_var = ctk.StringVar(value="normal")
-        
-        priority_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        priority_frame.pack(padx=10, pady=(0, 10), fill="x")
-        priority_frame = ctk.CTkFrame(dialog, fg_color="white")  # Changed from transparent
-        button_frame = ctk.CTkFrame(dialog, fg_color="white")
-        
-        priorities = [("High", "high"), ("Medium", "medium"), ("Normal", "normal")]
-        for i, (text, value) in enumerate(priorities):
-            ctk.CTkRadioButton(
-                priority_frame, 
-                text=text, 
-                variable=priority_var, 
-                value=value
-            ).grid(row=0, column=i, padx=10)
-        
-        # Buttons
-        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        button_frame.pack(padx=10, pady=10, fill="x")
-        
-        # Cancel button
-        ctk.CTkButton(
-            button_frame, 
-            text="Cancel", 
-            fg_color="#6c757d", 
-            hover_color="#5c636a",
-            command=dialog.destroy
-        ).pack(side="left", padx=5)
-        
-        # Save button
-        def save_task():
-            title = title_entry.get().strip()
-            if title:
-                priority = priority_var.get()
-                self.add_task(day, title, priority)
-                dialog.destroy()
-        
-        ctk.CTkButton(
-            button_frame, 
-            text="Save", 
-            fg_color="#28a745", 
-            hover_color="#218838",
-            command=save_task
-        ).pack(side="right", padx=5)
-        
-        # Focus on title entry
-        title_entry.focus_set()
-    
-    def _on_task_click(self, task, task_index):
-        """Handle task click for editing"""
-        # Implementation would be similar to _on_add_task but with editing functionality
-        pass
-    
-    def prev_month(self):
-        if self.month == 1:
-            self.month = 12
-            self.year -= 1
-        else:
-            self.month -= 1
-        self.update_calendar()
-    
-    def next_month(self):
-        if self.month == 12:
-            self.month = 1
-            self.year += 1
-        else:
-            self.month += 1
-        self.update_calendar()
+            value_label = ctk.CTkLabel(item_frame, text=f"{value}%", font=("Arial", 10, "bold"))
+            value_label.pack(side="right")
 
-# Example usage
+    
+    def display_announcement(self, index):
+        if 0 <= index < len(self.announcements):
+            announcement = self.announcements[index]
+            
+            self.announcement_title.configure(text=announcement["title"])
+            
+            # Clear and update text
+            self.announcement_text.delete("0.0", "end")
+            self.announcement_text.insert("0.0", announcement["content"])
+            
+            # Update footer
+            self.announcement_footer.configure(text=f"{announcement['author']} • {announcement['date']}")
+            
+            # Update current index
+            self.current_announcement = index
+            
+            # Update button states
+            self.prev_announcement_btn.configure(state="normal" if index > 0 else "disabled")
+            self.next_announcement_btn.configure(state="normal" if index < len(self.announcements) - 1 else "disabled")
+    
+    def prev_announcement(self):
+        if self.current_announcement > 0:
+            self.display_announcement(self.current_announcement - 1)
+    
+    def next_announcement(self):
+        if self.current_announcement < len(self.announcements) - 1:
+            self.display_announcement(self.current_announcement + 1)
+    
+    def display_activities(self, page):
+        # Clear existing activities
+        for widget in self.activities_content.winfo_children():
+            widget.destroy()
+        
+        # Calculate start and end indices
+        start_idx = page * self.activities_per_page
+        end_idx = min(start_idx + self.activities_per_page, len(self.activities))
+        
+        # Display activities for current page
+        for i in range(start_idx, end_idx):
+            activity = self.activities[i]
+            
+            # Create activity item frame
+            activity_item = ctk.CTkFrame(self.activities_content, fg_color="transparent", 
+                                         height=70, corner_radius=0)
+            activity_item.pack(fill="x", padx=10, pady=5)
+            activity_item.pack_propagate(False)
+            
+            # Add separator except for first item
+            if i > start_idx:
+                separator = ctk.CTkFrame(activity_item, fg_color="#e5e5e5", height=1)
+                separator.pack(fill="x", pady=(0, 0))
+            
+            # User and action
+            user_label = ctk.CTkLabel(activity_item, text=activity["user"], 
+                                     font=("Arial", 12, "bold"), text_color="#3483eb")
+            user_label.pack(anchor="w", padx=5, pady=(0, 0))
+            
+            action_label = ctk.CTkLabel(activity_item, text=activity["action"], 
+                                       font=("Arial", 11))
+            action_label.pack(anchor="w", padx=5,pady=(0, 0))
+            
+            # Timestamp
+            time_label = ctk.CTkLabel(activity_item, text=activity["time"], 
+                                     font=("Arial", 10), text_color="gray")
+            time_label.pack(anchor="w", padx=5, pady=(0, 0))
+        
+        # Update current page
+        self.current_activity_page = page
+        
+        # Update button states
+        self.prev_activities_btn.configure(state="normal" if page > 0 else "disabled")
+        self.next_activities_btn.configure(state="normal" if end_idx < len(self.activities) else "disabled")
+        
+        # Show "Show More" button if there are more pages
+        if end_idx < len(self.activities):
+            show_more_btn = ctk.CTkButton(self.activities_content, text="Show More", 
+                                         fg_color="#3483eb", corner_radius=5,
+                                         command=self.next_activities_page)
+            show_more_btn.pack(pady=10)
+    
+    def prev_activities_page(self):
+        if self.current_activity_page > 0:
+            self.display_activities(self.current_activity_page - 1)
+    
+    def next_activities_page(self):
+        total_pages = (len(self.activities) + self.activities_per_page - 1) // self.activities_per_page
+        if self.current_activity_page < total_pages - 1:
+            self.display_activities(self.current_activity_page + 1)
+
 if __name__ == "__main__":
-    app = ctk.CTk()
-    app.title("Task Management Calendar")
-    app.geometry("800x600")
+    # Set appearance mode and default color theme
+    ctk.set_appearance_mode("light")
+    ctk.set_default_color_theme("blue")
     
-    # Configure the main window to expand
-    app.grid_columnconfigure(0, weight=1)
-    app.grid_rowconfigure(0, weight=1)
+    # Create the main window
+    root = ctk.CTk()
+    root.geometry("1200x800")
+    root.title("CollabDesk Dashboard")
     
-    # Create the calendar with specified year and month
-    calendar_widget = TaskCalendarWidget(app, year=2025, month=3)
-    calendar_widget.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+    # Create a simple configuration object
+    config = {}
     
-    # Example of setting a callback for day clicks
-    def on_day_clicked(day, month, year):
-        print(f"Day clicked: {day}/{month}/{year}")
+    # Create and pack the dashboard
+    app = Dashboard(root, config)
+    app.pack(fill="both", expand=True)
     
-    calendar_widget.set_on_day_click(on_day_clicked)
-    
-    app.mainloop()
+    # Start the main event loop
+    root.mainloop()

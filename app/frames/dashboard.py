@@ -2,13 +2,12 @@ import customtkinter as ctk
 from app.frames.frame import Frame
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.patches as mpatches
 from datetime import datetime
 
 
 class Dashboard(Frame):
-    def __init__(self, master, configuration, guildId=None,**kwargs):
-        super().__init__(master, configuration,guildId ,**kwargs)
+    def __init__(self, master, configuration, guildId=None, **kwargs):
+        super().__init__(master, configuration, guildId, **kwargs)
         
         # Sample data
         self.announcements = [
@@ -78,6 +77,17 @@ class Dashboard(Frame):
         nav_buttons_frame = ctk.CTkFrame(announcement_header, fg_color="transparent")
         nav_buttons_frame.pack(side="right", padx=20)
         
+        # Add announcement button
+        self.add_announcement_btn = ctk.CTkButton(
+            nav_buttons_frame, 
+            text="+ New", 
+            width=80,
+            fg_color="#4CAF50",
+            hover_color="#45a049",
+            command=self.show_new_announcement_dialog
+        )
+        self.add_announcement_btn.pack(side="left", padx=5)
+        
         self.prev_announcement_btn = ctk.CTkButton(nav_buttons_frame, text="◀", width=30, 
                                                fg_color="#d0d0d0", text_color="black", 
                                                corner_radius=5, command=self.prev_announcement)
@@ -99,9 +109,10 @@ class Dashboard(Frame):
         
         # Content
         self.announcement_text = ctk.CTkTextbox(self.announcement_content_frame, fg_color="transparent", 
-                                           height=150, wrap="word", activate_scrollbars=True)
+                                               height=150, wrap="word", activate_scrollbars=True)
         self.announcement_text.pack(fill="both", expand=True, padx=15, pady=5)
-        
+        self.announcement_text.configure(state="disabled")  # Make it read-only initially
+
         # Author and date
         self.announcement_footer = ctk.CTkLabel(self.announcement_content_frame, text="", 
                                            font=("Arial", 10), fg_color="transparent", text_color="gray")
@@ -176,24 +187,81 @@ class Dashboard(Frame):
         # Initialize with first announcement and activities
         self.display_announcement(0)
         self.display_activities(0)
-    
+
+    def show_new_announcement_dialog(self):
+        """Show dialog for creating a new announcement"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Create New Announcement")
+        dialog.geometry("500x400")
+        dialog.grab_set()  # Make modal
+        
+        # Title field
+        ctk.CTkLabel(dialog, text="Title:", font=("Arial", 12)).pack(pady=(10, 5), padx=20, anchor="w")
+        title_entry = ctk.CTkEntry(dialog, width=400)
+        title_entry.pack(pady=5, padx=20, fill="x")
+        
+        # Content field
+        ctk.CTkLabel(dialog, text="Content:", font=("Arial", 12)).pack(pady=(10, 5), padx=20, anchor="w")
+        content_text = ctk.CTkTextbox(dialog, height=200)
+        content_text.pack(pady=5, padx=20, fill="both", expand=True)
+        
+        # Button frame
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(pady=10, padx=20, fill="x")
+        
+        def add_announcement():
+            title = title_entry.get()
+            content = content_text.get("1.0", "end-1c")
+            
+            if title and content:
+                new_announcement = {
+                    "title": title,
+                    "content": content,
+                    "author": "You",  # Could be replaced with actual username
+                    "date": datetime.now().strftime("%b %d, %Y")
+                }
+                
+                # Add to beginning of list
+                self.announcements.insert(0, new_announcement)
+                self.current_announcement = 0
+                self.display_announcement(0)
+                dialog.destroy()
+        
+        # Add button
+        ctk.CTkButton(
+            button_frame, 
+            text="Publish", 
+            fg_color="#4CAF50",
+            hover_color="#45a049",
+            command=add_announcement
+        ).pack(side="right", padx=5)
+        
+        # Cancel button
+        ctk.CTkButton(
+            button_frame, 
+            text="Cancel", 
+            fg_color="#f44336",
+            hover_color="#d32f2f",
+            command=dialog.destroy
+        ).pack(side="right", padx=5)
+
     def create_donut_chart(self, parent_frame, data, colors):
         # Create a frame to hold the chart and legend
         chart_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
-        chart_frame.pack(fill="x", padx=10, pady=5)  # Reduced padding
+        chart_frame.pack(fill="x", padx=10, pady=5)
     
         # Create chart on the left
         chart_left = ctk.CTkFrame(chart_frame, fg_color="transparent")
         chart_left.pack(side="left", fill="both", expand=True)
     
-        fig, ax = plt.subplots(figsize=(2.5, 1.5), facecolor='#e0e0e0')  # Smaller figure size
+        fig, ax = plt.subplots(figsize=(2.5, 1.5), facecolor='#e0e0e0')
         wedges, texts, autotexts = ax.pie(
             data.values(), 
             labels=None, 
             colors=colors.values(),
             autopct='%1.0f%%', 
             startangle=90,
-            wedgeprops=dict(width=0.4),  # For donut shape
+            wedgeprops=dict(width=0.4),
             pctdistance=0.85
         )
     
@@ -211,40 +279,60 @@ class Dashboard(Frame):
     
         # Create legend on the right
         legend_frame = ctk.CTkFrame(chart_frame, fg_color="transparent")
-        legend_frame.pack(side="right", fill="y", padx=10)  # Reduced padding
+        legend_frame.pack(side="right", fill="y", padx=10)
     
         # Add items to the legend
         for key, value in data.items():
             item_frame = ctk.CTkFrame(legend_frame, fg_color="transparent")
-            item_frame.pack(fill="x", pady=3, anchor="e")  # Reduced vertical spacing
+            item_frame.pack(fill="x", pady=3, anchor="e")
         
-            item_label = ctk.CTkLabel(item_frame, text=key, font=("Arial", 10))  # Smaller font size
+            item_label = ctk.CTkLabel(item_frame, text=key, font=("Arial", 10))
             item_label.pack(side="left", padx=(0, 10))
         
             value_label = ctk.CTkLabel(item_frame, text=f"{value}%", font=("Arial", 10, "bold"))
             value_label.pack(side="right")
 
-    
+    # def display_announcement(self, index):
+    #     if 0 <= index < len(self.announcements):
+    #         announcement = self.announcements[index]
+            
+    #         self.announcement_title.configure(text=announcement["title"])
+            
+    #         # Clear and update text
+    #         self.announcement_text.delete("0.0", "end")
+    #         self.announcement_text.insert("0.0", announcement["content"])
+            
+    #         # Update footer
+    #         self.announcement_footer.configure(text=f"{announcement['author']} • {announcement['date']}")
+            
+    #         # Update current index
+    #         self.current_announcement = index
+            
+    #         # Update button states
+    #         self.prev_announcement_btn.configure(state="normal" if index > 0 else "disabled")
+    #         self.next_announcement_btn.configure(state="normal" if index < len(self.announcements) - 1 else "disabled")
     def display_announcement(self, index):
         if 0 <= index < len(self.announcements):
             announcement = self.announcements[index]
-            
+        
             self.announcement_title.configure(text=announcement["title"])
-            
+        
             # Clear and update text
+            self.announcement_text.configure(state="normal")  # Temporarily enable to update content
             self.announcement_text.delete("0.0", "end")
             self.announcement_text.insert("0.0", announcement["content"])
-            
+            self.announcement_text.configure(state="disabled")  # Make it read-only
+        
             # Update footer
             self.announcement_footer.configure(text=f"{announcement['author']} • {announcement['date']}")
-            
+        
             # Update current index
             self.current_announcement = index
-            
+        
             # Update button states
             self.prev_announcement_btn.configure(state="normal" if index > 0 else "disabled")
             self.next_announcement_btn.configure(state="normal" if index < len(self.announcements) - 1 else "disabled")
-    
+
     def prev_announcement(self):
         if self.current_announcement > 0:
             self.display_announcement(self.current_announcement - 1)
@@ -314,22 +402,18 @@ class Dashboard(Frame):
         if self.current_activity_page < total_pages - 1:
             self.display_activities(self.current_activity_page + 1)
 
+
 if __name__ == "__main__":
-    # Set appearance mode and default color theme
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
     
-    # Create the main window
     root = ctk.CTk()
     root.geometry("1200x800")
     root.title("CollabDesk Dashboard")
     
-    # Create a simple configuration object
     config = {}
     
-    # Create and pack the dashboard
     app = Dashboard(root, config)
     app.pack(fill="both", expand=True)
     
-    # Start the main event loop
     root.mainloop()
