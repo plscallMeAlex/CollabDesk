@@ -49,7 +49,6 @@ class HomePage(Page):
         self.master = master
         self.__current_guild: Optional[str] = None
         self.__current_frame: Optional[ctk.CTkFrame] = None
-        self.__frame_context: Dict[str, ctk.CTkFrame] = {}
 
         # Track and clean up after events
         self.__after_ids: list = []
@@ -115,26 +114,19 @@ class HomePage(Page):
         self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
         self.frame_container.pack(expand=True, fill="both", pady=20)
 
-        # Initial frame context setup
-        guild_id = response[0]["id"] if response else None
-        self.__frame_context = {
-            "BulletinBoard": BulletinBoard(
-                self.frame_container, self.master.configuration, guildId=guild_id
-            ),
-            "Calendar": TaskCalendarWidget(
-                self.frame_container, self.master.configuration, guildId=guild_id
-            ),
-            "Dashboard": Dashboard(
-                self.frame_container, self.master.configuration, guildId=guild_id
-            ),
-        }
-
-        # Init default frame
-        self.__current_frame = self.__frame_context["BulletinBoard"]
-        self.__current_frame.pack(expand=True, fill="both")
+        # Initial frame
+        self.__create_initial_frame()
 
         # Bind window close event
         self.bind_window_close()
+
+    def __create_initial_frame(self):
+        """Create and pack the initial frame (BulletinBoard)"""
+        guild_id = self.__current_guild
+        self.__current_frame = BulletinBoard(
+            self.frame_container, self.master.configuration, guildId=guild_id
+        )
+        self.__current_frame.pack(expand=True, fill="both")
 
     def bind_window_close(self):
         # Try to ensure clean shutdown
@@ -146,13 +138,6 @@ class HomePage(Page):
         for after_id in self.__after_ids:
             try:
                 self.after_cancel(after_id)
-            except Exception:
-                pass
-
-        # Destroy all frames in context
-        for frame in self.__frame_context.values():
-            try:
-                frame.destroy()
             except Exception:
                 pass
 
@@ -181,53 +166,54 @@ class HomePage(Page):
             pass
 
     def change_guild_callback(self, guild_id):
-        # Update guild ID for all frames
-        for frame in self.__frame_context.values():
-            try:
-                frame.set_guildId(guild_id)
-            except Exception:
-                pass
+        # Update current guild
+        self.__current_guild = guild_id
 
-        # Forget current frame and show the default BulletinBoard
+        # Destroy current frame
         if self.__current_frame:
             try:
-                self.__current_frame.pack_forget()
+                self.__current_frame.destroy()
             except Exception:
                 pass
 
-        self.__current_guild = guild_id
-        self.__current_frame = self.__frame_context["BulletinBoard"]
-
-        try:
-            self.__current_frame.pack(expand=True, fill="both")
-        except Exception:
-            pass
+        # Create new BulletinBoard frame
+        self.__current_frame = BulletinBoard(
+            self.frame_container, self.master.configuration, guildId=guild_id
+        )
+        self.__current_frame.pack(expand=True, fill="both")
 
     def change_frame_callback(self, frame_name):
-        # Check the frame exists
-        if frame_name not in self.__frame_context:
-            return
-
-        # Forget current frame
+        # Destroy current frame
         if self.__current_frame:
             try:
-                self.__current_frame.pack_forget()
+                self.__current_frame.destroy()
             except Exception:
                 pass
 
-        # Update guild ID if needed
-        if self.__current_guild is not None:
-            try:
-                self.__frame_context[frame_name].set_guildId(self.__current_guild)
-            except Exception:
-                pass
+        # Create new frame based on frame_name
+        if frame_name == "BulletinBoard":
+            self.__current_frame = BulletinBoard(
+                self.frame_container,
+                self.master.configuration,
+                guildId=self.__current_guild,
+            )
+        elif frame_name == "Calendar":
+            self.__current_frame = TaskCalendarWidget(
+                self.frame_container,
+                self.master.configuration,
+                guildId=self.__current_guild,
+            )
+        elif frame_name == "Dashboard":
+            self.__current_frame = Dashboard(
+                self.frame_container,
+                self.master.configuration,
+                guildId=self.__current_guild,
+            )
+        else:
+            return  # Unknown frame
 
-        # Pack new frame
-        self.__current_frame = self.__frame_context[frame_name]
-        try:
-            self.__current_frame.pack(expand=True, fill="both")
-        except Exception:
-            pass
+        # Pack the new frame
+        self.__current_frame.pack(expand=True, fill="both")
 
     def __fetch_guilds(self):
         params = {"user_id": self.master.configuration.load_user_data()}
