@@ -28,11 +28,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-        user = text_data_json['user']
-        channel = text_data_json['channel']
+        # user = text_data_json['user']
+        # channel = text_data_json['channel']
 
         # Save message to database
-        await self.save_message(message, user, channel)
+        # await self.save_message(message, user, channel)
 
         # Send message to room group
         await self.channel_layer.group_send(
@@ -54,18 +54,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': message,
         }))
 
-    async def save_message(self, message, user, channel):
-        from django.utils.timezone import now
-        from api.models import Message
-        from api.models import User
-        from api.models import Channel
+    # async def save_message(self, message, user, channel):
+    #     from django.utils.timezone import now
+    #     from api.models import Message
+    #     from api.models import User
+    #     from api.models import Channel
 
-        user = User.objects.get(id=user)
-        channel = Channel.objects.get(id=channel)
+    #     user = User.objects.get(id=user)
+    #     channel = Channel.objects.get(id=channel)
 
-        await database_sync_to_async(Message.objects.create)(
-            content=message,
-            sender=user,
-            channel=channel,
-            created_at=now()
-        )
+    #     await database_sync_to_async(Message.objects.create)(
+    #         content=message,
+    #         sender=user,
+    #         channel=channel,
+    #         created_at=now()
+    #     )

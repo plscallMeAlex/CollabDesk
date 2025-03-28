@@ -35,3 +35,4 @@ virtualenv==20.29.1
 channels
 channels_redis
 daphne
+websockets
