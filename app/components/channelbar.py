@@ -21,6 +21,17 @@ class ChannelBar(ctk.CTkFrame):
         )
         self.server_label.pack(fill="x", padx=10, pady=10)
 
+        self.dashboard_btn = ctk.CTkButton(
+            self,
+            text="📊 Dashboard",
+            text_color="black",
+            fg_color="transparent",
+            hover_color="gray",
+            anchor="w",
+            command=lambda: self.change_frame_callback("Dashboard"),
+        )
+        self.dashboard_btn.pack(fill="x", padx=10, pady=2)
+
         self.calendar_btn = ctk.CTkButton(
             self,
             text="📅 Calendar",
@@ -42,17 +53,6 @@ class ChannelBar(ctk.CTkFrame):
             command=lambda: self.change_frame_callback("BulletinBoard"),
         )
         self.bulletin_btn.pack(fill="x", padx=10, pady=2)
-
-        self.dashboard_btn = ctk.CTkButton(
-            self,
-            text="📊 Dashboard",
-            text_color="black",
-            fg_color="transparent",
-            hover_color="gray",
-            anchor="w",
-            command=lambda: self.change_frame_callback("Dashboard"),
-        )
-        self.dashboard_btn.pack(fill="x", padx=10, pady=2)
 
         self.channel_label = ctk.CTkLabel(
             self,

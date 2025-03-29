@@ -121,9 +121,9 @@ class HomePage(Page):
         self.bind_window_close()
 
     def __create_initial_frame(self):
-        """Create and pack the initial frame (BulletinBoard)"""
+        """Create and pack the initial frame (Dashboard)"""
         guild_id = self.__current_guild
-        self.__current_frame = BulletinBoard(
+        self.__current_frame = Dashboard(
             self.frame_container, self.master.configuration, guildId=guild_id
         )
         self.__current_frame.pack(expand=True, fill="both")
@@ -177,8 +177,10 @@ class HomePage(Page):
                 pass
 
         # Create new BulletinBoard frame
-        self.__current_frame = BulletinBoard(
-            self.frame_container, self.master.configuration, guildId=guild_id
+        self.__current_frame = Dashboard(
+            self.frame_container,
+            self.master.configuration,
+            guildId=self.__current_guild,
         )
         self.__current_frame.pack(expand=True, fill="both")
 
