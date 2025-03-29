@@ -11,7 +11,14 @@ class AnnouncementViewSet(ModelViewSet):
     queryset = Announcement.objects.all()
     serializer_class = AnnouncementSerializer
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["POST"])
+    def create_annoucement(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["GET"])
     def get_announcements_by_guild(self, request):
         guild_id = request.query_params.get("guild_id")
         if guild_id is None:

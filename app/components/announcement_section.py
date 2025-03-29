@@ -10,27 +10,7 @@ class AnnouncementSection(ctk.CTkFrame):
         self._configuration = configuration
         self.guildId = guildId
 
-        print("Announcement")
-        self.announcements = [
-            {
-                "title": "Sprint 5 Kickoff",
-                "content": "Team,\n\nWe're making great progress on our current sprint. As you can see from our dashboard, we still have 50% of tasks in the backlog, but we're moving steadily with 30% of tasks currently in progress.\n\nRemember our upcoming deadline on March 15th. Alex and D are handling most of the workload, so please offer support where needed.\n\nGreat job everyone!",
-                "author": "Project Manager",
-                "date": "Feb 25, 2025",
-            },
-            {
-                "title": "New Team Member Onboarding",
-                "content": "Please welcome Jon to our development team. He'll be focusing on frontend tasks starting next week.",
-                "author": "HR Department",
-                "date": "Feb 24, 2025",
-            },
-            {
-                "title": "Infrastructure Update",
-                "content": "Server maintenance scheduled for this weekend. Please save all work by Friday 5PM.",
-                "author": "IT Support",
-                "date": "Feb 23, 2025",
-            },
-        ]
+        self.announcements = self.fetch_announcements()
         self.current_announcement = 0
 
         self.create_widgets()
@@ -142,6 +122,12 @@ class AnnouncementSection(ctk.CTkFrame):
                     announcement["date"] = datetime.fromisoformat(
                         announcement["created_at"]
                     ).strftime("%b %d, %Y")
+
+                res = sorted(
+                    res,
+                    key=lambda x: x["created_at"],
+                    reverse=True,
+                )
                 return res
             else:
                 print("Failed to fetch announcements:", response.status_code)
@@ -222,12 +208,25 @@ class AnnouncementSection(ctk.CTkFrame):
                 new_announcement = {
                     "title": title,
                     "content": content,
-                    "author": "You",  # Could be replaced with actual username
-                    "date": datetime.now().strftime("%b %d, %Y"),
+                    "guild": self.guildId,
+                    "user": self._configuration.load_user_data(),  # Could be replaced with actual username
                 }
+                # Send request to publish announcement
+                try:
+                    response = requests.post(
+                        self._configuration.api_url
+                        + "announcements/create_annoucement/",
+                        json=new_announcement,
+                    )
+                    if response.status_code == 200:
+                        # Fetch new announcements
+                        self.announcements = self.fetch_announcements()
+                    else:
+                        print("Failed to publish announcement:", response.status_code)
+                except requests.RequestException as e:
+                    print("Error publishing announcement:", e)
 
                 # Add to beginning of list
-                self.announcements.insert(0, new_announcement)
                 self.current_announcement = 0
                 self.display_announcement(0)
                 dialog.destroy()

@@ -7,4 +7,4 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Announcement
-        fields = ["id", "title", "content", "guild", "user_id", "created_at", "author"]
+        fields = ["id", "title", "content", "guild", "user", "created_at", "author"]
