@@ -1,70 +1,93 @@
 # app/dashboard/activity_section.py
 import customtkinter as ctk
+import requests
+from datetime import datetime
 
 
 class ActivitySection(ctk.CTkFrame):
-    def __init__(self, master):
+    def __init__(self, master, configuration, guildId=None):
         super().__init__(master, fg_color="#e0e0e0", corner_radius=10)
+        self._configuration = configuration
+        self._guildId = guildId
 
         # Sample data
-        self.activities = self.get_sample_activities()
+        self.activities = self.fetch_activities()
         self.current_activity_page = 0
         self.activities_per_page = 5
 
         self.create_widgets()
         self.display_activities(0)
 
+    def fetch_activities(self):
+        try:
+            params = {"guild_id": self._guildId}
+            response = requests.get(
+                self._configuration.api_url + "/activities/get_all_activity_by_guild/",
+                params=params,
+            )
+            if response.status_code == 200:
+                activities = response.json()
+                return activities
+            else:
+                print(f"Error fetching activities: {response.status_code}")
+                return self.get_sample_activities()
+        except requests.RequestException as e:
+            print(f"Request error: {e}")
+            return []
+
+            # return self.get_sample_activities()
+
     def get_sample_activities(self):
         return [
             {
                 "user": "Alex",
-                "action": "updated task 'Database integration' to 'In Progress'",
-                "time": "Feb 26, 2025 - 10:45 AM",
+                "detail": "updated task 'Database integration' to 'In Progress'",
+                "created_at": "Feb 26, 2025 - 10:45 AM",
             },
             {
                 "user": "Jon",
-                "action": "completed task 'User authentication flow'",
-                "time": "Feb 26, 2025 - 09:30 AM",
+                "detail": "completed task 'User authentication flow'",
+                "created_at": "Feb 26, 2025 - 09:30 AM",
             },
             {
                 "user": "D",
-                "action": "added comments to task 'API documentation'",
-                "time": "Feb 25, 2025 - 04:15 PM",
+                "detail": "added comments to task 'API documentation'",
+                "created_at": "Feb 25, 2025 - 04:15 PM",
             },
             {
                 "user": "Thun",
-                "action": "created new task 'Frontend testing'",
-                "time": "Feb 25, 2025 - 02:20 PM",
+                "detail": "created new task 'Frontend testing'",
+                "created_at": "Feb 25, 2025 - 02:20 PM",
             },
             {
                 "user": "Alex",
-                "action": "completed task 'Login page design'",
-                "time": "Feb 25, 2025 - 11:05 AM",
+                "detail": "completed task 'Login page design'",
+                "created_at": "Feb 25, 2025 - 11:05 AM",
             },
             {
                 "user": "D",
-                "action": "updated task 'Backend optimization' to 'In Progress'",
-                "time": "Feb 24, 2025 - 03:40 PM",
+                "detail": "updated task 'Backend optimization' to 'In Progress'",
+                "created_at": "Feb 24, 2025 - 03:40 PM",
             },
             {
                 "user": "Jon",
-                "action": "commented on task 'Mobile responsiveness'",
-                "time": "Feb 24, 2025 - 01:15 PM",
+                "detail": "commented on task 'Mobile responsiveness'",
+                "created_at": "Feb 24, 2025 - 01:15 PM",
             },
             {
                 "user": "Thun",
-                "action": "assigned task 'Security audit' to Alex",
-                "time": "Feb 24, 2025 - 11:30 AM",
+                "detail": "assigned task 'Security audit' to Alex",
+                "created_at": "Feb 24, 2025 - 11:30 AM",
             },
             {
                 "user": "Alex",
-                "action": "updated task 'User profile page' to 'Done'",
-                "time": "Feb 23, 2025 - 04:50 PM",
+                "detail": "updated task 'User profile page' to 'Done'",
+                "created_at": "Feb 23, 2025 - 04:50 PM",
             },
             {
                 "user": "D",
-                "action": "created task 'Database optimization'",
-                "time": "Feb 23, 2025 - 02:10 PM",
+                "detail": "created task 'Database optimization'",
+                "created_at": "Feb 23, 2025 - 02:10 PM",
             },
         ]
 
@@ -128,8 +151,8 @@ class ActivitySection(ctk.CTkFrame):
             activity_item = ActivityItem(
                 self.activities_content,
                 activity["user"],
-                activity["action"],
-                activity["time"],
+                activity["detail"],
+                activity["created_at"],
                 is_first=(i == start_idx),
             )
             activity_item.pack(fill="x", padx=10, pady=5)
@@ -170,6 +193,10 @@ class ActivityItem(ctk.CTkFrame):
     def __init__(self, master, user, action, time, is_first=False):
         super().__init__(master, fg_color="transparent", height=70, corner_radius=0)
         self.pack_propagate(False)
+
+        # Format the time 2025-03-30 11:50:02.098516+00 to "Mar 30, 2025 - 11:50 AM"
+        format_time = datetime.fromisoformat(time.split("+")[0])
+        time = format_time.strftime("%b %d, %Y - %I:%M %p")
 
         # Add separator except for first item
         if not is_first:

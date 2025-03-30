@@ -3,7 +3,12 @@ from api.models import Activity
 
 
 class AcitvitySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Activity
-        fields = ["id", "guild", "user", "detail", "created_at"]
+        fields = [
+            "id",
+            "guild",
+            "user",
+            "detail",
+            "created_at",
+        ]

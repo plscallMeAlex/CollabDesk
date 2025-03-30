@@ -30,7 +30,9 @@ class Dashboard(Frame):
         )
         self.announcement_section.pack(fill="x", pady=(0, 20))
 
-        self.activity_section = ActivitySection(self.left_frame)
+        self.activity_section = ActivitySection(
+            self.left_frame, self._configuration, self._guildId
+        )
         self.activity_section.pack(fill="both", expand=True)
 
         self.progress_chart = ChartSection(
