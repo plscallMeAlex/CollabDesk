@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 from dotenv import load_dotenv
 from app.tokenmanager import TokenManger
 import customtkinter as ctk
@@ -28,3 +29,11 @@ class Configuration:
         if token:
             return tokenM.user_from_token()
         return None
+
+    def load_user(self):
+        user = self.load_user_data()
+        param = {"user_id": user}
+        response = requests.get(self.api_url + "/users/get_user_by_id/", params=param)
+        if response.status_code == 200:
+            user_data = response.json()
+            return user_data
