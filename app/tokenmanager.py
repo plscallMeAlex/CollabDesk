@@ -33,7 +33,18 @@ class TokenManger(object):
         if not token:
             return None
         decoded_token = jwt.decode(token["access"], options={"verify_signature": False})
-        return decoded_token["user_id"]
+        params = {
+            "user_id": decoded_token["user_id"],
+        }
+
+        response = requests.get(
+            os.getenv("API_URL") + f"/users/get_user_by_id/", params=params
+        )
+        if response.status_code == 200:
+            user_data = response.json()
+            return user_data
+        else:
+            return None
 
     def check_token_expired(self):
         """Check if token is expired"""
