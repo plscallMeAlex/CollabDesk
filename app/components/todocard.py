@@ -115,6 +115,22 @@ class TodoCard(ctk.CTkFrame):
                 self.__refresh_callback()  # Refresh the specific bar
             if self.__bar_refresh_callback:
                 self.__bar_refresh_callback()  # Refresh all bars
+
+            # Create activity log after deleting task
+            user = self._configuration.load_user()
+            log_data = {
+                "guild": self.__task_data["guild"],
+                "user": user["id"],
+                "detail": f"Deleted task: {self.__task_data['title']} by {user["username"]}",
+            }
+
+            response = requests.post(
+                self._configuration.api_url + "/activities/create_activity/",
+                json=log_data
+            )
+            if response.status_code == 201:
+                print("Create activity log:", response.status_code)
+
             return CTkMessagebox(
                 self.master,
                 icon="check",
