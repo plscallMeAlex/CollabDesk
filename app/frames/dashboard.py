@@ -56,8 +56,8 @@ class Dashboard(Frame):
         )
         self.ownership_chart.pack(fill="both", expand=True)
 
-        self.settings_section = SettingsSection(self)
-        self.settings_section.pack(fill="x", side="bottom")
+        # self.settings_section = SettingsSection(self)
+        # self.settings_section.pack(fill="x", side="bottom")
 
     def set_guildId(self, guildId):
         self._guildId = guildId

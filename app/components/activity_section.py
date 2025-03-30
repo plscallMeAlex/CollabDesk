@@ -10,10 +10,12 @@ class ActivitySection(ctk.CTkFrame):
         self._configuration = configuration
         self._guildId = guildId
 
-        # Sample data
-        self.activities = self.fetch_activities()
+        # Changed activities per page to 2
+        self.activities_per_page = 2
         self.current_activity_page = 0
-        self.activities_per_page = 5
+
+        # Fetch and sort activities
+        self.activities = self.fetch_activities()
 
         self.create_widgets()
         self.display_activities(0)
@@ -27,67 +29,76 @@ class ActivitySection(ctk.CTkFrame):
             )
             if response.status_code == 200:
                 activities = response.json()
-                return activities
+                # Sort activities by created_at date in descending order (newest first)
+                sorted_activities = self.sort_activities_by_date(activities)
+                return sorted_activities
             else:
                 print(f"Error fetching activities: {response.status_code}")
-                return self.get_sample_activities()
+                sample_activities = self.get_sample_activities()
+                return self.sort_activities_by_date(sample_activities)
         except requests.RequestException as e:
             print(f"Request error: {e}")
-            return []
+            return self.sort_activities_by_date(self.get_sample_activities())
 
-            # return self.get_sample_activities()
+    def sort_activities_by_date(self, activities):
+        # Sort activities by created_at date in descending order (newest first)
+        return sorted(
+            activities,
+            key=lambda x: datetime.fromisoformat(x["created_at"].split("+")[0]),
+            reverse=True,
+        )
 
     def get_sample_activities(self):
         return [
             {
                 "user": "Alex",
                 "detail": "updated task 'Database integration' to 'In Progress'",
-                "created_at": "Feb 26, 2025 - 10:45 AM",
+                "created_at": "2025-02-26 10:45:00",
             },
             {
                 "user": "Jon",
                 "detail": "completed task 'User authentication flow'",
-                "created_at": "Feb 26, 2025 - 09:30 AM",
+                "created_at": "2025-02-26 09:30:00",
             },
             {
                 "user": "D",
                 "detail": "added comments to task 'API documentation'",
-                "created_at": "Feb 25, 2025 - 04:15 PM",
+                "created_at": "2025-02-25 16:15:00",
             },
             {
                 "user": "Thun",
                 "detail": "created new task 'Frontend testing'",
-                "created_at": "Feb 25, 2025 - 02:20 PM",
+                "created_at": "2025-02-25 14:20:00",
             },
             {
                 "user": "Alex",
                 "detail": "completed task 'Login page design'",
-                "created_at": "Feb 25, 2025 - 11:05 AM",
+                "created_at": "2025-02-25 11:05:00",
             },
             {
                 "user": "D",
                 "detail": "updated task 'Backend optimization' to 'In Progress'",
-                "created_at": "Feb 24, 2025 - 03:40 PM",
+                "created_at": "2025-02-24 15:40:00",
             },
             {
                 "user": "Jon",
                 "detail": "commented on task 'Mobile responsiveness'",
-                "created_at": "Feb 24, 2025 - 01:15 PM",
+                "created_at": "2025-02-24 13:15:00",
             },
             {
                 "user": "Thun",
                 "detail": "assigned task 'Security audit' to Alex",
-                "created_at": "Feb 24, 2025 - 11:30 AM",
+                "created_at": "2025-02-24 11:30:00",
             },
             {
                 "user": "Alex",
                 "detail": "updated task 'User profile page' to 'Done'",
-                "created_at": "Feb 23, 2025 - 04:50 PM",
+                "created_at": "2025-02-23 16:50:00",
             },
             {
                 "user": "D",
                 "detail": "created task 'Database optimization'",
-                "created_at": "Feb 23, 2025 - 02:10 PM",
+                "created_at": "2025-02-23 14:10:00",
             },
         ]
 
@@ -143,39 +154,49 @@ class ActivitySection(ctk.CTkFrame):
         start_idx = page * self.activities_per_page
         end_idx = min(start_idx + self.activities_per_page, len(self.activities))
 
+        # Container for activities
+        activities_container = ctk.CTkFrame(
+            self.activities_content, fg_color="transparent"
+        )
+        activities_container.pack(fill="both", expand=True, padx=0, pady=0)
+
         # Display activities for current page
         for i in range(start_idx, end_idx):
             activity = self.activities[i]
 
             # Create activity item frame
             activity_item = ActivityItem(
-                self.activities_content,
+                activities_container,
                 activity["user"],
                 activity["detail"],
                 activity["created_at"],
                 is_first=(i == start_idx),
             )
-            activity_item.pack(fill="x", padx=10, pady=5)
+            activity_item.pack(fill="x", padx=10, pady=0)
 
         # Update current page
         self.current_activity_page = page
+
+        # Navigation controls container
+        nav_container = ctk.CTkFrame(
+            self.activities_content, fg_color="transparent", height=30
+        )
+        nav_container.pack(fill="x", pady=(5, 10))
+
+        # Page indicator
+        page_indicator = ctk.CTkLabel(
+            nav_container,
+            text=f"Page {page + 1} of {(len(self.activities) + self.activities_per_page - 1) // self.activities_per_page}",
+            font=("Arial", 10),
+            text_color="gray",
+        )
+        page_indicator.pack(side="left", padx=10)
 
         # Update button states
         self.prev_activities_btn.configure(state="normal" if page > 0 else "disabled")
         self.next_activities_btn.configure(
             state="normal" if end_idx < len(self.activities) else "disabled"
         )
-
-        # Show "Show More" button if there are more pages
-        if end_idx < len(self.activities):
-            show_more_btn = ctk.CTkButton(
-                self.activities_content,
-                text="Show More",
-                fg_color="#3483eb",
-                corner_radius=5,
-                command=self.next_activities_page,
-            )
-            show_more_btn.pack(pady=10)
 
     def prev_activities_page(self):
         if self.current_activity_page > 0:
@@ -191,36 +212,57 @@ class ActivitySection(ctk.CTkFrame):
 
 class ActivityItem(ctk.CTkFrame):
     def __init__(self, master, user, action, time, is_first=False):
-        super().__init__(master, fg_color="transparent", height=70, corner_radius=0)
+        super().__init__(master, fg_color="transparent", height=75, corner_radius=0)
         self.pack_propagate(False)
 
-        # Format the time 2025-03-30 11:50:02.098516+00 to "Mar 30, 2025 - 11:50 AM"
-        format_time = datetime.fromisoformat(time.split("+")[0])
-        time = format_time.strftime("%b %d, %Y - %I:%M %p")
+        # Format the time to "Mar 30, 2025 - 11:50 AM"
+        try:
+            format_time = datetime.fromisoformat(time.split("+")[0])
+            formatted_time = format_time.strftime("%b %d, %Y - %I:%M %p")
+        except (ValueError, TypeError):
+            # Fallback if time is already formatted or in unexpected format
+            formatted_time = time
 
         # Add separator except for first item
         if not is_first:
             separator = ctk.CTkFrame(self, fg_color="#e5e5e5", height=1)
-            separator.pack(fill="x", pady=(0, 0))
+            separator.pack(fill="x")
 
-        # User label
-        self.user_label = ctk.CTkLabel(
-            self,
+        # Main content frame
+        content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        content_frame.pack(fill="x", expand=True, padx=5, pady=(5, 0))
+
+        # Top row with ID and time
+        id_row = ctk.CTkFrame(content_frame, fg_color="transparent")
+        id_row.pack(fill="x", expand=True)
+
+        # ID label (left)
+        self.id_label = ctk.CTkLabel(
+            id_row,
             text=user,
             font=("Arial", 12, "bold"),
             text_color="#3483eb",
+            anchor="w",
         )
-        self.user_label.pack(anchor="w", padx=5, pady=(0, 0))
+        self.id_label.pack(side="left", fill="x")
 
-        # Action label
-        self.action_label = ctk.CTkLabel(self, text=action, font=("Arial", 11))
-        self.action_label.pack(anchor="w", padx=5, pady=(0, 0))
-
-        # Time label
+        # Time label (right)
         self.time_label = ctk.CTkLabel(
-            self,
-            text=time,
-            font=("Arial", 10),
+            id_row,
+            text=formatted_time,
+            font=("Arial", 9),
             text_color="gray",
+            anchor="e",
         )
-        self.time_label.pack(anchor="w", padx=5, pady=(0, 0))
+        self.time_label.pack(side="right", fill="x")
+
+        # Action description
+        self.action_label = ctk.CTkLabel(
+            content_frame,
+            text=action,
+            font=("Arial", 11),
+            anchor="w",
+            justify="left",
+            wraplength=350,
+        )
+        self.action_label.pack(fill="x", anchor="w", pady=(2, 5))
