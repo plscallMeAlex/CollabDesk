@@ -112,7 +112,7 @@ class AnnouncementSection(ctk.CTkFrame):
             params = {"guild_id": self.guildId}
             response = requests.get(
                 self._configuration.api_url
-                + "announcements/get_announcements_by_guild/",
+                + "/announcements/get_announcements_by_guild/",
                 params=params,
             )
 
@@ -203,22 +203,22 @@ class AnnouncementSection(ctk.CTkFrame):
         def add_announcement():
             title = title_entry.get()
             content = content_text.get("1.0", "end-1c")
-
+            user_id = self._configuration.load_user_data()
             if title and content:
                 new_announcement = {
                     "title": title,
                     "content": content,
                     "guild": self.guildId,
-                    "user": self._configuration.load_user_data(),  # Could be replaced with actual username
+                    "user": user_id,  # Could be replaced with actual username
                 }
                 # Send request to publish announcement
                 try:
                     response = requests.post(
                         self._configuration.api_url
-                        + "announcements/create_annoucement/",
+                        + "/announcements/create_annoucement/",
                         json=new_announcement,
                     )
-                    if response.status_code == 200:
+                    if response.status_code == 201:
                         # Fetch new announcements
                         self.announcements = self.fetch_announcements()
                     else:
