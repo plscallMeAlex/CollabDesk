@@ -3,7 +3,6 @@ from api.models import Activity
 
 
 class AcitvitySerializer(serializers.ModelSerializer):
-    user = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = Activity

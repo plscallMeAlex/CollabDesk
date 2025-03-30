@@ -36,7 +36,7 @@ class TodoCardEditing(ctk.CTkToplevel):
         self.__fetch_users()  # Fetch users when dialog opens
 
         self.title("Edit Task")
-        self.geometry("400x600")  # Increased height for more fields
+        self.geometry("400x700")  # Increased height for more fields
         self.configure(fg_color=configuration.colors["snow-white"])
         self.resizable(False, False)
 
@@ -71,6 +71,28 @@ class TodoCardEditing(ctk.CTkToplevel):
                 print(f"Failed to fetch users: {response.status_code}")
         except Exception as e:
             print(f"Error fetching users: {e}")
+
+    def __fetch_states(self):
+        """Fetch all states from the backend"""
+        try:
+            params = {
+                "guild_id": self.__task_data["guild"],
+            }
+            # Send GET request to fetch states
+            response = requests.get(
+                f"{self.__configuration.api_url}/taskstates/get_all_states/",
+                params=params,
+            )
+
+            if response.status_code == 200:
+                states_data = response.json()
+                # Create a dictionary with state name as key and state object as value
+                return states_data
+            else:
+                print(f"Failed to fetch states: {response.status_code}")
+        except Exception as e:
+            print(f"Error fetching states: {e}")
+        return []
 
     def create_close_button(self):
         """Create a button frame with Save Changes and Close buttons"""
@@ -160,6 +182,57 @@ class TodoCardEditing(ctk.CTkToplevel):
                     break
         else:
             self.__assignee_combo.set("None")
+
+        """Task State Selection"""
+        # State selection frame
+        state_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        state_frame.pack(fill="x", pady=5)
+
+        # State label
+        state_label = ctk.CTkLabel(
+            state_frame,
+            text="State:",
+            font=ctk.CTkFont(self.__configuration.font, size=12),
+        )
+        state_label.pack(side="left", padx=5)
+
+        # Fetch states (debugging)
+        states = self.__fetch_states()
+
+        # Ensure at least some default values
+        state_names = (
+            [state["title"] for state in states]
+            if states
+            else ["To Do", "In Progress", "Done"]
+        )
+        state_ids = [state["id"] for state in states] if states else [1, 2, 3]
+        mapstate = {state["title"]: state["id"] for state in states}
+
+        # State ComboBox
+        self.__state_combo = ctk.CTkComboBox(
+            state_frame,
+            values=state_names,
+            font=ctk.CTkFont(self.__configuration.font, size=12),
+            width=200,
+        )
+        self.__state_combo.pack(side="left", padx=5)  # Ensure it's packed!
+
+        # Set current state
+        current_state = self.__task_data.get("state")
+        if current_state:
+            # Handle both string and dictionary state values
+            if isinstance(current_state, dict):
+                state_id = current_state.get("id")
+            else:
+                state_id = current_state
+
+            # Find the state name for the current state ID
+            for state_name, state_id_value in mapstate.items():
+                if state_id_value == state_id:
+                    self.__state_combo.set(state_name)
+                    break
+        else:
+            self.__state_combo.set(state_names[0])
 
         """Task description"""
         # Task description label
@@ -384,7 +457,13 @@ class TodoCardEditing(ctk.CTkToplevel):
             changed_data = {}
 
             # Check for changes in fields we allow editing
-            editable_fields = ["title", "description", "due_date", "announce_date"]
+            editable_fields = [
+                "title",
+                "description",
+                "due_date",
+                "announce_date",
+                "state",
+            ]
             for field in editable_fields:
                 # For description, we need to get it from the textbox widget
                 if field == "description":
@@ -403,11 +482,33 @@ class TodoCardEditing(ctk.CTkToplevel):
                                         self.__task_data["description"] = (
                                             new_description
                                         )
+                elif field == "state":
+                    states = self.__fetch_states()
+                    original_state = self.__task_data["state"]
+                    selected_state = None
+
+                    for state in states:
+                        if state["title"] == self.__state_combo.get():
+                            selected_state = state["id"]
+                            break
+
+                    # Compare values and add to changed_data if different
+                    print(f"Original: {original_state}, Current: {selected_state}")
+
+                    if original_state != selected_state:
+                        changed_data["state"] = selected_state
+                        self.__task_data["state"] = selected_state
+                    else:
+                        # If no change, skip adding to changed_data
+                        print("No change in state")
+
                 # For other fields, they're already updated in __task_data when edited
                 else:
                     # Get the original value from the task data when it was loaded
                     original_value = self.__original_values.get(field)
                     current_value = self.__task_data.get(field)
+                    print(f"Original: {original_value}, Current: {current_value}")
+                    # If the field is a state, get the ID from the selected state
 
                     # Compare values and add to changed_data if different
                     if original_value != current_value:
@@ -459,6 +560,40 @@ class TodoCardEditing(ctk.CTkToplevel):
                     self.__refresh_callback()
                 if self.__bar_refresh_callback:
                     self.__bar_refresh_callback()
+
+                # Create an activity log
+                try:
+                    userid = self.__configuration.load_user_data()
+                    username = None
+                    user_response = requests.get(
+                        f"{self.__configuration.api_url}/users/get_user_by_id/",
+                        params={"user_id": userid},
+                    )
+                    if user_response.status_code == 200:
+                        user_data = user_response.json()
+                        username = user_data.get("username", "Unknown User")
+                    else:
+                        print("Failed to fetch user data:", user_response.status_code)
+
+                    print(f"User ID: {userid}, Username: {username}")
+                    activity_data = {
+                        "guild": self.__task_data["guild"],
+                        "user": userid,
+                        "detail": f"Updated task: {self.__task_data['title']} by {username} to state {self.__state_combo.get()}",
+                    }
+                    act_response = requests.post(
+                        f"{self.__configuration.api_url}/activities/create_activity/",
+                        json=activity_data,
+                    )
+                    if act_response.status_code == 201:
+                        print("Activity log created successfully.")
+                        print(response.json())
+                    else:
+                        print(
+                            "Failed to create activity log:", act_response.status_code
+                        )
+                except Exception as e:
+                    print(f"Error creating activity log: {e}")
 
                 # Close the dialog
                 self.__close_dialog()
