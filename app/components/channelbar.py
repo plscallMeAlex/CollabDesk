@@ -16,7 +16,7 @@ class ChannelBar(ctk.CTkFrame):
         self.server_label = ctk.CTkLabel(
             self,
             text="CollabDesk",
-            font=("Arial", 16, "bold"),
+            font=("Inter", 16, "bold"),
             text_color="black",
             anchor="w",
         )
@@ -58,7 +58,7 @@ class ChannelBar(ctk.CTkFrame):
         self.channel_label = ctk.CTkLabel(
             self,
             text="TEXT CHANNELS",
-            font=("Arial", 12, "bold"),
+            font=("Inter", 12, "bold"),
             text_color="black",
             anchor="w",
         )
@@ -188,7 +188,7 @@ class ChannelBar(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(
             self.main_frame,
             text="Create a New Channel",
-            font=("Arial", 24, "bold"),
+            font=("Inter", 24, "bold"),
             text_color="black",
         )
         self.title_label.pack(pady=(20, 10))
@@ -196,7 +196,7 @@ class ChannelBar(ctk.CTkFrame):
         self.name_label = ctk.CTkLabel(
             self.main_frame,
             text="CHANNEL NAME",
-            font=("Arial", 12),
+            font=("Inter", 12),
             text_color="#B5BAC1",
         )
         self.name_label.pack(pady=(20, 5), padx=20, anchor="w")
@@ -204,7 +204,7 @@ class ChannelBar(ctk.CTkFrame):
         self.channel_name_var = StringVar()
         self.channel_entry = ctk.CTkEntry(
             self.main_frame,
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="transparent",
             border_color="#1E1F22",
             text_color="white",
@@ -219,7 +219,7 @@ class ChannelBar(ctk.CTkFrame):
         self.create_btn = ctk.CTkButton(
             self.button_frame,
             text="Create",
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="#2B2D31",
             hover_color="#404249",
             command=self.create_channel,
@@ -229,7 +229,7 @@ class ChannelBar(ctk.CTkFrame):
         self.cancel_btn = ctk.CTkButton(
             self.button_frame,
             text="Cancel",
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="#2B2D31",
             hover_color="#404249",
             command=self.cancel_create_channel,

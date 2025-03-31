@@ -26,7 +26,7 @@ class ChartSection(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(
             self,
             text=self.title,
-            font=("Arial", 16, "bold"),
+            font=("Inter", 16, "bold"),
             fg_color="transparent",
         )
         self.title_label.pack(anchor="nw", padx=20, pady=10)
@@ -75,10 +75,10 @@ class ChartSection(ctk.CTkFrame):
             item_frame = ctk.CTkFrame(legend_frame, fg_color="transparent")
             item_frame.pack(fill="x", pady=3, anchor="e")
 
-            item_label = ctk.CTkLabel(item_frame, text=key, font=("Arial", 10))
+            item_label = ctk.CTkLabel(item_frame, text=key, font=("Inter", 10))
             item_label.pack(side="left", padx=(0, 10))
 
             value_label = ctk.CTkLabel(
-                item_frame, text=f"{value}%", font=("Arial", 10, "bold")
+                item_frame, text=f"{value}%", font=("Inter", 10, "bold")
             )
             value_label.pack(side="right")

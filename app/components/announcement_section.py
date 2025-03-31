@@ -24,7 +24,7 @@ class AnnouncementSection(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(
             self.header,
             text="Team Leader Announcement",
-            font=("Arial", 16, "bold"),
+            font=("Inter", 16, "bold"),
             fg_color="transparent",
         )
         self.title_label.pack(side="left", padx=20, pady=10)
@@ -77,7 +77,7 @@ class AnnouncementSection(ctk.CTkFrame):
         self.announcement_title = ctk.CTkLabel(
             self.announcement_content_frame,
             text="",
-            font=("Arial", 14, "bold"),
+            font=("Inter", 14, "bold"),
             fg_color="transparent",
         )
         self.announcement_title.pack(anchor="w", padx=15, pady=(15, 5))
@@ -97,7 +97,7 @@ class AnnouncementSection(ctk.CTkFrame):
         self.announcement_footer = ctk.CTkLabel(
             self.announcement_content_frame,
             text="",
-            font=("Arial", 10),
+            font=("Inter", 10),
             fg_color="transparent",
             text_color="gray",
         )
@@ -183,14 +183,14 @@ class AnnouncementSection(ctk.CTkFrame):
         dialog.grab_set()  # Make modal
 
         # Title field
-        ctk.CTkLabel(dialog, text="Title:", font=("Arial", 12)).pack(
+        ctk.CTkLabel(dialog, text="Title:", font=("Inter", 12)).pack(
             pady=(10, 5), padx=20, anchor="w"
         )
         title_entry = ctk.CTkEntry(dialog, width=400)
         title_entry.pack(pady=5, padx=20, fill="x")
 
         # Content field
-        ctk.CTkLabel(dialog, text="Content:", font=("Arial", 12)).pack(
+        ctk.CTkLabel(dialog, text="Content:", font=("Inter", 12)).pack(
             pady=(10, 5), padx=20, anchor="w"
         )
         content_text = ctk.CTkTextbox(dialog, height=200)

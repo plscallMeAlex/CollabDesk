@@ -24,7 +24,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         self.title_label = ctk.CTkLabel(
             self.main_frame,
             text="Server Action",
-            font=("Arial", 24, "bold"),
+            font=("Inter", 24, "bold"),
             text_color="black",
         )
         self.title_label.pack(pady=(20, 10))
@@ -32,7 +32,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         self.subtitle_label = ctk.CTkLabel(
             self.main_frame,
             text="Would you like to create a server or join an existing one?",
-            font=("Arial", 14),
+            font=("Inter", 14),
             text_color="#B5BAC1",
         )
         self.subtitle_label.pack(pady=(0, 20))
@@ -40,7 +40,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         self.create_button = ctk.CTkButton(
             self.main_frame,
             text="Create a Server",
-            font=("Arial", 16),
+            font=("Inter", 16),
             text_color="black",
             height=70,
             fg_color="transparent",
@@ -55,7 +55,7 @@ class ServerActionDialog(ctk.CTkToplevel):
             self.main_frame,
             text="Join a Server",
             text_color="black",
-            font=("Arial", 16),
+            font=("Inter", 16),
             height=70,
             fg_color="transparent",
             hover_color="#404249",
@@ -68,7 +68,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         # self.skip_button = ctk.CTkButton(
         #     self.main_frame,
         #     text="Not sure? You can skip this question for now.",
-        #     font=("Arial", 12),
+        #     font=("Inter", 12),
         #     fg_color="transparent",
         #     hover_color="#404249",
         #     text_color="#00A8FC",
@@ -79,7 +79,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         self.back_button = ctk.CTkButton(
             self.main_frame,
             text="Close",
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="#2B2D31",
             hover_color="#404249",
             command=self.destroy,
@@ -128,7 +128,7 @@ class ServerNameDialog(ctk.CTkToplevel):
         self.title_label = ctk.CTkLabel(
             self.main_frame,
             text="Create or Join a Server",
-            font=("Arial", 24, "bold"),
+            font=("Inter", 24, "bold"),
             text_color="#000000",
         )
         self.title_label.pack(pady=(20, 10))
@@ -137,7 +137,7 @@ class ServerNameDialog(ctk.CTkToplevel):
         self.name_label = ctk.CTkLabel(
             self.main_frame,
             text="SERVER NAME",
-            font=("Arial", 12),
+            font=("Inter", 12),
             text_color="#B5BAC1",
         )
         self.name_label.pack(pady=(20, 5), padx=20, anchor="w")
@@ -145,7 +145,7 @@ class ServerNameDialog(ctk.CTkToplevel):
         # Server name entry (for creating a server)
         self.name_entry = ctk.CTkEntry(
             self.main_frame,
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="transparent",
             border_color="#1E1F22",
             text_color="black",
@@ -155,7 +155,7 @@ class ServerNameDialog(ctk.CTkToplevel):
         # Invitation link entry (for joining a server)
         self.link_entry = ctk.CTkEntry(
             self.main_frame,
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="transparent",
             border_color="#1E1F22",
             text_color="black",
@@ -176,7 +176,7 @@ class ServerNameDialog(ctk.CTkToplevel):
         self.back_button = ctk.CTkButton(
             self.button_frame,
             text="Back",
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="#2B2D31",
             hover_color="#404249",
             command=self.on_back,
@@ -186,7 +186,7 @@ class ServerNameDialog(ctk.CTkToplevel):
         self.create_button = ctk.CTkButton(
             self.button_frame,
             text="Create" if self.action_type == "create" else "Join",
-            font=("Arial", 14),
+            font=("Inter", 14),
             fg_color="#5865F2",
             hover_color="#4752C4",
             command=self.on_create_or_join,

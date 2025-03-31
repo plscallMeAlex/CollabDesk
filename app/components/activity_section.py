@@ -2,6 +2,7 @@
 import customtkinter as ctk
 import requests
 from datetime import datetime
+import pytz
 
 
 class ActivitySection(ctk.CTkFrame):
@@ -110,7 +111,7 @@ class ActivitySection(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(
             self.header,
             text="Recent Activities",
-            font=("Arial", 16, "bold"),
+            font=("Inter", 16, "bold"),
             fg_color="transparent",
         )
         self.title_label.pack(side="left", padx=20, pady=10)
@@ -187,7 +188,7 @@ class ActivitySection(ctk.CTkFrame):
         page_indicator = ctk.CTkLabel(
             nav_container,
             text=f"Page {page + 1} of {(len(self.activities) + self.activities_per_page - 1) // self.activities_per_page}",
-            font=("Arial", 10),
+            font=("Inter", 10),
             text_color="gray",
         )
         page_indicator.pack(side="left", padx=10)
@@ -217,11 +218,17 @@ class ActivityItem(ctk.CTkFrame):
 
         # Format the time to "Mar 30, 2025 - 11:50 AM"
         try:
-            format_time = datetime.fromisoformat(time.split("+")[0])
-            formatted_time = format_time.strftime("%b %d, %Y - %I:%M %p")
-        except (ValueError, TypeError):
-            # Fallback if time is already formatted or in unexpected format
-            formatted_time = time
+            utc_time = datetime.fromisoformat(
+                time.split("+")[0]
+            )  # Convert to UTC datetime
+            bangkok_tz = pytz.timezone("Asia/Bangkok")  # Define Bangkok timezone
+            bangkok_time = utc_time.astimezone(bangkok_tz)  # Convert to Bangkok time
+            formatted_time = bangkok_time.strftime(
+                "%b %d, %Y - %I:%M %p"
+            )  # Format output
+        except (ValueError, TypeError) as e:
+            print(f"Error formatting timestamp: {e}")
+            formatted_time = time  # Fallback if time is already formatted
 
         # Add separator except for first item
         if not is_first:
@@ -240,7 +247,7 @@ class ActivityItem(ctk.CTkFrame):
         self.id_label = ctk.CTkLabel(
             id_row,
             text=user,
-            font=("Arial", 12, "bold"),
+            font=("Inter", 12, "bold"),
             text_color="#3483eb",
             anchor="w",
         )
@@ -250,7 +257,7 @@ class ActivityItem(ctk.CTkFrame):
         self.time_label = ctk.CTkLabel(
             id_row,
             text=formatted_time,
-            font=("Arial", 9),
+            font=("Inter", 9),
             text_color="gray",
             anchor="e",
         )
@@ -260,7 +267,7 @@ class ActivityItem(ctk.CTkFrame):
         self.action_label = ctk.CTkLabel(
             content_frame,
             text=action,
-            font=("Arial", 11),
+            font=("Inter", 11),
             anchor="w",
             justify="left",
             wraplength=350,

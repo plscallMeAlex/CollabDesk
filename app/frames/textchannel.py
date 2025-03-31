@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from datetime import datetime
 import requests
+import pytz
 
 
 class ChatFrame(ctk.CTkFrame):
@@ -29,15 +30,6 @@ class ChatFrame(ctk.CTkFrame):
         # Messages area (Scrollable and takes up full space)
         self.messages_frame = ctk.CTkScrollableFrame(chat_frame, fg_color="#ffffff")
         self.messages_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-
-        # Add example messages
-        # self.add_message("User1", "Hello, how's everyone?", "Today at 9:15 AM")
-        # self.add_message(
-        #     "User2",
-        #     "I'm working on some Python stuff!",
-        #     "Today at 9:20 AM",
-        #     is_sender=True,
-        # )
 
         # Message input area (Stays at bottom)
         input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3")
@@ -74,9 +66,16 @@ class ChatFrame(ctk.CTkFrame):
 
         # Format timestamp
         try:
-            format_time = datetime.fromisoformat(message["created_at"].split("+")[0])
-            timestamp = format_time.strftime("%b %d, %Y - %I:%M %p")
-        except Exception:
+            utc_time = datetime.fromisoformat(
+                message["created_at"].split("+")[0]
+            )  # Convert to UTC datetime
+            bangkok_tz = pytz.timezone("Asia/Bangkok")  # Define Bangkok timezone
+            bangkok_time = utc_time.astimezone(bangkok_tz)  # Convert to Bangkok time
+            timestamp = bangkok_time.strftime(
+                "%b %d, %Y - %I:%M %p"
+            )  # Format the timestamp
+        except Exception as e:
+            print(f"Error formatting timestamp: {e}")
             timestamp = "Unknown time"
 
         content = message["content"]
@@ -105,7 +104,7 @@ class ChatFrame(ctk.CTkFrame):
         username_label = ctk.CTkLabel(
             text_container,
             text=f"{username} ({timestamp})",
-            font=("Arial", 12, "bold"),
+            font=(self.__configuration.font, 12, "bold"),
         )
         username_label.pack(anchor="e" if is_sender else "w")
 
@@ -113,7 +112,7 @@ class ChatFrame(ctk.CTkFrame):
         content_label = ctk.CTkLabel(
             text_container,
             text=content,
-            font=("Arial", 14),
+            font=(self.__configuration.font, 14),
             text_color="#333",
         )
         content_label.pack(anchor="e" if is_sender else "w")
