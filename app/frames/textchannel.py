@@ -73,7 +73,7 @@ class ChatFrame(ctk.CTkFrame):
                 "channel_id": self.__channel["id"],
             }
             response = requests.get(
-                f"{self.__configuration['api_url']}/channels/get_messages/",
+                f"{self.__configuration['api_url']}/messages/get_messages/",
                 params=params,
             )
             if response.status_code == 200:
