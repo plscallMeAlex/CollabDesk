@@ -175,6 +175,7 @@ class HomePage(Page):
                 self.__current_frame.destroy()
             except Exception:
                 pass
+        self.channel_bar.refresh_channels(guild_id)
 
         # Create new BulletinBoard frame
         self.__current_frame = Dashboard(

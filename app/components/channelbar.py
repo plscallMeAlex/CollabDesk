@@ -67,10 +67,9 @@ class ChannelBar(ctk.CTkFrame):
         self.channels_frame = ctk.CTkFrame(self)
         self.channels_frame.pack(fill="both", expand=True)
 
-        channels = self.__fetch_channels_in_guild()
-        self.channel_buttons = {}
+        self.channels = self.__fetch_channels_in_guild()
 
-        for channel in channels:
+        for channel in self.channels:
             self.pack_channel_btn(channel)
 
         self.add_channel_btn = ctk.CTkButton(
@@ -118,7 +117,7 @@ class ChannelBar(ctk.CTkFrame):
 
     def __fetch_channels_in_guild(self):
         try:
-            params = {"guildId": self.__guildId}
+            params = {"guild_id": self.__guildId}
             response = requests.get(
                 f"{self._conguration.api_url}/channels/get_all_channel_by_guild/",
                 params=params,
@@ -141,13 +140,14 @@ class ChannelBar(ctk.CTkFrame):
             )
             if response.status_code == 201:
                 print(f"Channel {channel} created successfully.")
-                response_obj.append(channel)
+                response_obj.append(response.json())
             else:
                 print(f"Error creating channel {channel}: {response.status_code}")
         return response_obj
 
     def pack_channel_btn(self, channel):
         channel_name = channel["name"] if isinstance(channel, dict) else channel
+
         btn = ctk.CTkButton(
             self.channels_frame,
             text=channel_name,
@@ -155,16 +155,15 @@ class ChannelBar(ctk.CTkFrame):
             fg_color="transparent",
             hover_color="gray",
             anchor="w",
-            command=lambda e: self.change_frame_to_channel(channel, e),
+            command=lambda ch=channel: self.change_frame_to_channel(ch),
         )
         btn.pack(fill="x", padx=10, pady=2)
-        self.channel_buttons[channel_name] = btn
 
-    def change_frame_to_channel(self, channel, event):
+    def change_frame_to_channel(self, channel):
         # Get channel information
-        channel_id = channel.get("id") if isinstance(channel, dict) else None
-        channel_name = channel.get("name") if isinstance(channel, dict) else channel
-
+        channel_id = channel.get("id")
+        channel_name = channel.get("name")
+        print("Change to channel: ", channel_id)
         # Create and configure the ChatApplication
         # chat_app = ChatApplication(
         #     parent_frame,
@@ -179,7 +178,19 @@ class ChannelBar(ctk.CTkFrame):
 
         # Change to this new frame
         # self.change_frame_callback(parent_frame)
-        print("Channel button clicked:", channel_name)
+
+    def refresh_channels(self, guild_id):
+        # Update current guild
+        self.__guildId = guild_id
+
+        # Clear existing buttons
+        for widget in self.channels_frame.winfo_children():
+            widget.destroy()
+
+        # Fetch and repopulate channels
+        self.channels = self.__fetch_channels_in_guild()
+        for channel in self.channels:
+            self.pack_channel_btn(channel)
 
     def open_create_channel_popup(self):
         self.popup = Toplevel(self)
