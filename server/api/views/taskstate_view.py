@@ -1,5 +1,5 @@
 from api.models import TaskState, Task
-from api.serializers.taskstate_serializer import TaskStateSerializer
+from api.serializers import TaskStateSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response

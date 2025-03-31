@@ -42,7 +42,10 @@ INSTALLED_APPS = [
     "api",
     "rest_framework",
     "rest_framework_simplejwt",
+    "channels",
 ]
+
+ASGI_APPLICATION = "server.asgi.application"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -150,3 +153,12 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],  # Redis server address
+        },
+    },
+}
