@@ -67,6 +67,29 @@ class ChatFrame(ctk.CTkFrame):
         separator = ctk.CTkFrame(self.messages_frame, height=1, fg_color="#e0e0e0")
         separator.pack(fill="x", padx=10, pady=2)
 
+    def send_message(self, event=None):
+        message_text = self.message_entry.get().strip()
+        if message_text:
+            # create message on the server
+            sender = self.__configuration.load_user()["id"]
+            payload = {
+                "content": message_text,
+                "channel": self.__channel["id"],
+                "sender": sender,
+            }
+            response = requests.post(
+                f"{self.__configuration.api_url}/messages/create_message/",
+                json=payload,
+            )
+
+            if response.status_code == 201:
+                message = response.json()
+                # Add the message to the chat area
+
+            else:
+                print("Failed to send message:", response.status_code)
+                return
+
     def fetch_messages(self):
         try:
             params = {
@@ -84,10 +107,3 @@ class ChatFrame(ctk.CTkFrame):
         except requests.RequestException as e:
             print("Request failed:", e)
         return []
-
-    def send_message(self, event=None):
-        message_text = self.message_entry.get().strip()
-        if message_text:
-            now = datetime.now().strftime("Today at %I:%M %p")
-            self.add_message("You", message_text, now)
-            self.message_entry.delete(0, "end")
