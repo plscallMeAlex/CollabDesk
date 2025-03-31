@@ -3,9 +3,10 @@ import requests
 
 
 class UserTask(ctk.CTkFrame):
-    def __init__(self, master, configuration):
+    def __init__(self, master, configuration, guildId):
         super().__init__(master)
         self.__configuration = configuration
+        self.__guildId = guildId
         self.configure(
             fg_color=configuration.colors["snow-white"],
             corner_radius=10,
@@ -44,9 +45,9 @@ class UserTask(ctk.CTkFrame):
 
     def __fetch_task(self):
         user_id = self.__configuration.load_user_data()
-        params = {"user_id": user_id}
+        params = {"assignee_id": user_id, "guild_id": self.__guildId}
         response = requests.get(
-            self.__configuration.api_url + "/tasks/user_tasks/",
+            self.__configuration.api_url + "/tasks/in_guild_by_assignee/",
             params=params,
         )
         if response.status_code == 200:

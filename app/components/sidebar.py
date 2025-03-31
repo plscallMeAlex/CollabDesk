@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import requests
 from PIL import Image
 import os
 
@@ -9,7 +10,7 @@ class ServerActionDialog(ctk.CTkToplevel):
         self.parent = parent
         self.action_type = action_type
         # add configuration
-        self._configuration = configuration
+        self.__configuration = configuration
 
         self.title("Server Action")
         self.geometry("480x400")
@@ -147,7 +148,7 @@ class ServerNameDialog(ctk.CTkToplevel):
             font=("Arial", 14),
             fg_color="transparent",
             border_color="#1E1F22",
-            text_color="white",
+            text_color="black",
             placeholder_text="Enter server name",
         )
 
@@ -157,7 +158,7 @@ class ServerNameDialog(ctk.CTkToplevel):
             font=("Arial", 14),
             fg_color="transparent",
             border_color="#1E1F22",
-            text_color="white",
+            text_color="black",
             placeholder_text="Enter invitation link",
         )
 
@@ -208,23 +209,44 @@ class ServerNameDialog(ctk.CTkToplevel):
     def on_create_or_join(self):
         server_name = self.name_entry.get() if self.action_type == "create" else None
         invite_link = self.link_entry.get() if self.action_type == "join" else None
+        user_id = self.__configuration.load_user_data()
+        server_id = None
 
         if self.action_type == "create" and server_name:
             print(f"Creating server: {server_name}")
+            # Request to create the server
+            response = requests.post(
+                self.__configuration.api_url + "/guilds/create_guild/",
+                json={
+                    "name": server_name,
+                    "user_id": user_id,
+                },
+            )
+            if response.status_code == 201:
+                server_id = response.json()["id"]
+                print("Server created successfully")
+            else:
+                print("Failed to create server")
+
             # Here you could add further actions to create the server
         elif self.action_type == "join" and invite_link:
             print(f"Joining server with invite link: {invite_link}")
             # Here you could add further actions to join the server
 
         if hasattr(self.parent, "add_server_icon"):
-            self.parent.add_server_icon(server_name if server_name else invite_link)
+            self.parent.add_server_icon(
+                server_name if server_name else invite_link, server_id
+            )
         self.destroy()
 
 
 class SidebarFrame(ctk.CTkFrame):
-    def __init__(self, master, configuration, **kwargs):
+    def __init__(self, master, configuration, change_guild_callback, **kwargs):
+        # Remove width from kwargs if it exists to avoid conflict
+        kwargs.pop("width", None)
         super().__init__(master, **kwargs)
         self.__configuration = configuration
+        self.__change_guild_callback = change_guild_callback
 
         bg_color = (
             self.__configuration.colors["frame-color-secondary"]
@@ -232,47 +254,94 @@ class SidebarFrame(ctk.CTkFrame):
             else "#D9D9D9"
         )
 
-        self.configure(
-            border_width=2, border_color="black", fg_color=bg_color, width=100
-        )
+        # Set width and configure grid
+        self.configure(fg_color=bg_color, width=72)
+        self.grid_propagate(False)  # Prevent frame from resizing to fit contents
+        self.grid_rowconfigure(
+            1, weight=1
+        )  # Make the sidebar component expand vertically
+        self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
 
+        # Adjust logo size
         logo_path = os.path.join("app", "assets", "logo.png")
         if os.path.exists(logo_path):
             self.logo_image = ctk.CTkImage(
-                light_image=Image.open(logo_path), size=(100, 100)
+                light_image=Image.open(logo_path), size=(60, 60)
             )
             self.logo_label = ctk.CTkLabel(self, image=self.logo_image, text="")
-            self.logo_label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+            self.logo_label.pack(pady=5)
+            # self.logo_label.grid(row=0, column=0, pady=5)
+            self.logo_label.bind("<Button-1>", lambda event: print("Logo clicked"))
 
-        self.sidebar_component = SidebarComponent(self, self.__configuration)
-        self.sidebar_component.grid(row=1, column=0, pady=0)
+        self.sidebar_component = SidebarComponent(
+            self, self.__configuration, self.__change_guild_callback
+        )
+        self.sidebar_component.pack()
+        # self.sidebar_component.grid(
+        #     row=1, column=0, sticky="nsew"
+        # )  # Make it fill the space
 
 
 class SidebarComponent(ctk.CTkFrame):
-    def __init__(self, master, configuration, **kwargs):
+    def __init__(self, master, configuration, change_guild_callback, **kwargs):
+        # Remove width from kwargs if it exists
+        kwargs.pop("width", None)
         super().__init__(master, **kwargs)
 
         self.__configuration = configuration
+        self.__change_guild_callback = change_guild_callback
         bg_color = (
             self.__configuration.colors["frame-color-secondary"]
             if self.__configuration
             else "#D9D9D9"
         )
 
-        self.configure(fg_color=bg_color)
+        # Configure frame
+        self.configure(fg_color=bg_color, width=65)
+        self.grid_propagate(False)  # Prevent frame from resizing
+        self.grid_columnconfigure(0, weight=1)  # Center contents horizontally
+
+        # Create a canvas for scrolling
+        self.canvas = ctk.CTkCanvas(self, bg=bg_color, highlightthickness=0)
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+
+        # Create a frame inside canvas to hold the icons
+        self.icons_frame = ctk.CTkFrame(self.canvas, fg_color=bg_color)
+        self.canvas.create_window((0, 0), window=self.icons_frame, anchor="nw")
+
+        # Configure grid
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
         self.load_images()
 
+        # Add plus button at the top
         self.plus_label = ctk.CTkLabel(
-            self, image=self.normal_image, text="", fg_color=bg_color
+            self.icons_frame, image=self.normal_image, text="", fg_color=bg_color
         )
-        self.plus_label.grid(row=0, column=0, pady=5)
+        self.plus_label.pack(pady=5, padx=5)
 
         self.plus_label.bind("<Button-1>", lambda event: self.on_button_click())
         self.plus_label.bind("<Enter>", self.on_hover_enter)
         self.plus_label.bind("<Leave>", self.on_hover_leave)
 
         self.created_links = []
+        self.load_server()
+
+        # Bind mouse wheel to scroll
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+        # Bind frame configure to update scroll region
+        self.icons_frame.bind("<Configure>", self._configure_scroll_region)
+
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling"""
+        if self.canvas.winfo_height() < self.icons_frame.winfo_height():
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def _configure_scroll_region(self, event):
+        """Update the scroll region when the frame size changes"""
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def load_images(self):
         """Load all required images for the sidebar"""
@@ -283,27 +352,34 @@ class SidebarComponent(ctk.CTkFrame):
         group_path = os.path.join(assets_path, "Group.png")
         group_hover_path = os.path.join(assets_path, "Group_hover.png")
 
+        # Adjust image sizes
         if os.path.exists(plus_path):
             self.normal_image = ctk.CTkImage(
-                light_image=Image.open(plus_path), size=(60, 60)
+                light_image=Image.open(plus_path), size=(48, 48)
             )
         if os.path.exists(plus_hover_path):
             self.hover_image = ctk.CTkImage(
-                light_image=Image.open(plus_hover_path), size=(60, 60)
+                light_image=Image.open(plus_hover_path), size=(48, 48)
             )
         if os.path.exists(group_path):
             self.group_image = ctk.CTkImage(
-                light_image=Image.open(group_path), size=(60, 60)
+                light_image=Image.open(group_path), size=(48, 48)
             )
         if os.path.exists(group_hover_path):
             self.group_hover_image = ctk.CTkImage(
-                light_image=Image.open(group_hover_path), size=(60, 60)
+                light_image=Image.open(group_hover_path), size=(48, 48)
             )
 
     def on_button_click(self):
         """Handle plus button click"""
         dialog = ServerActionDialog(self, self.__configuration)
-        dialog.focus()
+        dialog.grab_set()
+
+    def on_hover_enter_guild(self, cmp, event):
+        cmp.configure(image=self.group_hover_image)
+
+    def on_hover_leave_guild(self, cmp, event):
+        cmp.configure(image=self.group_image)
 
     def on_hover_enter(self, event):
         self.plus_label.configure(image=self.hover_image)
@@ -311,14 +387,50 @@ class SidebarComponent(ctk.CTkFrame):
     def on_hover_leave(self, event):
         self.plus_label.configure(image=self.normal_image)
 
-    def add_server_icon(self, server_name):
-        """Add a new server icon to the sidebar, keeping the '+' button at the bottom."""
+    def add_server_icon(self, server_name, id=None):
+        """Add a new server icon to the sidebar"""
+        first_char = server_name[0].upper()
+        if len(self.created_links) > 0:
+            self.plus_label.pack_forget()
         new_link = ctk.CTkLabel(
-            self,
+            self.icons_frame,
             image=self.group_image,
-            text=server_name,
+            text=str(first_char),  # Remove text to keep width consistent
             fg_color=self.cget("fg_color"),
         )
-        new_link.grid(row=len(self.created_links), column=0, pady=5, sticky="w")
+        new_link.pack(pady=5, padx=5)
         self.created_links.append(new_link)
-        self.plus_label.grid(row=len(self.created_links), column=0, pady=5)
+
+        # Bind the label with the server
+        new_link.bind(
+            "<Button-1>",
+            lambda event, id=id: self.guild_clicked(id, event),
+        )
+        new_link.bind(
+            "<Enter>", lambda event, cmp=new_link: self.on_hover_enter_guild(cmp, event)
+        )
+        new_link.bind(
+            "<Leave>", lambda event, cmp=new_link: self.on_hover_leave_guild(cmp, event)
+        )
+
+        # Move plus button to the end
+        self.plus_label.pack_forget()
+        self.plus_label.pack(pady=5, padx=5)
+
+    def guild_clicked(self, id, event):
+        self.__change_guild_callback(id)
+
+    def load_server(self):
+        # fetch to the server to get the server
+        params = {"user_id": self.__configuration.load_user_data()}
+        response = requests.get(
+            self.__configuration.api_url + "/guilds/get_guilds_by_user/",
+            params=params,
+        )
+
+        if response.status_code == 200:
+            guilds = response.json()
+            for guild in guilds:
+                self.add_server_icon(guild["name"], guild["id"])
+        else:
+            print("Failed to fetch the guilds")

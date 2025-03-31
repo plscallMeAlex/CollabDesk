@@ -131,7 +131,7 @@ class LoginPage(Page):
                 )
 
                 # Set User Id in the configuration
-                self.master.configuration.user_id = {"id": response.json()["user_id"]}
+                self.master.configuration.user_data = {"id": user_id}
                 from app.pages.home import HomePage
 
                 self.master.pagemanager.switch_page(HomePage)

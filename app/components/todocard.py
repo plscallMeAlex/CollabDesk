@@ -104,8 +104,25 @@ class TodoCard(ctk.CTkFrame):
         except Exception as e:
             print(e)
 
+    def __create_activity_log(self):
+        user = self._configuration.load_user()
+        log_data = {
+            "guild": self.__task_data["guild"],
+            "user": user["id"],
+            "detail": f"Deleted task: {self.__task_data['title']} by {user['username']}",
+        }
+        response = requests.post(
+            self._configuration.api_url + "/activities/create_activity/",
+            json=log_data,
+        )
+        if response.status_code == 201:
+            print("Create activity log:", response.status_code)
+        else:
+            print("Failed to create activity log:", response.status_code)
+
     def __delete_task_db(self):
         task_id = self.__task_data.get("id")
+        self.__create_activity_log()
         response = requests.delete(
             self._configuration.api_url + f"/tasks/{task_id}/delete_task/",
         )
@@ -115,6 +132,7 @@ class TodoCard(ctk.CTkFrame):
                 self.__refresh_callback()  # Refresh the specific bar
             if self.__bar_refresh_callback:
                 self.__bar_refresh_callback()  # Refresh all bars
+
             return CTkMessagebox(
                 self.master,
                 icon="check",

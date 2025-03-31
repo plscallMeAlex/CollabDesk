@@ -18,6 +18,7 @@ class BulletinBoard(Frame):
             **kwargs,
         )
         self.master = master
+        self._guildId = kwargs.get("guildId")
         self.__configuration = configuration
         self.__localframe = ctk.CTkScrollableFrame(
             self,
@@ -64,7 +65,7 @@ class BulletinBoard(Frame):
         )
         self.__add_bar_button.pack(side="left", padx=10, pady=10, fill="y")
         # User task
-        self.__user_task = UserTask(self.__frame1, self.__configuration)
+        self.__user_task = UserTask(self.__frame1, self.__configuration, self._guildId)
         self.__user_task.pack(expand=True, fill="both")
 
     def create_bar(self, state):
@@ -97,6 +98,7 @@ class BulletinBoard(Frame):
             self.__bar[state] = bar
         else:
             print("Failed to create bar")
+
             CTkMessagebox(icon="cancel", title="Error", message="Failed to create bar")
 
     def refresh_bars(self):
@@ -108,6 +110,9 @@ class BulletinBoard(Frame):
             self.__user_task.refresh_tasks()
         except Exception as e:
             print(f"Error refreshing user task: {e}")
+
+    def set_guildId(self, guildId):
+        self._guildId = guildId
 
     def __fetch_bars(self):
         params = {"guild_id": self._guildId}

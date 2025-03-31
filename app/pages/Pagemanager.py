@@ -35,6 +35,7 @@ class Pagemanager:
         if old_frame is not None:
             old_frame.destroy()
 
+        old_frame = new_frame
         new_frame.pack(expand=True, fill="both")
 
     def __create_page(self, new_page: Page):

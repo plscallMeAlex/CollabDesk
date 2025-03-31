@@ -99,6 +99,13 @@ class TaskCalendarWidget(Frame):
         """Set callback function for day click events"""
         self.on_day_click_callback = callback
 
+    def set_guildId(self, guildId):
+        """Set the guild ID for the calendar"""
+        self._guildId = guildId
+        # Fetch tasks for the new guild ID
+        self.tasks = self.__formating_tasks_data()
+        self.update_calendar()  # Update the calendar display
+
     def create_widgets(self):
         # Create header with month/year and navigation
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
