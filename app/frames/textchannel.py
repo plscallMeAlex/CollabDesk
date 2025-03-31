@@ -31,13 +31,13 @@ class ChatFrame(ctk.CTkFrame):
         self.messages_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # Add example messages
-        self.add_message("User1", "Hello, how's everyone?", "Today at 9:15 AM")
-        self.add_message(
-            "User2",
-            "I'm working on some Python stuff!",
-            "Today at 9:20 AM",
-            is_sender=True,
-        )
+        # self.add_message("User1", "Hello, how's everyone?", "Today at 9:15 AM")
+        # self.add_message(
+        #     "User2",
+        #     "I'm working on some Python stuff!",
+        #     "Today at 9:20 AM",
+        #     is_sender=True,
+        # )
 
         # Message input area (Stays at bottom)
         input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3")
@@ -51,7 +51,34 @@ class ChatFrame(ctk.CTkFrame):
         self.message_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.message_entry.bind("<Return>", self.send_message)
 
-    def add_message(self, username, content, timestamp, is_sender=False):
+    def add_message(self, message, is_sender=False):
+        # Get username from API with error handling
+        try:
+            response = requests.get(
+                f"{self.__configuration.api_url}/users/get_user_by_id/",
+                params={"user_id": message["sender"]},
+            )
+
+            if response.status_code == 200:
+                user = response.json()
+                username = user["username"]
+            else:
+                # Fallback username if API call fails
+                username = "Unknown User"
+                print(f"Failed to fetch user data: {response.status_code}")
+        except Exception as e:
+            username = "Unknown User"
+            print(f"Error fetching user data: {e}")
+
+        # Format timestamp
+        try:
+            format_time = datetime.fromisoformat(message["created_at"].split("+")[0])
+            timestamp = format_time.strftime("%b %d, %Y - %I:%M %p")
+        except Exception:
+            timestamp = "Unknown time"
+
+        content = message["content"]
+
         message_container = ctk.CTkFrame(self.messages_frame, fg_color="transparent")
 
         # Set anchor and fill based on sender
@@ -82,7 +109,10 @@ class ChatFrame(ctk.CTkFrame):
 
         # Message content
         content_label = ctk.CTkLabel(
-            text_container, text=content, font=("Arial", 14), text_color="#333"
+            text_container,
+            text=content,
+            font=("Arial", 14),
+            text_color="#333",
         )
         content_label.pack(
             anchor="e" if is_sender else "w",
@@ -106,6 +136,7 @@ class ChatFrame(ctk.CTkFrame):
 
             if response.status_code == 201:
                 message = response.json()
+                self.add_message(message, is_sender=True)
                 # Add the message to the chat area
 
             else:
