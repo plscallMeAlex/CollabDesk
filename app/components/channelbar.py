@@ -265,7 +265,7 @@ class ChannelBar(ctk.CTkFrame):
                 f"{self._conguration.api_url}/channels/create_channel/", json=payload
             )
 
-            if response.status_code == 200:
+            if response.status_code == 201:
                 channel_data = response.json()
                 self.pack_channel_btn(channel_data)
                 print(f"Channel {new_channel} created successfully.")
