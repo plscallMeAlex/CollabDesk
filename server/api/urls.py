@@ -22,7 +22,7 @@ router.register(
 )  # ip/announcements
 router.register(r"guilds", GuildViewSet, basename="guilds")  # ip/guilds
 router.register(r"activities", ActivityViewSet, basename="activities")  # ip/activities
-router.register(r"channels", ChannelViewSet, basename="channels")
+router.register(r"channels", ChannelViewSet, basename="channels")  # ip/channels
 
 
 urlpatterns = [

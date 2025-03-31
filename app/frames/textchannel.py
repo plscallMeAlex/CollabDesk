@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from datetime import datetime
+import requests
 
 
 class ChatFrame(ctk.CTkFrame):
@@ -62,6 +63,27 @@ class ChatFrame(ctk.CTkFrame):
             message_container, text=content, font=("Arial", 14), text_color="#333"
         )
         content_label.pack(anchor="w")
+        # line separator
+        separator = ctk.CTkFrame(self.messages_frame, height=1, fg_color="#e0e0e0")
+        separator.pack(fill="x", padx=10, pady=2)
+
+    def fetch_messages(self):
+        try:
+            params = {
+                "channel_id": self.__channel["id"],
+            }
+            response = requests.get(
+                f"{self.__configuration['api_url']}/channels/get_messages/",
+                params=params,
+            )
+            if response.status_code == 200:
+                messages = response.json()
+                return messages
+            else:
+                print("Failed to fetch messages:", response.status_code)
+        except requests.RequestException as e:
+            print("Request failed:", e)
+        return []
 
     def send_message(self, event=None):
         message_text = self.message_entry.get().strip()
