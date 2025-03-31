@@ -115,7 +115,7 @@ class TaskCalendarWidget(Frame):
         # Month and year label
         month_name = calendar.month_name[self.month]
         self.header_label = ctk.CTkLabel(
-            header_frame, text=f"{month_name} {self.year}", font=("Arial", 18, "bold")
+            header_frame, text=f"{month_name} {self.year}", font=("Inter", 18, "bold")
         )
         self.header_label.grid(row=0, column=0, sticky="w", padx=10)
 
@@ -165,7 +165,7 @@ class TaskCalendarWidget(Frame):
         # Grid for days of week headers
         for col, day in enumerate(weekdays):
             day_label = ctk.CTkLabel(
-                main_calendar, text=day, font=("Arial", 12, "bold"), anchor="center"
+                main_calendar, text=day, font=("Inter", 12, "bold"), anchor="center"
             )
             day_label.grid(row=0, column=col, padx=1, pady=3, sticky="nsew")
 
@@ -268,7 +268,7 @@ class TaskCalendarWidget(Frame):
                 day_container,
                 text=str(day),
                 text_color="white",
-                font=("Arial", 12, "bold"),
+                font=("Inter", 12, "bold"),
                 width=30,
                 height=30,
             )
@@ -279,7 +279,7 @@ class TaskCalendarWidget(Frame):
                 cell_frame,
                 text=str(day),
                 text_color="gray" if not current_month else "black",
-                font=("Arial", 12, "bold" if current_month else "normal"),
+                font=("Inter", 12, "bold" if current_month else "normal"),
                 anchor="nw",
             )
             day_label.place(x=5, y=5)
@@ -329,7 +329,7 @@ class TaskCalendarWidget(Frame):
                 task_bg,
                 text=task["title"],
                 text_color="black",
-                font=("Arial", 10),
+                font=("Inter", 10),
                 anchor="w",
                 padx=5,
             )

@@ -1,5 +1,7 @@
 import customtkinter as ctk
 from datetime import datetime
+import requests
+import pytz
 
 
 class ChatFrame(ctk.CTkFrame):
@@ -29,12 +31,6 @@ class ChatFrame(ctk.CTkFrame):
         self.messages_frame = ctk.CTkScrollableFrame(chat_frame, fg_color="#ffffff")
         self.messages_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        # Add example messages
-        self.add_message("User1", "Hello, how's everyone?", "Today at 9:15 AM")
-        self.add_message(
-            "User2", "I'm working on some Python stuff!", "Today at 9:20 AM"
-        )
-
         # Message input area (Stays at bottom)
         input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3")
         input_frame.grid(row=1, column=0, sticky="ew")
@@ -47,25 +43,128 @@ class ChatFrame(ctk.CTkFrame):
         self.message_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.message_entry.bind("<Return>", self.send_message)
 
-    def add_message(self, username, content, timestamp):
+        self.load_messages()  # Load messages when the frame is created
+
+    def add_message(self, message, is_sender=False):
+        # Get username from API with error handling
+        try:
+            response = requests.get(
+                f"{self.__configuration.api_url}/users/get_user_by_id/",
+                params={"user_id": message["sender"]},
+            )
+
+            if response.status_code == 200:
+                user = response.json()
+                username = user["username"]
+            else:
+                # Fallback username if API call fails
+                username = "Unknown User"
+                print(f"Failed to fetch user data: {response.status_code}")
+        except Exception as e:
+            username = "Unknown User"
+            print(f"Error fetching user data: {e}")
+
+        # Format timestamp
+        try:
+            utc_time = datetime.fromisoformat(
+                message["created_at"].split("+")[0]
+            )  # Convert to UTC datetime
+            bangkok_tz = pytz.timezone("Asia/Bangkok")  # Define Bangkok timezone
+            bangkok_time = utc_time.astimezone(bangkok_tz)  # Convert to Bangkok time
+            timestamp = bangkok_time.strftime(
+                "%b %d, %Y - %I:%M %p"
+            )  # Format the timestamp
+        except Exception as e:
+            print(f"Error formatting timestamp: {e}")
+            timestamp = "Unknown time"
+
+        content = message["content"]
+
         message_container = ctk.CTkFrame(self.messages_frame, fg_color="transparent")
-        message_container.pack(fill="x", padx=5, pady=2, anchor="w")
 
+        # Set anchor and fill based on sender
+        if is_sender:
+            message_container.pack(
+                fill="x", padx=5, pady=10, anchor="e"
+            )  # Anchor east (right)
+        else:
+            message_container.pack(
+                fill="x", padx=5, pady=10, anchor="w"
+            )  # Anchor west (left)
+
+        # Container for text elements
+        text_container = ctk.CTkFrame(message_container, fg_color="transparent")
+
+        if is_sender:
+            text_container.pack(anchor="e")  # Align text container to the right
+        else:
+            text_container.pack(anchor="w")  # Align text container to the left
+
+        # Username and timestamp
         username_label = ctk.CTkLabel(
-            message_container,
+            text_container,
             text=f"{username} ({timestamp})",
-            font=("Arial", 12, "bold"),
+            font=(self.__configuration.font, 8),
         )
-        username_label.pack(anchor="w")
+        username_label.pack(anchor="e" if is_sender else "w")
 
+        # Message content
         content_label = ctk.CTkLabel(
-            message_container, text=content, font=("Arial", 14), text_color="#333"
+            text_container,
+            text=content,
+            font=(self.__configuration.font, 14),
+            text_color="#333",
         )
-        content_label.pack(anchor="w")
+        content_label.pack(anchor="e" if is_sender else "w")
+        content_label.configure(fg_color="#f0f0f0", corner_radius=5)
 
     def send_message(self, event=None):
         message_text = self.message_entry.get().strip()
         if message_text:
-            now = datetime.now().strftime("Today at %I:%M %p")
-            self.add_message("You", message_text, now)
-            self.message_entry.delete(0, "end")
+            # create message on the server
+            sender = self.__configuration.load_user()["id"]
+            payload = {
+                "content": message_text,
+                "channel": self.__channel["id"],
+                "sender": sender,
+            }
+            response = requests.post(
+                f"{self.__configuration.api_url}/messages/create_message/",
+                json=payload,
+            )
+
+            if response.status_code == 201:
+                message = response.json()
+                self.add_message(message, is_sender=True)
+                self.message_entry.delete(0, ctk.END)  # Clear the input field
+                # Add the message to the chat area
+
+            else:
+                print("Failed to send message:", response.status_code)
+                return
+
+    def load_messages(self):
+        # Fetch messages from the server
+        messages = self.fetch_messages()
+        user_id = self.__configuration.load_user()["id"]
+        for message in messages:
+            is_sender = message["sender"] == user_id
+            self.add_message(message, is_sender)
+
+    def fetch_messages(self):
+        try:
+            params = {
+                "channel_id": self.__channel["id"],
+            }
+            response = requests.get(
+                f"{self.__configuration.api_url}/messages/get_messages/",
+                params=params,
+            )
+            if response.status_code == 200:
+                messages = response.json()
+                return messages
+            else:
+                print("Failed to fetch messages:", response.status_code)
+        except requests.RequestException as e:
+            print("Request failed:", e)
+        return []

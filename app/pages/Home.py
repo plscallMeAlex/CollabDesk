@@ -135,36 +135,49 @@ class HomePage(Page):
         root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def on_closing(self):
-        # Cancel any pending after events
-        for after_id in self.__after_ids:
-            try:
-                self.after_cancel(after_id)
-            except Exception:
-                pass
+        print("Closing application...")
 
-        # Destroy main components
-        components_to_destroy = [
-            self.header,
-            self.sidebar,
-            self.channel_bar,
-            self.frame_container,
-            self.main_content,
-            self.content_container,
-            self.__mainframe,
-        ]
-
-        for component in components_to_destroy:
-            try:
-                component.destroy()
-            except Exception:
-                pass
-
-        # Close the window
         try:
-            self.master.quit()
-            self.master.destroy()
-        except Exception:
-            pass
+            # Try to clean up gracefully first
+            if hasattr(self, "__current_frame") and self.__current_frame:
+                if hasattr(self.__current_frame, "stop_updates"):
+                    self.__current_frame.stop_updates()
+
+            # Cancel all after events we know about
+            for after_id in self.__after_ids:
+                try:
+                    self.after_cancel(after_id)
+                except:
+                    pass
+
+            # Use a more aggressive approach - terminate all Tkinter callbacks
+            try:
+                # Cancel all pending after events globally
+                for id in self.tk.call("after", "info"):
+                    try:
+                        self.tk.call("after", "cancel", id)
+                    except:
+                        pass
+            except:
+                pass
+
+            # Destroy the main window forcefully
+            try:
+                if hasattr(self.master, "_root"):
+                    self.master._root().quit()
+                else:
+                    self.master.quit()
+            except:
+                pass
+
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
+
+        # As a last resort, use os._exit to forcefully terminate
+        print("Exiting application")
+        import os
+
+        os._exit(0)  # This forces immediate termination
 
     def change_guild_callback(self, guild_id):
         # Update current guild

@@ -8,6 +8,7 @@ from api.views.user_view import UserViewSet
 from api.views.activity_view import ActivityViewSet
 from api.views.channel_view import ChannelViewSet
 from api.views.announcement_view import AnnouncementViewSet
+from api.views.message_view import MessageViewSet
 from api.views.guild_view import GuildViewSet
 from api.views.view import home
 
@@ -22,8 +23,8 @@ router.register(
 )  # ip/announcements
 router.register(r"guilds", GuildViewSet, basename="guilds")  # ip/guilds
 router.register(r"activities", ActivityViewSet, basename="activities")  # ip/activities
-router.register(r"channels", ChannelViewSet, basename="channels")
-
+router.register(r"channels", ChannelViewSet, basename="channels")  # ip/channels
+router.register(r"messages", MessageViewSet, basename="messages")  # ip/messages
 
 urlpatterns = [
     path("", home, name="home"),
