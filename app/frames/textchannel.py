@@ -33,7 +33,10 @@ class ChatFrame(ctk.CTkFrame):
         # Add example messages
         self.add_message("User1", "Hello, how's everyone?", "Today at 9:15 AM")
         self.add_message(
-            "User2", "I'm working on some Python stuff!", "Today at 9:20 AM"
+            "User2",
+            "I'm working on some Python stuff!",
+            "Today at 9:20 AM",
+            is_sender=True,
         )
 
         # Message input area (Stays at bottom)
@@ -48,24 +51,43 @@ class ChatFrame(ctk.CTkFrame):
         self.message_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.message_entry.bind("<Return>", self.send_message)
 
-    def add_message(self, username, content, timestamp):
+    def add_message(self, username, content, timestamp, is_sender=False):
         message_container = ctk.CTkFrame(self.messages_frame, fg_color="transparent")
-        message_container.pack(fill="x", padx=5, pady=2, anchor="w")
 
+        # Set anchor and fill based on sender
+        if is_sender:
+            message_container.pack(
+                fill="x", padx=5, pady=2, anchor="e"
+            )  # Anchor east (right)
+        else:
+            message_container.pack(
+                fill="x", padx=5, pady=2, anchor="w"
+            )  # Anchor west (left)
+
+        # Container for text elements
+        text_container = ctk.CTkFrame(message_container, fg_color="transparent")
+
+        if is_sender:
+            text_container.pack(anchor="e")  # Align text container to the right
+        else:
+            text_container.pack(anchor="w")  # Align text container to the left
+
+        # Username and timestamp
         username_label = ctk.CTkLabel(
-            message_container,
+            text_container,
             text=f"{username} ({timestamp})",
             font=("Arial", 12, "bold"),
         )
-        username_label.pack(anchor="w")
+        username_label.pack(anchor="e" if is_sender else "w")
 
+        # Message content
         content_label = ctk.CTkLabel(
-            message_container, text=content, font=("Arial", 14), text_color="#333"
+            text_container, text=content, font=("Arial", 14), text_color="#333"
         )
-        content_label.pack(anchor="w")
-        # line separator
-        separator = ctk.CTkFrame(self.messages_frame, height=1, fg_color="#e0e0e0")
-        separator.pack(fill="x", padx=10, pady=2)
+        content_label.pack(
+            anchor="e" if is_sender else "w",
+        )
+        content_label.configure(fg_color="#f0f0f0", corner_radius=5)
 
     def send_message(self, event=None):
         message_text = self.message_entry.get().strip()
