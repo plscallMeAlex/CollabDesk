@@ -155,29 +155,11 @@ class ChannelBar(ctk.CTkFrame):
             fg_color="transparent",
             hover_color="gray",
             anchor="w",
-            command=lambda ch=channel: self.change_frame_to_channel(ch),
+            command=lambda txt="TextChannel", ch=channel: self.change_frame_callback(
+                txt, ch
+            ),
         )
         btn.pack(fill="x", padx=10, pady=2)
-
-    def change_frame_to_channel(self, channel):
-        # Get channel information
-        channel_id = channel.get("id")
-        channel_name = channel.get("name")
-        print("Change to channel: ", channel_id)
-        # Create and configure the ChatApplication
-        # chat_app = ChatApplication(
-        #     parent_frame,
-        #     self._conguration,
-        #     guildId=self.__guildId,
-        # )
-        # chat_app.pack(fill="both", expand=True)
-
-        # Update channel header information if needed
-        # This assumes ChatApplication has methods to set channel name
-        # You might need to implement these methods in ChatApplication
-
-        # Change to this new frame
-        # self.change_frame_callback(parent_frame)
 
     def refresh_channels(self, guild_id):
         # Update current guild
