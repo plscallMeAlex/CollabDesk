@@ -208,7 +208,6 @@ class Dashboard(Frame):
             assignee_counts = defaultdict(int)
             for task in all_tasks:
                 # Check if the task has an assignee
-                print(task)
                 if task.get("assignee"):
                     assignee_id = task["assignee"]
                     assignee_name = requests.get(
