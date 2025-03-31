@@ -6,6 +6,7 @@ from app.components.chart_section import ChartSection
 from app.components.setting_section import SettingsSection
 import requests
 import math
+from collections import defaultdict
 
 
 class Dashboard(Frame):
@@ -43,11 +44,13 @@ class Dashboard(Frame):
         )
         self.progress_chart.pack(fill="x", pady=(0, 20), ipady=20)
 
+        # Fetch ownership chart data
+        ownership_data, ownership_colors = self.fetch_ownership_chart_data()
         self.ownership_chart = ChartSection(
             self.right_frame,
-            "Each task take owner",
-            {"Alex": 50, "D": 30, "Jon": 10, "Thun": 10},
-            {"Alex": "#3483eb", "D": "#4dc6ff", "Jon": "#57e5a1", "Thun": "#e5e5e5"},
+            "Task Ownership Distribution",
+            ownership_data,
+            ownership_colors,
         )
         self.ownership_chart.pack(fill="both", expand=True)
 
@@ -58,10 +61,15 @@ class Dashboard(Frame):
         self._guildId = guildId
         if hasattr(self, "announcement_section"):
             self.announcement_section.set_guildId(guildId)
+
         # Update charts when guild ID changes
         if hasattr(self, "progress_chart"):
             progress_data, progress_colors = self.fetch_progress_chart_data()
             self.progress_chart.update_data(progress_data, progress_colors)
+
+        if hasattr(self, "ownership_chart"):
+            ownership_data, ownership_colors = self.fetch_ownership_chart_data()
+            self.ownership_chart.update_data(ownership_data, ownership_colors)
 
     def fetch_progress_chart_data(self):
         """
@@ -120,7 +128,6 @@ class Dashboard(Frame):
             ]
 
             for i, state in enumerate(states):
-
                 state_id = state.get("id")
                 state_name = state.get("title")
 
@@ -161,5 +168,98 @@ class Dashboard(Frame):
                     "Doing": "#4dc6ff",
                     "DONE": "#57e5a1",
                     "Requirement": "#e5e5e5",
+                },
+            )
+
+    def fetch_ownership_chart_data(self):
+        """
+        Fetch data for the ownership chart from the endpoints.
+        Calculate the percentage of tasks assigned to each member.
+        """
+        if not self._guildId:
+            # Return default data if no guild ID is set
+            return (
+                {"Alex": 50, "D": 30, "Jon": 10, "Thun": 10},
+                {
+                    "Alex": "#3483eb",
+                    "D": "#4dc6ff",
+                    "Jon": "#57e5a1",
+                    "Thun": "#e5e5e5",
+                },
+            )
+
+        try:
+            # Get base URL from configuration
+            base_url = self._configuration.api_url
+
+            # Fetch all tasks in the guild
+            all_tasks_response = requests.get(
+                f"{base_url}/tasks/in_guild/", params={"guild_id": self._guildId}
+            )
+            all_tasks_response.raise_for_status()
+            all_tasks = all_tasks_response.json()
+            total_tasks = len(all_tasks)
+
+            if total_tasks == 0:
+                # Return default data if there are no tasks
+                return ({"No Assignments": 100}, {"No Assignments": "#e5e5e5"})
+
+            # Count tasks per assignee
+            assignee_counts = defaultdict(int)
+            for task in all_tasks:
+                # Check if the task has an assignee
+                print(task)
+                if task.get("assignee"):
+                    assignee_id = task["assignee"]
+                    assignee_name = requests.get(
+                        f"{base_url}/users/get_user_by_id/",
+                        params={"user_id": assignee_id},
+                    ).json()
+                    assignee_name = assignee_name.get("username")
+                    if assignee_name:
+                        assignee_counts[assignee_name] += 1
+                else:
+                    assignee_counts["Unassigned"] += 1
+
+            # Calculate percentages
+            ownership_data = {}
+            for assignee, count in assignee_counts.items():
+                percentage = (count / total_tasks) * 100
+                # Round up to 1 decimal place
+                percentage = math.ceil(percentage * 10) / 10
+                ownership_data[assignee] = percentage
+
+            # Define colors for each assignee
+            colors = [
+                "#3483eb",
+                "#4dc6ff",
+                "#57e5a1",
+                "#e5e5e5",
+                "#ff9a54",
+                "#ff5478",
+                "#a78bfa",
+            ]
+
+            ownership_colors = {}
+            for i, assignee in enumerate(ownership_data.keys()):
+                color_index = i % len(colors)
+                ownership_colors[assignee] = colors[color_index]
+
+            # Special color for unassigned tasks
+            if "Unassigned" in ownership_colors:
+                ownership_colors["Unassigned"] = "#cccccc"
+
+            return ownership_data, ownership_colors
+
+        except Exception as e:
+            print(f"Error fetching ownership chart data: {e}")
+            # Return default data in case of error
+            return (
+                {"Alex": 50, "D": 30, "Jon": 10, "Thun": 10},
+                {
+                    "Alex": "#3483eb",
+                    "D": "#4dc6ff",
+                    "Jon": "#57e5a1",
+                    "Thun": "#e5e5e5",
                 },
             )

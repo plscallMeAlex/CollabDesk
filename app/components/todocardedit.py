@@ -492,9 +492,6 @@ class TodoCardEditing(ctk.CTkToplevel):
                             selected_state = state["id"]
                             break
 
-                    # Compare values and add to changed_data if different
-                    print(f"Original: {original_state}, Current: {selected_state}")
-
                     if original_state != selected_state:
                         changed_data["state"] = selected_state
                         self.__task_data["state"] = selected_state
@@ -507,7 +504,6 @@ class TodoCardEditing(ctk.CTkToplevel):
                     # Get the original value from the task data when it was loaded
                     original_value = self.__original_values.get(field)
                     current_value = self.__task_data.get(field)
-                    print(f"Original: {original_value}, Current: {current_value}")
                     # If the field is a state, get the ID from the selected state
 
                     # Compare values and add to changed_data if different
@@ -575,7 +571,6 @@ class TodoCardEditing(ctk.CTkToplevel):
                     else:
                         print("Failed to fetch user data:", user_response.status_code)
 
-                    print(f"User ID: {userid}, Username: {username}")
                     activity_data = {
                         "guild": self.__task_data["guild"],
                         "user": userid,
@@ -587,7 +582,6 @@ class TodoCardEditing(ctk.CTkToplevel):
                     )
                     if act_response.status_code == 201:
                         print("Activity log created successfully.")
-                        print(response.json())
                     else:
                         print(
                             "Failed to create activity log:", act_response.status_code
