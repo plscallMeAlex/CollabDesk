@@ -11,19 +11,21 @@ class ChatFrame(ctk.CTkFrame):
 
         # Configure layout
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)  # Messages frame expands
+        self.grid_rowconfigure(1, weight=0)  # Input field stays fixed
 
         # Main chat area
         self.create_chat_area()
 
     def create_chat_area(self):
-        # Chat container
+        # Chat container (Expands to fit the parent)
         chat_frame = ctk.CTkFrame(self, fg_color="#ffffff")
         chat_frame.grid(row=0, column=0, sticky="nsew")
-        chat_frame.grid_rowconfigure(1, weight=1)
         chat_frame.grid_columnconfigure(0, weight=1)
+        chat_frame.grid_rowconfigure(0, weight=1)  # Messages area expands
+        chat_frame.grid_rowconfigure(1, weight=0)  # Input area stays fixed
 
-        # Messages area
+        # Messages area (Scrollable and takes up full space)
         self.messages_frame = ctk.CTkScrollableFrame(chat_frame, fg_color="#ffffff")
         self.messages_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
@@ -33,12 +35,12 @@ class ChatFrame(ctk.CTkFrame):
             "User2", "I'm working on some Python stuff!", "Today at 9:20 AM"
         )
 
-        # Message input area
-        input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3", height=50)
-        input_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        # Message input area (Stays at bottom)
+        input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3")
+        input_frame.grid(row=1, column=0, sticky="ew")
         input_frame.grid_columnconfigure(0, weight=1)
 
-        # Text input
+        # Text input (Full width)
         self.message_entry = ctk.CTkEntry(
             input_frame, placeholder_text="Message #general", fg_color="#ffffff"
         )
