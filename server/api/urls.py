@@ -6,7 +6,7 @@ from api.views.taskstate_view import TaskStateViewSet
 from api.views.role_view import RoleViewSet
 from api.views.user_view import UserViewSet
 from api.views.activity_view import ActivityViewSet
-
+from api.views.channel_view import ChannelViewSet
 from api.views.announcement_view import AnnouncementViewSet
 from api.views.guild_view import GuildViewSet
 from api.views.view import home
@@ -22,6 +22,8 @@ router.register(
 )  # ip/announcements
 router.register(r"guilds", GuildViewSet, basename="guilds")  # ip/guilds
 router.register(r"activities", ActivityViewSet, basename="activities")  # ip/activities
+router.register(r"channels", ChannelViewSet, basename="channels")
+
 
 urlpatterns = [
     path("", home, name="home"),
