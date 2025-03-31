@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 from dotenv import load_dotenv
 from app.tokenmanager import TokenManger
 import customtkinter as ctk
@@ -23,6 +24,13 @@ class Configuration:
             return json.load(f)
 
     def load_user_data(self):
+        tokenM = TokenManger()
+        token = tokenM.get_token()
+        if token:
+            return tokenM.user_from_token()["id"]
+        return None
+
+    def load_user(self):
         tokenM = TokenManger()
         token = tokenM.get_token()
         if token:

@@ -13,3 +13,4 @@ from .task import Task
 from .taskcomment import TaskComment
 from .taskstate import TaskState
 from .announcement import Announcement
+from .activity import Activity

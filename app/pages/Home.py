@@ -38,6 +38,7 @@ from app.components.header import Header
 from app.components.channelbar import ChannelBar
 from app.frames.calendar import TaskCalendarWidget
 from app.frames.dashboard import Dashboard
+from app.frames.textchannel import ChatFrame
 
 
 class HomePage(Page):
@@ -82,8 +83,8 @@ class HomePage(Page):
         self.__mainframe.pack(expand=True, fill="both")
 
         # Header at the top
-        self.header = Header(self.__mainframe)
-        self.header.pack(side="top", fill="x", pady=10)
+        # self.header = Header(self.__mainframe)
+        # self.header.pack(side="top", fill="x", pady=10)
 
         # Container for sidebar, channel bar, and main content
         self.content_container = ctk.CTkFrame(self.__mainframe, fg_color="transparent")
@@ -121,9 +122,9 @@ class HomePage(Page):
         self.bind_window_close()
 
     def __create_initial_frame(self):
-        """Create and pack the initial frame (BulletinBoard)"""
+        """Create and pack the initial frame (Dashboard)"""
         guild_id = self.__current_guild
-        self.__current_frame = BulletinBoard(
+        self.__current_frame = Dashboard(
             self.frame_container, self.master.configuration, guildId=guild_id
         )
         self.__current_frame.pack(expand=True, fill="both")
@@ -175,14 +176,17 @@ class HomePage(Page):
                 self.__current_frame.destroy()
             except Exception:
                 pass
+        self.channel_bar.refresh_channels(guild_id)
 
         # Create new BulletinBoard frame
-        self.__current_frame = BulletinBoard(
-            self.frame_container, self.master.configuration, guildId=guild_id
+        self.__current_frame = Dashboard(
+            self.frame_container,
+            self.master.configuration,
+            guildId=self.__current_guild,
         )
         self.__current_frame.pack(expand=True, fill="both")
 
-    def change_frame_callback(self, frame_name):
+    def change_frame_callback(self, frame_name, channel=None):
         # Destroy current frame
         if self.__current_frame:
             try:
@@ -208,6 +212,14 @@ class HomePage(Page):
                 self.frame_container,
                 self.master.configuration,
                 guildId=self.__current_guild,
+            )
+
+        elif frame_name == "TextChannel":
+            print("TextChannel")
+            self.__current_frame = ChatFrame(
+                self.frame_container,
+                self.master.configuration,
+                channel=channel,
             )
         else:
             return  # Unknown frame

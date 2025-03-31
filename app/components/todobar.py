@@ -125,6 +125,7 @@ class TodoBar(ctk.CTkScrollableFrame):
         if title == "":
             return
         user_id = self.__configuration.load_user_data()
+        username = self.__configuration.load_user()["username"]
 
         # Require Title, Guild, Assigner, State
         payload = {
@@ -156,6 +157,23 @@ class TodoBar(ctk.CTkScrollableFrame):
                 # Destroy the entry frame
                 self.__entry_frame.destroy()
                 self.__entry_open = False
+
+                # Create an activity log for the task creation
+                activity_payload = {
+                    "guild": self.__bar_data["guild"],
+                    "user": user_id,
+                    "detail": f"Created task: {title} in {self.__bar_data['title']} by {username}",
+                }
+                activity_response = requests.post(
+                    self.__configuration.api_url + "/activities/create_activity/",
+                    json=activity_payload,
+                )
+                if activity_response.status_code != 201:
+                    print(
+                        "Failed to create activity log:", activity_response.status_code
+                    )
+                else:
+                    print("Activity log created successfully")
             else:
                 CTkMessagebox(
                     self.master,

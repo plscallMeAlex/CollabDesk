@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import requests
 from tkinter import StringVar, Toplevel
 from PIL import Image
 import os
@@ -20,6 +21,17 @@ class ChannelBar(ctk.CTkFrame):
             anchor="w",
         )
         self.server_label.pack(fill="x", padx=10, pady=10)
+
+        self.dashboard_btn = ctk.CTkButton(
+            self,
+            text="📊 Dashboard",
+            text_color="black",
+            fg_color="transparent",
+            hover_color="gray",
+            anchor="w",
+            command=lambda: self.change_frame_callback("Dashboard"),
+        )
+        self.dashboard_btn.pack(fill="x", padx=10, pady=2)
 
         self.calendar_btn = ctk.CTkButton(
             self,
@@ -43,17 +55,6 @@ class ChannelBar(ctk.CTkFrame):
         )
         self.bulletin_btn.pack(fill="x", padx=10, pady=2)
 
-        self.dashboard_btn = ctk.CTkButton(
-            self,
-            text="📊 Dashboard",
-            text_color="black",
-            fg_color="transparent",
-            hover_color="gray",
-            anchor="w",
-            command=lambda: self.change_frame_callback("Dashboard"),
-        )
-        self.dashboard_btn.pack(fill="x", padx=10, pady=2)
-
         self.channel_label = ctk.CTkLabel(
             self,
             text="TEXT CHANNELS",
@@ -66,16 +67,10 @@ class ChannelBar(ctk.CTkFrame):
         self.channels_frame = ctk.CTkFrame(self)
         self.channels_frame.pack(fill="both", expand=True)
 
-        self.channels = [
-            "# announcement",
-            "# general",
-            "# talking-space",
-            "# share-file",
-        ]
-        self.channel_buttons = {}
+        self.channels = self.__fetch_channels_in_guild()
 
         for channel in self.channels:
-            self.add_channel_button(channel)
+            self.pack_channel_btn(channel)
 
         self.add_channel_btn = ctk.CTkButton(
             self,
@@ -120,11 +115,39 @@ class ChannelBar(ctk.CTkFrame):
         )
         self.settings_btn.pack(side="right", padx=10)
 
-    def switch_page(self, page_name):
-        if self.page_manager:
-            self.page_manager.switch_page(page_name)
+    def __fetch_channels_in_guild(self):
+        try:
+            params = {"guild_id": self.__guildId}
+            response = requests.get(
+                f"{self._conguration.api_url}/channels/get_all_channel_by_guild/",
+                params=params,
+            )
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"Error fetching channels: {response.status_code}")
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+        return self.__init_channel()
 
-    def add_channel_button(self, channel_name):
+    def __init_channel(self):
+        channels = ["# general", "# team1", "# team2"]
+        response_obj = []
+        for channel in channels:
+            payload = {"name": channel, "guild": self.__guildId}
+            response = requests.post(
+                f"{self._conguration.api_url}/channels/create_channel/", json=payload
+            )
+            if response.status_code == 201:
+                print(f"Channel {channel} created successfully.")
+                response_obj.append(response.json())
+            else:
+                print(f"Error creating channel {channel}: {response.status_code}")
+        return response_obj
+
+    def pack_channel_btn(self, channel):
+        channel_name = channel["name"] if isinstance(channel, dict) else channel
+
         btn = ctk.CTkButton(
             self.channels_frame,
             text=channel_name,
@@ -132,10 +155,24 @@ class ChannelBar(ctk.CTkFrame):
             fg_color="transparent",
             hover_color="gray",
             anchor="w",
-            command=lambda: self.switch_page(channel_name),
+            command=lambda txt="TextChannel", ch=channel: self.change_frame_callback(
+                txt, ch
+            ),
         )
         btn.pack(fill="x", padx=10, pady=2)
-        self.channel_buttons[channel_name] = btn
+
+    def refresh_channels(self, guild_id):
+        # Update current guild
+        self.__guildId = guild_id
+
+        # Clear existing buttons
+        for widget in self.channels_frame.winfo_children():
+            widget.destroy()
+
+        # Fetch and repopulate channels
+        self.channels = self.__fetch_channels_in_guild()
+        for channel in self.channels:
+            self.pack_channel_btn(channel)
 
     def open_create_channel_popup(self):
         self.popup = Toplevel(self)
@@ -200,9 +237,29 @@ class ChannelBar(ctk.CTkFrame):
         self.cancel_btn.pack(side="right", padx=10)
 
     def create_channel(self):
-        new_channel = f"# {self.channel_name_var.get().strip()}"
-        if new_channel and new_channel not in self.channel_buttons:
-            self.add_channel_button(new_channel)
+        new_channel_name = self.channel_name_var.get().strip()
+        new_channel = f"# {new_channel_name}"
+
+        # Create new channel on the server
+        try:
+            payload = {"name": new_channel, "guild": self.__guildId}
+            response = requests.post(
+                f"{self._conguration.api_url}/channels/create_channel/", json=payload
+            )
+
+            if response.status_code == 201:
+                channel_data = response.json()
+                self.pack_channel_btn(channel_data)
+                print(f"Channel {new_channel} created successfully.")
+            else:
+                # If API fails, still add channel to UI for demo purposes
+                self.pack_channel_btn(new_channel)
+                print(f"Error creating channel {new_channel}: {response.status_code}")
+        except Exception as e:
+            # If API fails, still add channel to UI for demo purposes
+            self.pack_channel_btn(new_channel)
+            print(f"Error creating channel: {e}")
+
         self.popup.destroy()
 
     def cancel_create_channel(self):

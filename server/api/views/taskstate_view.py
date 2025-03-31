@@ -10,6 +10,17 @@ class TaskStateViewSet(ModelViewSet):
     queryset = TaskState.objects.all()
     serializer_class = TaskStateSerializer
 
+    @action(detail=False, methods=["GET"])
+    def get_all_states(self, request):
+        guild_id = request.query_params.get("guild_id")
+        if not guild_id:
+            return Response(
+                {"error": "Guild is not found"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        taskstates = TaskState.objects.filter(guild=guild_id)
+        serializer = TaskStateSerializer(taskstates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     # get all the state in the specific guild
     @action(detail=False, methods=["GET"])
     def in_guild(self, request):
@@ -69,4 +80,3 @@ class TaskStateViewSet(ModelViewSet):
         state_id = request.data.get("state_id")
         TaskState.objects.filter(id=state_id).delete()
         return Response(status=status.HTTP_200_OK)
-
