@@ -1,5 +1,5 @@
 from api.models import Announcement, Guild
-from api.serializers import AnnouncementSerializer
+from api.serializers.announcement_serializer import AnnouncementSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response

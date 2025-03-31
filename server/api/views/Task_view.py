@@ -1,5 +1,5 @@
 from api.models import Task, Guild, User
-from api.serializers import TaskSerializer, TaskCreateSerializer
+from api.serializers.task_serializer import TaskSerializer, TaskCreateSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
