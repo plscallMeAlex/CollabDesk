@@ -104,7 +104,7 @@ class ChatFrame(ctk.CTkFrame):
         username_label = ctk.CTkLabel(
             text_container,
             text=f"{username} ({timestamp})",
-            font=(self.__configuration.font, 12, "bold"),
+            font=(self.__configuration.font, 8),
         )
         username_label.pack(anchor="e" if is_sender else "w")
 
