@@ -51,6 +51,8 @@ class ChatFrame(ctk.CTkFrame):
         self.message_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.message_entry.bind("<Return>", self.send_message)
 
+        self.load_messages()  # Load messages when the frame is created
+
     def add_message(self, message, is_sender=False):
         # Get username from API with error handling
         try:
@@ -84,11 +86,11 @@ class ChatFrame(ctk.CTkFrame):
         # Set anchor and fill based on sender
         if is_sender:
             message_container.pack(
-                fill="x", padx=5, pady=2, anchor="e"
+                fill="x", padx=5, pady=10, anchor="e"
             )  # Anchor east (right)
         else:
             message_container.pack(
-                fill="x", padx=5, pady=2, anchor="w"
+                fill="x", padx=5, pady=10, anchor="w"
             )  # Anchor west (left)
 
         # Container for text elements
@@ -114,9 +116,7 @@ class ChatFrame(ctk.CTkFrame):
             font=("Arial", 14),
             text_color="#333",
         )
-        content_label.pack(
-            anchor="e" if is_sender else "w",
-        )
+        content_label.pack(anchor="e" if is_sender else "w")
         content_label.configure(fg_color="#f0f0f0", corner_radius=5)
 
     def send_message(self, event=None):
@@ -137,11 +137,20 @@ class ChatFrame(ctk.CTkFrame):
             if response.status_code == 201:
                 message = response.json()
                 self.add_message(message, is_sender=True)
+                self.message_entry.delete(0, ctk.END)  # Clear the input field
                 # Add the message to the chat area
 
             else:
                 print("Failed to send message:", response.status_code)
                 return
+
+    def load_messages(self):
+        # Fetch messages from the server
+        messages = self.fetch_messages()
+        user_id = self.__configuration.load_user()["id"]
+        for message in messages:
+            is_sender = message["sender"] == user_id
+            self.add_message(message, is_sender)
 
     def fetch_messages(self):
         try:
@@ -149,7 +158,7 @@ class ChatFrame(ctk.CTkFrame):
                 "channel_id": self.__channel["id"],
             }
             response = requests.get(
-                f"{self.__configuration['api_url']}/messages/get_messages/",
+                f"{self.__configuration.api_url}/messages/get_messages/",
                 params=params,
             )
             if response.status_code == 200:

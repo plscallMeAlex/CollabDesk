@@ -32,8 +32,8 @@ class MessageViewSet(ModelViewSet):
 
     # get all messages in a channel
     @action(detail=False, methods=["GET"])
-    def get_messages(self):
-        channel_id = self.request.query_params.get("channel_id")
+    def get_messages(self, request):
+        channel_id = request.query_params.get("channel_id")
         if channel_id is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
