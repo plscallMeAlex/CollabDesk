@@ -24,7 +24,7 @@ class ChatFrame(ctk.CTkFrame):
         # Main chat area
         self.create_chat_area()
 
-        #for websocket
+        # for websocket
         self.websocket = None
         self.room_name = self.__channel["wsroom"]  # Change this as needed
         self.ws_url = f"ws://127.0.0.1:8000/ws/chat/{self.room_name}/"
@@ -145,6 +145,8 @@ class ChatFrame(ctk.CTkFrame):
 
             self.loop.create_task(self.websocket.send(json.dumps(payload)))
             self.message_entry.delete(0, ctk.END)
+        else:
+            print("No message to send or websocket not connected.")
 
     def load_messages(self):
         # Fetch messages from the server
@@ -174,7 +176,7 @@ class ChatFrame(ctk.CTkFrame):
 
     def start_loop(self, loop):
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.connect_to_ws())
+        loop.run_until_complete(self.connect_ws())
 
     async def connect_ws(self):
         async with websockets.connect(self.ws_url) as ws:
