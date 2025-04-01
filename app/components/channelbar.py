@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import requests
-from tkinter import StringVar, Toplevel
+from tkinter import StringVar, Toplevel, ttk
 from PIL import Image
 import os
 
@@ -9,18 +9,27 @@ class ChannelBar(ctk.CTkFrame):
     def __init__(self, parent, configuration, change_frame_callback, guildId):
         super().__init__(parent)
         self._conguration = configuration
-        self.configure(width=250, height=600, corner_radius=10)
+        self.configure(width=250, corner_radius=10)
         self.change_frame_callback = change_frame_callback
         self.__guildId = guildId
+        guild_name = self.fetch_guild_name()
 
         self.server_label = ctk.CTkLabel(
             self,
-            text="CollabDesk",
+            text=guild_name,
             font=("Inter", 16, "bold"),
             text_color="black",
             anchor="w",
         )
         self.server_label.pack(fill="x", padx=10, pady=10)
+        # separator
+        style = ttk.Style()
+        style.configure("Black.TSeparator", background="black")
+
+        self.separator = ttk.Separator(
+            self, orient="horizontal", style="Black.TSeparator"
+        )
+        self.separator.pack(fill="x", padx=10, pady=(0, 10))
 
         self.dashboard_btn = ctk.CTkButton(
             self,
@@ -53,7 +62,13 @@ class ChannelBar(ctk.CTkFrame):
             anchor="w",
             command=lambda: self.change_frame_callback("BulletinBoard"),
         )
-        self.bulletin_btn.pack(fill="x", padx=10, pady=2)
+        self.bulletin_btn.pack(fill="x", padx=10, pady=5)
+
+        # separator
+        self.separator = ttk.Separator(
+            self, orient="horizontal", style="Black.TSeparator"
+        )
+        self.separator.pack(fill="x", padx=10)
 
         self.channel_label = ctk.CTkLabel(
             self,
@@ -62,7 +77,7 @@ class ChannelBar(ctk.CTkFrame):
             text_color="black",
             anchor="w",
         )
-        self.channel_label.pack(fill="x", padx=10, pady=(20, 5))
+        self.channel_label.pack(fill="x", padx=10, pady=(10, 5))
 
         self.channels_frame = ctk.CTkFrame(self)
         self.channels_frame.pack(fill="both", expand=True)
@@ -272,3 +287,17 @@ class ChannelBar(ctk.CTkFrame):
         x = (window.winfo_screenwidth() // 2) - (width // 2)
         y = (window.winfo_screenheight() // 2) - (height // 2)
         window.geometry(f"+{x}+{y}")
+
+    def fetch_guild_name(self):
+        try:
+            params = {"guild_id": self.__guildId}
+            response = requests.get(
+                f"{self._conguration.api_url}/guilds/get_guild_by_id/", params=params
+            )
+            if response.status_code == 200:
+                return response.json()["name"]
+            else:
+                print(f"Error fetching guild name: {response.status_code}")
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+        return "Unknown Guild"
