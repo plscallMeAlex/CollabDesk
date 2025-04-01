@@ -13,6 +13,8 @@ class ChannelBar(ctk.CTkFrame):
         self.change_frame_callback = change_frame_callback
         self.__guildId = guildId
         guild_name = self.fetch_guild_name()
+        self.__user = self._conguration.load_user()
+        name = self.__user["username"]
 
         self.server_label = ctk.CTkLabel(
             self,
@@ -87,19 +89,23 @@ class ChannelBar(ctk.CTkFrame):
         for channel in self.channels:
             self.pack_channel_btn(channel)
 
+        # channel button and in the center
         self.add_channel_btn = ctk.CTkButton(
             self,
             text="+ Add Channel",
             text_color="black",
             fg_color="transparent",
             hover_color="gray",
-            anchor="w",
+            anchor="center",
             command=self.open_create_channel_popup,
         )
-        self.add_channel_btn.pack(fill="x", padx=10, pady=10)
+        self.add_channel_btn.pack(fill="x")
 
         self.user_frame = ctk.CTkFrame(self, height=50)
-        self.user_frame.pack(side="bottom", fill="x", pady=5)
+        self.user_frame.pack(
+            side="bottom",
+            fill="x",
+        )
 
         image_path = "assets/logo.png"
         if os.path.exists(image_path):
@@ -117,15 +123,16 @@ class ChannelBar(ctk.CTkFrame):
         self.profile_label.pack(side="left", padx=10)
 
         self.user_label = ctk.CTkLabel(
-            self.user_frame, text="Alex", text_color="black", anchor="w"
+            self.user_frame, text=name, text_color="black", anchor="w"
         )
         self.user_label.pack(side="left", padx=10, fill="x", expand=True)
 
         self.settings_btn = ctk.CTkButton(
             self.user_frame,
-            text="⚙",
+            text="+",
             text_color="black",
             fg_color="transparent",
+            command=self.get_invite_link,
             width=30,
         )
         self.settings_btn.pack(side="right", padx=10)
@@ -139,8 +146,6 @@ class ChannelBar(ctk.CTkFrame):
             )
             if response.status_code == 200:
                 return response.json()
-            else:
-                print(f"Error fetching channels: {response.status_code}")
         except requests.RequestException as e:
             print(f"Request failed: {e}")
         return self.__init_channel()
@@ -190,6 +195,61 @@ class ChannelBar(ctk.CTkFrame):
         self.channels = self.__fetch_channels_in_guild()
         for channel in self.channels:
             self.pack_channel_btn(channel)
+
+    def get_invite_link(self):
+        response = requests.get(
+            f"{self._conguration.api_url}/guilds/get_guild_by_id/",
+            params={"guild_id": self.__guildId},
+        )
+        link = None
+        if response.status_code == 200:
+            guild_data = response.json()
+            invitetoken = guild_data.get("invitetoken")
+            link = f"{self._conguration.join_url}/{invitetoken}"
+            print(f"Invite link: {link}")
+
+        # create a popup to show the invite link
+        self.popup = Toplevel(self)
+        self.popup.title("Invite Link")
+        self.popup.geometry("500x300")
+        self.popup.resizable(False, False)
+        self.center_window(self.popup)
+        self.invite_label = ctk.CTkLabel(
+            self.popup,
+            text=f"Invite Link: {link}",
+            font=("Inter", 14),
+            text_color="black",
+        )
+        self.invite_label.pack(pady=(20, 10))
+        # close button
+        self.invite_btn = ctk.CTkButton(
+            self.popup,
+            text="Close",
+            font=("Inter", 14),
+            fg_color="#2B2D31",
+            hover_color="#404249",
+            command=self.popup.destroy,
+        )
+        self.invite_btn.pack(pady=(10, 20))
+        # copy button
+        self.copy_btn = ctk.CTkButton(
+            self.popup,
+            text="Copy Link",
+            font=("Inter", 14),
+            fg_color="#2B2D31",
+            hover_color="#404249",
+            command=lambda: self.copy_to_clipboard(link),
+        )
+        self.copy_btn.pack(pady=(10, 20))
+
+        # wait for the user to close the popup
+        self.popup.wait_window(self.popup)
+
+    def copy_to_clipboard(self, link):
+        self.clipboard_clear()
+        self.clipboard_append(link)
+        self.update()
+        print("Link copied to clipboard!")
 
     def open_create_channel_popup(self):
         self.popup = Toplevel(self)
@@ -298,8 +358,6 @@ class ChannelBar(ctk.CTkFrame):
             )
             if response.status_code == 200:
                 return response.json()["name"]
-            else:
-                print(f"Error fetching guild name: {response.status_code}")
         except requests.RequestException as e:
             print(f"Request failed: {e}")
         return "Unknown Guild"

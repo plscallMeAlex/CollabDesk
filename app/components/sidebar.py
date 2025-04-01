@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 from tkinter import ttk
 import requests
 from PIL import Image
@@ -214,7 +215,6 @@ class ServerNameDialog(ctk.CTkToplevel):
         server_id = None
 
         if self.action_type == "create" and server_name:
-            print(f"Creating server: {server_name}")
             # Request to create the server
             response = requests.post(
                 self.__configuration.api_url + "/guilds/create_guild/",
@@ -225,19 +225,66 @@ class ServerNameDialog(ctk.CTkToplevel):
             )
             if response.status_code == 201:
                 server_id = response.json()["id"]
-                print("Server created successfully")
+                box = CTkMessagebox(
+                    self, title="Success", message="Server created successfully"
+                )
+                # wait until the user closes the message box
+                box.wait_window()
             else:
-                print("Failed to create server")
+                box = CTkMessagebox(
+                    self,
+                    title="Error",
+                    message="Failed to create server",
+                    icon="cancel",
+                )
+                # wait until the user closes the message box
+                box.wait_window()
+                return
 
-            # Here you could add further actions to create the server
+            # Here you could add further actions to create the guild
         elif self.action_type == "join" and invite_link:
+            if invite_link.startswith(self.__configuration.join_url):
+                # extract guild ID from the invite link after the join URL
+                invite_token = invite_link.split("/")[-1]
+                # Request to join the server
+                payload = {
+                    "invitetoken": invite_token,
+                    "user_id": user_id,
+                }
+                response = requests.post(
+                    self.__configuration.api_url + "/guilds/join_guild/", json=payload
+                )
+                if response.status_code == 200:
+                    box = CTkMessagebox(
+                        self, title="Success", message="Joined server successfully"
+                    )
+                    # wait until the user closes the message box
+                    box.wait_window()
+                    server_id = response.json()["id"]
+                    server_name = response.json()["name"]
+                else:
+                    box = CTkMessagebox(
+                        self,
+                        title="Error",
+                        message="Failed to join server",
+                        icon="cancel",
+                    )
+                    # wait until the user closes the message box
+                    box.wait_window()
+                    return
+            else:
+                box = CTkMessagebox(
+                    self, title="Error", message="Invalid invite link", icon="warning"
+                )
+                # wait until the user closes the message box
+                box.wait_window()
+                return
+
             print(f"Joining server with invite link: {invite_link}")
             # Here you could add further actions to join the server
 
         if hasattr(self.parent, "add_server_icon"):
-            self.parent.add_server_icon(
-                server_name if server_name else invite_link, server_id
-            )
+            self.parent.add_server_icon(server_name, server_id)
         self.destroy()
 
 

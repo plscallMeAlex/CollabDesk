@@ -54,7 +54,12 @@ class ChatFrame(ctk.CTkFrame):
         chat_frame.grid_rowconfigure(1, weight=0)  # Input area stays fixed
 
         # Messages area (Scrollable and takes up full space)
-        self.messages_frame = ctk.CTkScrollableFrame(chat_frame, fg_color="#ffffff")
+        self.messages_frame = ctk.CTkScrollableFrame(
+            chat_frame,
+            fg_color="#ffffff",
+            scrollbar_button_color="#ffffff",
+            scrollbar_button_hover_color="#f0f0f0",
+        )
         self.messages_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # Message input area (Stays at bottom)
@@ -62,9 +67,14 @@ class ChatFrame(ctk.CTkFrame):
         input_frame.grid(row=1, column=0, sticky="ew")
         input_frame.grid_columnconfigure(0, weight=1)
 
+        # split the # infront of the name
+        name = self.__channel["name"]
+        if name.startswith("#"):
+            name = name[1:]
+        # Channel name label
         # Text input (Full width)
         self.message_entry = ctk.CTkEntry(
-            input_frame, placeholder_text="Message #general", fg_color="#ffffff"
+            input_frame, placeholder_text=f"Message #{name}", fg_color="#ffffff"
         )
         self.message_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.message_entry.bind("<Return>", self.send_message)

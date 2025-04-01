@@ -82,10 +82,6 @@ class HomePage(Page):
         self.__mainframe = ctk.CTkFrame(self, fg_color="transparent")
         self.__mainframe.pack(expand=True, fill="both")
 
-        # Header at the top
-        # self.header = Header(self.__mainframe)
-        # self.header.pack(side="top", fill="x", pady=10)
-
         # Container for sidebar, channel bar, and main content
         self.content_container = ctk.CTkFrame(self.__mainframe, fg_color="transparent")
         self.content_container.pack(expand=True, fill="both")
@@ -112,10 +108,17 @@ class HomePage(Page):
         self.main_content.pack(side="right", expand=True, fill="both")
 
         # Frame container for switching
-        self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
-        self.frame_container.pack(expand=True, fill="both", pady=20)
+        self.frame_container = ctk.CTkFrame(
+            self.main_content, fg_color="transparent", border_width=0, corner_radius=0
+        )
+        self.frame_container.pack(expand=True, fill="both")
+        self.header = Header(
+            self.frame_container,
+            # self.master.configuration,
+            # guildId=self.__current_guild,
+        )
+        self.header.pack(fill="x")
 
-        # Initial frame
         self.__create_initial_frame()
 
         # Bind window close event
