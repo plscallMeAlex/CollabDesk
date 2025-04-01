@@ -123,9 +123,10 @@ class ChannelBar(ctk.CTkFrame):
 
         self.settings_btn = ctk.CTkButton(
             self.user_frame,
-            text="⚙",
+            text="+",
             text_color="black",
             fg_color="transparent",
+            command=self.get_invite_link,
             width=30,
         )
         self.settings_btn.pack(side="right", padx=10)
@@ -188,6 +189,61 @@ class ChannelBar(ctk.CTkFrame):
         self.channels = self.__fetch_channels_in_guild()
         for channel in self.channels:
             self.pack_channel_btn(channel)
+
+    def get_invite_link(self):
+        response = requests.get(
+            f"{self._conguration.api_url}/guilds/get_guild_by_id/",
+            params={"guild_id": self.__guildId},
+        )
+        link = None
+        if response.status_code == 200:
+            guild_data = response.json()
+            invitetoken = guild_data.get("invitetoken")
+            link = f"{self._conguration.join_url}/{invitetoken}"
+            print(f"Invite link: {link}")
+
+        # create a popup to show the invite link
+        self.popup = Toplevel(self)
+        self.popup.title("Invite Link")
+        self.popup.geometry("500x300")
+        self.popup.resizable(False, False)
+        self.center_window(self.popup)
+        self.invite_label = ctk.CTkLabel(
+            self.popup,
+            text=f"Invite Link: {link}",
+            font=("Inter", 14),
+            text_color="black",
+        )
+        self.invite_label.pack(pady=(20, 10))
+        # close button
+        self.invite_btn = ctk.CTkButton(
+            self.popup,
+            text="Close",
+            font=("Inter", 14),
+            fg_color="#2B2D31",
+            hover_color="#404249",
+            command=self.popup.destroy,
+        )
+        self.invite_btn.pack(pady=(10, 20))
+        # copy button
+        self.copy_btn = ctk.CTkButton(
+            self.popup,
+            text="Copy Link",
+            font=("Inter", 14),
+            fg_color="#2B2D31",
+            hover_color="#404249",
+            command=lambda: self.copy_to_clipboard(link),
+        )
+        self.copy_btn.pack(pady=(10, 20))
+
+        # wait for the user to close the popup
+        self.popup.wait_window(self.popup)
+
+    def copy_to_clipboard(self, link):
+        self.clipboard_clear()
+        self.clipboard_append(link)
+        self.update()
+        print("Link copied to clipboard!")
 
     def open_create_channel_popup(self):
         self.popup = Toplevel(self)
