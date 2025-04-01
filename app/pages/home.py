@@ -82,10 +82,6 @@ class HomePage(Page):
         self.__mainframe = ctk.CTkFrame(self, fg_color="transparent")
         self.__mainframe.pack(expand=True, fill="both")
 
-        # Header at the top
-        # self.header = Header(self.__mainframe)
-        # self.header.pack(side="top", fill="x", pady=10)
-
         # Container for sidebar, channel bar, and main content
         self.content_container = ctk.CTkFrame(self.__mainframe, fg_color="transparent")
         self.content_container.pack(expand=True, fill="both")
@@ -115,7 +111,6 @@ class HomePage(Page):
         self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
         self.frame_container.pack(expand=True, fill="both", pady=20)
 
-        # Initial frame
         self.__create_initial_frame()
 
         # Bind window close event

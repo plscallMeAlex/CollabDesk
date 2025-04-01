@@ -132,8 +132,7 @@ class AnnouncementSection(ctk.CTkFrame):
             else:
                 print("Failed to fetch announcements:", response.status_code)
         except requests.RequestException as e:
-            print("Error fetching announcements:", e)
-
+            pass
         return []
 
     def display_announcement(self, index):

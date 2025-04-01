@@ -139,8 +139,6 @@ class ChannelBar(ctk.CTkFrame):
             )
             if response.status_code == 200:
                 return response.json()
-            else:
-                print(f"Error fetching channels: {response.status_code}")
         except requests.RequestException as e:
             print(f"Request failed: {e}")
         return self.__init_channel()
@@ -298,8 +296,6 @@ class ChannelBar(ctk.CTkFrame):
             )
             if response.status_code == 200:
                 return response.json()["name"]
-            else:
-                print(f"Error fetching guild name: {response.status_code}")
         except requests.RequestException as e:
             print(f"Request failed: {e}")
         return "Unknown Guild"

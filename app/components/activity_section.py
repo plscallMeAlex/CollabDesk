@@ -34,7 +34,6 @@ class ActivitySection(ctk.CTkFrame):
                 sorted_activities = self.sort_activities_by_date(activities)
                 return sorted_activities
             else:
-                print(f"Error fetching activities: {response.status_code}")
                 sample_activities = self.get_sample_activities()
                 return self.sort_activities_by_date(sample_activities)
         except requests.RequestException as e:
