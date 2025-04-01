@@ -215,7 +215,6 @@ class ServerNameDialog(ctk.CTkToplevel):
         server_id = None
 
         if self.action_type == "create" and server_name:
-            print(f"Creating server: {server_name}")
             # Request to create the server
             response = requests.post(
                 self.__configuration.api_url + "/guilds/create_guild/",
@@ -226,9 +225,21 @@ class ServerNameDialog(ctk.CTkToplevel):
             )
             if response.status_code == 201:
                 server_id = response.json()["id"]
-                print("Server created successfully")
+                box = CTkMessagebox(
+                    self, title="Success", message="Server created successfully"
+                )
+                # wait until the user closes the message box
+                box.wait_window()
             else:
-                print("Failed to create server")
+                box = CTkMessagebox(
+                    self,
+                    title="Error",
+                    message="Failed to create server",
+                    icon="cancel",
+                )
+                # wait until the user closes the message box
+                box.wait_window()
+                return
 
             # Here you could add further actions to create the guild
         elif self.action_type == "join" and invite_link:
@@ -249,6 +260,8 @@ class ServerNameDialog(ctk.CTkToplevel):
                     )
                     # wait until the user closes the message box
                     box.wait_window()
+                    server_id = response.json()["id"]
+                    server_name = response.json()["name"]
             else:
                 box = CTkMessagebox(
                     self, title="Error", message="Invalid invite link", icon="warning"
@@ -261,9 +274,7 @@ class ServerNameDialog(ctk.CTkToplevel):
             # Here you could add further actions to join the server
 
         if hasattr(self.parent, "add_server_icon"):
-            self.parent.add_server_icon(
-                server_name if server_name else invite_link, server_id
-            )
+            self.parent.add_server_icon(server_name, server_id)
         self.destroy()
 
 
