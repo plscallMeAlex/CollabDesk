@@ -247,12 +247,12 @@ class ServerNameDialog(ctk.CTkToplevel):
                 # extract guild ID from the invite link after the join URL
                 invite_token = invite_link.split("/")[-1]
                 # Request to join the server
-                params = {
+                payload = {
                     "invitetoken": invite_token,
                     "user_id": user_id,
                 }
                 response = requests.post(
-                    self.__configuration.api_url + "/guilds/join_guild/", params=params
+                    self.__configuration.api_url + "/guilds/join_guild/", json=payload
                 )
                 if response.status_code == 200:
                     box = CTkMessagebox(
@@ -262,6 +262,16 @@ class ServerNameDialog(ctk.CTkToplevel):
                     box.wait_window()
                     server_id = response.json()["id"]
                     server_name = response.json()["name"]
+                else:
+                    box = CTkMessagebox(
+                        self,
+                        title="Error",
+                        message="Failed to join server",
+                        icon="cancel",
+                    )
+                    # wait until the user closes the message box
+                    box.wait_window()
+                    return
             else:
                 box = CTkMessagebox(
                     self, title="Error", message="Invalid invite link", icon="warning"
