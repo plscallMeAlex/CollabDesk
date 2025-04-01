@@ -58,6 +58,38 @@ class GuildViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=["POST"])
+    def join_guild(self, request):
+        token = request.data.get("invitetoken")
+        user_id = request.data.get("user_id")
+
+        if token is None or user_id is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        guild = Guild.objects.filter(invitetoken=token).first()
+        if guild is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        user = User.objects.filter(id=user_id).first()
+        if user is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the user is already a member of the guild
+        if GuildMembership.objects.filter(user=user, guild=guild).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        role = Role.objects.filter(guild=guild, name="member").first()
+        if role is None:
+            return Response(status=status.HTTP_404_NOT_FOUND, data="Role not found")
+
+        # Create a guild membership for the user
+        GuildMembership.objects.create(
+            user=user,
+            guild=guild,
+            role=role,
+        )
+        return Response(status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["GET"])
     def list_guilds(self, request):
         guilds = Guild.objects.all()

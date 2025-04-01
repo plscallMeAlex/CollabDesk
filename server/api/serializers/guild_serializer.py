@@ -5,7 +5,7 @@ from api.models import Guild
 class GuildSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guild
-        fields = ["id", "name"]
+        fields = ["id", "name", "invitetoken"]
 
     def create(self, validated_data):
         return super().create(validated_data)
