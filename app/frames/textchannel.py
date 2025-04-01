@@ -27,7 +27,7 @@ class ChatFrame(ctk.CTkFrame):
         # for websocket
         self.websocket = None
         self.room_name = self.__channel["wsroom"]  # Change this as needed
-        self.ws_url = f"{self.__configuration.ws_url}/{self.room_name}/"
+        self.ws_url = f"{self.__configuration.ws_url}{self.room_name}/"
 
         self.loop = asyncio.new_event_loop()
         self.thread = Thread(target=self.start_loop, args=(self.loop,))
