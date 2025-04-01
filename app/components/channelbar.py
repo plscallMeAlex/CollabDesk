@@ -179,6 +179,8 @@ class ChannelBar(ctk.CTkFrame):
     def refresh_channels(self, guild_id):
         # Update current guild
         self.__guildId = guild_id
+        guild_name = self.fetch_guild_name()
+        self.server_label.configure(text=guild_name)
 
         # Clear existing buttons
         for widget in self.channels_frame.winfo_children():
