@@ -3,6 +3,11 @@ from datetime import datetime
 import requests
 import pytz
 
+import asyncio
+import websockets
+import json
+from threading import Thread
+
 
 class ChatFrame(ctk.CTkFrame):
     def __init__(self, parent, configuration, channel, **kwargs):
@@ -18,6 +23,15 @@ class ChatFrame(ctk.CTkFrame):
 
         # Main chat area
         self.create_chat_area()
+
+        #for websocket
+        self.websocket = None
+        self.room_name = self.__channel["wsroom"]  # Change this as needed
+        self.ws_url = f"ws://127.0.0.1:8000/ws/chat/{self.room_name}/"
+
+        self.loop = asyncio.new_event_loop()
+        self.thread = Thread(target=self.start_loop, args=(self.loop,))
+        self.thread.start()
 
     def create_chat_area(self):
         # Chat container (Expands to fit the parent)
@@ -120,7 +134,7 @@ class ChatFrame(ctk.CTkFrame):
 
     def send_message(self, event=None):
         message_text = self.message_entry.get().strip()
-        if message_text:
+        if message_text and self.websocket:
             # create message on the server
             sender = self.__configuration.load_user()["id"]
             payload = {
@@ -128,20 +142,9 @@ class ChatFrame(ctk.CTkFrame):
                 "channel": self.__channel["id"],
                 "sender": sender,
             }
-            response = requests.post(
-                f"{self.__configuration.api_url}/messages/create_message/",
-                json=payload,
-            )
 
-            if response.status_code == 201:
-                message = response.json()
-                self.add_message(message, is_sender=True)
-                self.message_entry.delete(0, ctk.END)  # Clear the input field
-                # Add the message to the chat area
-
-            else:
-                print("Failed to send message:", response.status_code)
-                return
+            self.loop.create_task(self.websocket.send(json.dumps(payload)))
+            self.message_entry.delete(0, ctk.END)
 
     def load_messages(self):
         # Fetch messages from the server
@@ -168,3 +171,17 @@ class ChatFrame(ctk.CTkFrame):
         except requests.RequestException as e:
             print("Request failed:", e)
         return []
+
+    def start_loop(self, loop):
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.connect_to_ws())
+
+    async def connect_ws(self):
+        async with websockets.connect(self.ws_url) as ws:
+            self.websocket = ws
+            async for message in ws:
+                data = json.loads(message)
+                if data["sender"] != self.__configuration.load_user()["id"]:
+                    self.add_message(data, is_sender=False)
+                else:
+                    self.add_message(data, is_sender=True)
