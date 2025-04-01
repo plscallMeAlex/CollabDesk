@@ -30,13 +30,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = await self.save_message(content, sender, channel)
 
         # Send message to room group
-        await self.channel_layer.group_send(self.room_group_name, 
+        await self.channel_layer.group_send(
+            self.room_group_name,
             {
                 "type": "chat_message",
                 "sender": sender,
                 "content": content,
-                "created_at": message.created_at,
-            }
+                "created_at": message.created_at.isoformat(),
+            },
         )
 
     # Receive message from room group
