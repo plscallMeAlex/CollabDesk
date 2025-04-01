@@ -2,9 +2,7 @@ import customtkinter as ctk
 
 
 class Header(ctk.CTkFrame):
-    def __init__(
-        self, master, title="📊 Dashboard", height=30, **kwargs
-    ):
+    def __init__(self, master, title="📊 Dashboard", height=30, **kwargs):
         super().__init__(master, corner_radius=0, border_width=0, **kwargs)
 
         # Configure the header appearance - add a specific border_width=0 to eliminate the line
@@ -31,24 +29,28 @@ class Header(ctk.CTkFrame):
         self.right_frame.pack_propagate(False)  # Keep consistent height
 
         # Member/people icon button
-        self.members_button = ctk.CTkLabel(
+        self.members_button = ctk.CTkButton(
             self.right_frame,
             text="👥",
             width=30,
             height=height,  # Match parent height
             fg_color="transparent",
+            text_color="black",
             corner_radius=8,
+            hover_color="#f0f0f0",
         )
         self.members_button.pack(side="right", padx=5, pady=0)
 
         # Notification bell icon button
-        self.notification_button = ctk.CTkLabel(
+        self.notification_button = ctk.CTkButton(
             self.right_frame,
             text="🔔",
             width=30,
             height=height,  # Match parent height
             fg_color="transparent",
+            text_color="black",
             corner_radius=8,
+            hover_color="#f0f0f0",
         )
         self.notification_button.pack(side="right", padx=5, pady=0)
 
