@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from tkinter import ttk
 import requests
 from PIL import Image
 import os
@@ -273,10 +274,22 @@ class SidebarFrame(ctk.CTkFrame):
             # self.logo_label.grid(row=0, column=0, pady=5)
             self.logo_label.bind("<Button-1>", lambda event: print("Logo clicked"))
 
+        # line separator
+        style = ttk.Style()
+        style.configure("Black.TSeparator", background="black")
+
+        self.line_separator = ttk.Separator(
+            self, orient="horizontal", style="Black.TSeparator"
+        )
+        self.line_separator.pack(
+            fill="x",
+            padx=5,
+        )
+
         self.sidebar_component = SidebarComponent(
             self, self.__configuration, self.__change_guild_callback
         )
-        self.sidebar_component.pack()
+        self.sidebar_component.pack(pady=10)
         # self.sidebar_component.grid(
         #     row=1, column=0, sticky="nsew"
         # )  # Make it fill the space

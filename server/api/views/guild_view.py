@@ -76,3 +76,14 @@ class GuildViewSet(ModelViewSet):
         guilds = [membership.guild for membership in memberships]
         serializer = GuildSerializer(guilds, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"])
+    def get_guild_by_id(self, request):
+        guild_id = request.query_params.get("guild_id")
+        if guild_id is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        guild = Guild.objects.filter(id=guild_id).first()
+        if guild is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = GuildSerializer(guild)
+        return Response(serializer.data, status=status.HTTP_200_OK)

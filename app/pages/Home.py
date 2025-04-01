@@ -88,7 +88,7 @@ class HomePage(Page):
 
         # Container for sidebar, channel bar, and main content
         self.content_container = ctk.CTkFrame(self.__mainframe, fg_color="transparent")
-        self.content_container.pack(expand=True, fill="both", padx=10, pady=10)
+        self.content_container.pack(expand=True, fill="both")
 
         # Sidebar on the left
         self.sidebar = SidebarFrame(
@@ -96,7 +96,7 @@ class HomePage(Page):
             self.master.configuration,
             self.change_guild_callback,
         )
-        self.sidebar.pack(side="left", fill="y")
+        self.sidebar.pack(side="left", fill="y", padx=5)
 
         # Channel bar next to sidebar
         self.channel_bar = ChannelBar(
