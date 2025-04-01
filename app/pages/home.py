@@ -112,6 +112,12 @@ class HomePage(Page):
             self.main_content, fg_color="transparent", border_width=0, corner_radius=0
         )
         self.frame_container.pack(expand=True, fill="both")
+        self.header = Header(
+            self.frame_container,
+            # self.master.configuration,
+            # guildId=self.__current_guild,
+        )
+        self.header.pack(fill="x")
 
         self.__create_initial_frame()
 
