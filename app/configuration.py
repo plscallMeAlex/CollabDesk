@@ -13,6 +13,7 @@ class Configuration:
         self.font = "Inter"
         self.api_url = os.getenv("API_URL")
         self.ws_url = os.getenv("WS_URL")
+        self.join_url = os.getenv("JOIN_URL")
         self.user_data = None
         self.__setup()
 

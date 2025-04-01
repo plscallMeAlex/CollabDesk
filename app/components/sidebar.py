@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 from tkinter import ttk
 import requests
 from PIL import Image
@@ -229,8 +230,33 @@ class ServerNameDialog(ctk.CTkToplevel):
             else:
                 print("Failed to create server")
 
-            # Here you could add further actions to create the server
+            # Here you could add further actions to create the guild
         elif self.action_type == "join" and invite_link:
+            if invite_link.startswith(self.__configuration.join_url):
+                # extract guild ID from the invite link after the join URL
+                invite_token = invite_link.split("/")[-1]
+                # Request to join the server
+                params = {
+                    "invitetoken": invite_token,
+                    "user_id": user_id,
+                }
+                response = requests.post(
+                    self.__configuration.api_url + "/guilds/join_guild/", params=params
+                )
+                if response.status_code == 200:
+                    box = CTkMessagebox(
+                        self, title="Success", message="Joined server successfully"
+                    )
+                    # wait until the user closes the message box
+                    box.wait_window()
+            else:
+                box = CTkMessagebox(
+                    self, title="Error", message="Invalid invite link", icon="warning"
+                )
+                # wait until the user closes the message box
+                box.wait_window()
+                return
+
             print(f"Joining server with invite link: {invite_link}")
             # Here you could add further actions to join the server
 
