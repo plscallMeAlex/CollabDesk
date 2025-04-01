@@ -89,7 +89,6 @@ class CreateServerDialog(ctk.CTkToplevel):
 
     def on_back(self):
         self.destroy()
-        ServerTypeDialog(self.parent)
 
     def on_create(self):
         server_name = self.name_entry.get()

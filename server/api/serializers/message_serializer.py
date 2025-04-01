@@ -5,4 +5,4 @@ from api.models import Message
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = "__all__"
+        fields = ["id", "content", "sender", "channel", "created_at"]
