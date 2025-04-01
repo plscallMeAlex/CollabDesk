@@ -3,11 +3,9 @@ import customtkinter as ctk
 
 class Header(ctk.CTkFrame):
     def __init__(
-        self, master, configuraion, guild_id, title="📊 Dashboard", height=30, **kwargs
+        self, master, title="📊 Dashboard", height=30, **kwargs
     ):
         super().__init__(master, corner_radius=0, border_width=0, **kwargs)
-        self._configuration = configuraion
-        self._guildId = guild_id
 
         # Configure the header appearance - add a specific border_width=0 to eliminate the line
         self.configure(height=height, fg_color="#ffffff", border_width=0)
