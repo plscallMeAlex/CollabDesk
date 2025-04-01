@@ -24,6 +24,9 @@ class BulletinBoard(Frame):
             self,
             fg_color=self._configuration.colors["snow-white"],
             height=800,
+            corner_radius=0,
+            scrollbar_button_color="white",
+            scrollbar_button_hover_color="grey",
         )
         self.__localframe.pack(expand=True, fill="both")
 
@@ -39,6 +42,8 @@ class BulletinBoard(Frame):
             fg_color="transparent",
             orientation="horizontal",
             height=300,
+            scrollbar_button_color="white",
+            scrollbar_button_hover_color="grey",
         )  # for the storing a todobar
         self.__frame1 = ctk.CTkFrame(
             self.__localframe, fg_color="transparent"

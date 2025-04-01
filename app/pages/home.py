@@ -108,8 +108,10 @@ class HomePage(Page):
         self.main_content.pack(side="right", expand=True, fill="both")
 
         # Frame container for switching
-        self.frame_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
-        self.frame_container.pack(expand=True, fill="both", pady=20)
+        self.frame_container = ctk.CTkFrame(
+            self.main_content, fg_color="transparent", border_width=0, corner_radius=0
+        )
+        self.frame_container.pack(expand=True, fill="both")
 
         self.__create_initial_frame()
 

@@ -13,6 +13,8 @@ class ChannelBar(ctk.CTkFrame):
         self.change_frame_callback = change_frame_callback
         self.__guildId = guildId
         guild_name = self.fetch_guild_name()
+        self.__user = self._conguration.load_user()
+        name = self.__user["username"]
 
         self.server_label = ctk.CTkLabel(
             self,
@@ -87,19 +89,23 @@ class ChannelBar(ctk.CTkFrame):
         for channel in self.channels:
             self.pack_channel_btn(channel)
 
+        # channel button and in the center
         self.add_channel_btn = ctk.CTkButton(
             self,
             text="+ Add Channel",
             text_color="black",
             fg_color="transparent",
             hover_color="gray",
-            anchor="w",
+            anchor="center",
             command=self.open_create_channel_popup,
         )
-        self.add_channel_btn.pack(fill="x", padx=10, pady=10)
+        self.add_channel_btn.pack(fill="x")
 
         self.user_frame = ctk.CTkFrame(self, height=50)
-        self.user_frame.pack(side="bottom", fill="x", pady=5)
+        self.user_frame.pack(
+            side="bottom",
+            fill="x",
+        )
 
         image_path = "assets/logo.png"
         if os.path.exists(image_path):
@@ -117,7 +123,7 @@ class ChannelBar(ctk.CTkFrame):
         self.profile_label.pack(side="left", padx=10)
 
         self.user_label = ctk.CTkLabel(
-            self.user_frame, text="Alex", text_color="black", anchor="w"
+            self.user_frame, text=name, text_color="black", anchor="w"
         )
         self.user_label.pack(side="left", padx=10, fill="x", expand=True)
 
