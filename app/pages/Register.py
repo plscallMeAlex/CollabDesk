@@ -14,7 +14,7 @@ class RegisterPage(Page):
         self.master = master
         self.__localframe = ctk.CTkFrame(
             self,
-            fg_color=self.master.config.colors["frame-color-main"],
+            fg_color=self.master.configuration.colors["frame-color-main"],
             corner_radius=10,
         )
         self.__localframe.place(relx=0.5, rely=0.5, anchor="center")
@@ -35,14 +35,14 @@ class RegisterPage(Page):
         self.project_name_label = ctk.CTkLabel(
             self.__header_frame,
             text="CollabDesk",
-            font=(self.master.config.font, 28, "bold"),
-            text_color=self.master.config.colors["green-program"],
+            font=(self.master.configuration.font, 28, "bold"),
+            text_color=self.master.configuration.colors["green-program"],
         )
         self.description_label = ctk.CTkLabel(
             self.__main_frame,
             text="Register to continue to CollabDesk",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
         )
 
         # Form container
@@ -54,14 +54,14 @@ class RegisterPage(Page):
         self.username_label = ctk.CTkLabel(
             self.__username_frame,
             text="Username:",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
             width=100,
             anchor="e",
         )
         self.username_entry = ctk.CTkEntry(
             self.__username_frame,
-            font=(self.master.config.font, 14),
+            font=(self.master.configuration.font, 14),
             width=300,
         )
 
@@ -70,14 +70,14 @@ class RegisterPage(Page):
         self.firstname_label = ctk.CTkLabel(
             self.__firstname_frame,
             text="First Name:",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
             width=100,
             anchor="e",
         )
         self.firstname_entry = ctk.CTkEntry(
             self.__firstname_frame,
-            font=(self.master.config.font, 14),
+            font=(self.master.configuration.font, 14),
             width=300,
         )
 
@@ -86,14 +86,14 @@ class RegisterPage(Page):
         self.lastname_label = ctk.CTkLabel(
             self.__lastname_frame,
             text="Last Name:",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
             width=100,
             anchor="e",
         )
         self.lastname_entry = ctk.CTkEntry(
             self.__lastname_frame,
-            font=(self.master.config.font, 14),
+            font=(self.master.configuration.font, 14),
             width=300,
         )
 
@@ -102,14 +102,14 @@ class RegisterPage(Page):
         self.email_label = ctk.CTkLabel(
             self.__email_frame,
             text="Email:",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
             width=100,
             anchor="e",
         )
         self.email_entry = ctk.CTkEntry(
             self.__email_frame,
-            font=(self.master.config.font, 14),
+            font=(self.master.configuration.font, 14),
             width=300,
         )
 
@@ -118,15 +118,15 @@ class RegisterPage(Page):
         self.password_label = ctk.CTkLabel(
             self.__password_frame,
             text="Password:",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
             width=100,
             anchor="e",
         )
         self.password_entry = ctk.CTkEntry(
             self.__password_frame,
             show="*",
-            font=(self.master.config.font, 14),
+            font=(self.master.configuration.font, 14),
             width=300,
         )
 
@@ -137,15 +137,15 @@ class RegisterPage(Page):
         self.confirm_password_label = ctk.CTkLabel(
             self.__confirm_password_frame,
             text="Confirm:",
-            font=(self.master.config.font, 14),
-            text_color=self.master.config.colors["black-text"],
+            font=(self.master.configuration.font, 14),
+            text_color=self.master.configuration.colors["black-text"],
             width=100,
             anchor="e",
         )
         self.confirm_password_entry = ctk.CTkEntry(
             self.__confirm_password_frame,
             show="*",
-            font=(self.master.config.font, 14),
+            font=(self.master.configuration.font, 14),
             width=300,
         )
 
@@ -156,10 +156,10 @@ class RegisterPage(Page):
         self.register_button = ctk.CTkButton(
             self.__main_frame,
             text="Register",
-            font=(self.master.config.font, 14, "bold"),
+            font=(self.master.configuration.font, 14, "bold"),
             command=self.register,
-            fg_color=self.master.config.colors["green-program"],
-            text_color=self.master.config.colors["white-text"],
+            fg_color=self.master.configuration.colors["green-program"],
+            text_color=self.master.configuration.colors["white-text"],
             corner_radius=10,
         )
 
@@ -168,15 +168,15 @@ class RegisterPage(Page):
         self.login_label = ctk.CTkLabel(
             self.__footer_frame,
             text="Already have an account?",
-            font=(self.master.config.font, 10),
-            text_color=self.master.config.colors["grey-text"],
+            font=(self.master.configuration.font, 10),
+            text_color=self.master.configuration.colors["grey-text"],
         )
         self.login_button = ctk.CTkButton(
             self.__footer_frame,
             text="Login",
-            font=(self.master.config.font, 12),
+            font=(self.master.configuration.font, 12),
             fg_color="transparent",
-            text_color=self.master.config.colors["green-program"],
+            text_color=self.master.configuration.colors["green-program"],
             command=self.navigate_to,
             hover_color="lightgrey",
         )
@@ -242,7 +242,7 @@ class RegisterPage(Page):
         if password != self.confirm_password_entry.get() or len(password) < 8:
             return
 
-        api_url = f"{self.master.config.api_url}/users/register/"
+        api_url = f"{self.master.configuration.api_url}/users/register/"
         data = {
             "username": username,
             "first_name": firstname,
