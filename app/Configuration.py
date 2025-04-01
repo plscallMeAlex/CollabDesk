@@ -12,6 +12,7 @@ class Configuration:
         self.colors = self.__color_import()
         self.font = "Inter"
         self.api_url = os.getenv("API_URL")
+        self.ws_url = os.getenv("WS_URL")
         self.user_data = None
         self.__setup()
 
