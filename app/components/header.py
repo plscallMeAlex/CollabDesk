@@ -2,9 +2,11 @@ import customtkinter as ctk
 
 
 class Header(ctk.CTkFrame):
-    def __init__(self, master, title="📊 Dashboard", height=30, **kwargs):
+    def __init__(
+        self, master, memberbar_callback, title="📊 Dashboard", height=30, **kwargs
+    ):
         super().__init__(master, corner_radius=0, border_width=0, **kwargs)
-
+        self.memberbar_callback = memberbar_callback
         # Configure the header appearance - add a specific border_width=0 to eliminate the line
         self.configure(height=height, fg_color="#ffffff", border_width=0)
 
@@ -38,6 +40,7 @@ class Header(ctk.CTkFrame):
             text_color="black",
             corner_radius=8,
             hover_color="#f0f0f0",
+            command=self.memberbar_callback,
         )
         self.members_button.pack(side="right", padx=5, pady=0)
 

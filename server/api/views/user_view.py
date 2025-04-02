@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from api.models import User
+from api.models import User, GuildMembership
 from api.serializers.user_serializer import UserSerializer
 
 
@@ -80,4 +80,31 @@ class UserViewSet(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"])
+    def get_users_by_guild(self, request):
+        guild_id = request.query_params.get("guild_id")
+
+        if guild_id is None:
+            return Response(
+                {"detail": "guild_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Fetch guild memberships
+        memberships = GuildMembership.objects.filter(guild=guild_id)
+
+        if not memberships.exists():
+            return Response(
+                {"detail": "No members found for this guild."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Get the users from the memberships
+        users = [membership.user for membership in memberships]
+
+        # Serialize the user data
+        serializer = UserSerializer(users, many=True)
+
+        # Return the serialized data directly
         return Response(serializer.data, status=status.HTTP_200_OK)

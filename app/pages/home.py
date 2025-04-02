@@ -36,6 +36,8 @@ from app.frames.bulletinboard import BulletinBoard
 from app.components.sidebar import SidebarFrame
 from app.components.header import Header
 from app.components.channelbar import ChannelBar
+
+from app.components.memberbar import MemberBar
 from app.frames.calendar import TaskCalendarWidget
 from app.frames.dashboard import Dashboard
 from app.frames.textchannel import ChatFrame
@@ -115,6 +117,7 @@ class HomePage(Page):
         self.frame_container.pack(expand=True, fill="both")
         self.header = Header(
             self.frame_container,
+            self.show_member_callback,
             # self.master.configuration,
             # guildId=self.__current_guild,
         )
@@ -251,6 +254,16 @@ class HomePage(Page):
 
         # Destroy current frame
         self.master.pagemanager.switch_page(LoginPage)
+
+    def show_member_callback(self):
+        """Show member callback"""
+        bar = self.member_bars = MemberBar(
+            self.master,
+            self.master.configuration,
+            self.__current_guild,
+        )
+        bar.grab_set()
+        bar.wait_window()
 
     def __fetch_guilds(self):
         params = {"user_id": self.master.configuration.load_user_data()}
