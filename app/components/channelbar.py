@@ -304,7 +304,7 @@ class ChannelBar(ctk.CTkFrame):
             self.main_frame,
             text="CHANNEL NAME",
             font=("Inter", 12),
-            text_color="#B5BAC1",
+            text_color="#8b9199",
         )
         self.name_label.pack(pady=(20, 5), padx=20, anchor="w")
 
@@ -314,7 +314,7 @@ class ChannelBar(ctk.CTkFrame):
             font=("Inter", 14),
             fg_color="transparent",
             border_color="#1E1F22",
-            text_color="white",
+            text_color="black",
             placeholder_text="Enter channel name",
             textvariable=self.channel_name_var,
         )
