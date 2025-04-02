@@ -11,6 +11,28 @@ class RoleViewSet(ModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
 
+    # get the role by user id and guild id
+    @action(detail=False, methods=["GET"])
+    def get_role_by_user(self, request):
+        user_id = request.query_params.get("user_id")
+        guild_id = request.query_params.get("guild_id")
+
+        membership = GuildMembership.objects.filter(
+            user__id=user_id, guild__id=guild_id
+        ).first()
+        if membership is None:
+            return Response(
+                {"error": "Guild membership not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        role = membership.role
+        if role is None:
+            return Response(
+                {"error": "Role not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = RoleSerializer(role)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     # get all roles in a guild
     @action(detail=False, methods=["GET"])
     def in_guild(self, request):

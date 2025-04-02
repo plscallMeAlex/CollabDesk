@@ -50,6 +50,7 @@ class HomePage(Page):
             fg_color=master.configuration.colors["frame-color-secondary"],
         )
         self.master = master
+        self.__is_admin = self.check_is_admin()
         self.__current_guild: Optional[str] = None
         self.__current_frame: Optional[ctk.CTkFrame] = None
 
@@ -118,8 +119,6 @@ class HomePage(Page):
         self.header = Header(
             self.frame_container,
             self.show_member_callback,
-            # self.master.configuration,
-            # guildId=self.__current_guild,
         )
         self.header.pack(fill="x")
 
@@ -279,3 +278,25 @@ class HomePage(Page):
             pass
 
         return []
+
+    def check_is_admin(self):
+        """Check if the user is an admin of the current guild"""
+        user_id = self.master.configuration.load_user_data()
+        params = {
+            "guild_id": self.__current_guild,
+            "user_id": user_id,
+        }
+        try:
+            response = requests.get(
+                f"{self.master.configuration.api_url}/roles/get_role_by_user/",
+                params=params,
+            )
+            if response.status_code == 200:
+                role = response.json()
+                if role and "admin" in role["name"].lower():
+                    return True
+                else:
+                    return False
+        except requests.RequestException as e:
+            print(f"Error fetching roles: {e}")
+            return False
