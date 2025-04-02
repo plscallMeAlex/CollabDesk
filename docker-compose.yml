@@ -35,6 +35,31 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
+  celery:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file:
+      - .env
+    command: ["celery", "-A", "server.celery", "worker", "--loglevel=info"]
+    depends_on:
+      - redis
+      - server
+    volumes:
+      - ./server:/server
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file:
+      - .env
+    command: ["celery", "-A", "server.celery", "beat", "--loglevel=info"]
+    depends_on:
+      - redis
+      - celery
+    volumes:
+      - ./server:/server
+
 volumes:
   postgres_data:
-    
