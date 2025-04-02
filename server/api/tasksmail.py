@@ -40,20 +40,41 @@ def update_scheduled_email(
     new_scheduled_time_str=None,
 ):
     from celery.app.control import revoke
+    from celery.result import AsyncResult
 
-    # Revoke the existing task
-    revoke(task_id, terminate=True)
+    # Check if the task exists
+    result = AsyncResult(task_id)
+    task_exists = result.state != "PENDING" or result.task_id is not None
+
+    if task_exists:
+        # Revoke the existing task
+        revoke(task_id, terminate=True)
 
     # Schedule a new task with updated information
     utc_datetime = (
         parser.parse(new_scheduled_time_str) if new_scheduled_time_str else None
     )
 
-    # Use the provided task_id directly instead of generating a new one
+    # Use the provided task_id directly
     new_task = send_scheduled_email.apply_async(
         args=[subject, message, from_email, recipient_list],
         eta=utc_datetime,
-        kwargs={"task_id": task_id},  # Use the task_id parameter directly
+        kwargs={"task_id": task_id},
     )
 
-    return new_task.id
+    return new_task.id, task_exists  # Return whether the original task existed
+
+
+def cancel_scheduled_email(task_id):
+    from celery.app.control import revoke
+    from celery.result import AsyncResult
+
+    # Check if the task exists
+    result = AsyncResult(task_id)
+    task_exists = result.state != "PENDING" or result.task_id is not None
+
+    if task_exists:
+        # Revoke the existing task
+        revoke(task_id, terminate=True)
+
+    return task_exists  # Return whether the original task existed
