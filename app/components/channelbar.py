@@ -8,7 +8,13 @@ import os
 
 class ChannelBar(ctk.CTkFrame):
     def __init__(
-        self, parent, configuration, change_frame_callback, guildId, logout_callback
+        self,
+        parent,
+        configuration,
+        change_frame_callback,
+        guildId,
+        logout_callback,
+        is_admin,
     ):
         super().__init__(parent)
         self._conguration = configuration
@@ -18,6 +24,7 @@ class ChannelBar(ctk.CTkFrame):
         self.__guildId = guildId
         guild_name = self.fetch_guild_name()
         self.__user = self._conguration.load_user()
+        self.__is_admin = is_admin
         name = self.__user["username"]
 
         self.server_label = ctk.CTkLabel(
@@ -109,16 +116,19 @@ class ChannelBar(ctk.CTkFrame):
             self.pack_channel_btn(channel)
 
         # channel button and in the center
-        self.add_channel_btn = ctk.CTkButton(
-            self,
-            text="+ Add Channel",
-            text_color="black",
-            fg_color="transparent",
-            hover_color="gray",
-            anchor="center",
-            command=self.open_create_channel_popup,
-        )
-        self.add_channel_btn.pack(fill="x")
+        self.add_channel_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.add_channel_frame.pack(fill="x")
+        if self.__is_admin:
+            self.add_channel_btn = ctk.CTkButton(
+                self.add_channel_frame,
+                text="+ Add Channel",
+                text_color="black",
+                fg_color="transparent",
+                hover_color="gray",
+                anchor="center",
+                command=self.open_create_channel_popup,
+            )
+            self.add_channel_btn.pack(fill="x")
 
         self.user_frame = ctk.CTkFrame(self, height=50)
         self.user_frame.pack(
@@ -195,6 +205,32 @@ class ChannelBar(ctk.CTkFrame):
                 print(f"Error creating channel {channel}: {response.status_code}")
         return response_obj
 
+    def set_is_admin(self, is_admin):
+        """Set the is_admin attribute"""
+        self.__is_admin = is_admin
+        # refresh the channels to show/hide delete buttons
+        for widget in self.channels_frame.winfo_children():
+            widget.destroy()
+        self.channels = self.__fetch_channels_in_guild()
+        for channel in self.channels:
+            self.pack_channel_btn(channel)
+
+        # add the add channel button if is_admin
+        if is_admin:
+            self.add_channel_btn = ctk.CTkButton(
+                self.add_channel_frame,
+                text="+ Add Channel",
+                text_color="black",
+                fg_color="transparent",
+                hover_color="gray",
+                anchor="center",
+                command=self.open_create_channel_popup,
+            )
+            self.add_channel_btn.pack(fill="x")
+        else:
+            for widget in self.add_channel_frame.winfo_children():
+                widget.destroy()
+
     def pack_channel_btn(self, channel):
         channel_name = channel["name"] if isinstance(channel, dict) else channel
 
@@ -212,16 +248,17 @@ class ChannelBar(ctk.CTkFrame):
             ),
         )
         btn.pack(fill="x", side="left", expand=True)
-        delete_btn = ctk.CTkButton(
-            channel_frame,
-            text="✕",
-            text_color="black",
-            fg_color="transparent",
-            hover_color="gray",
-            width=30,
-            command=lambda ch=channel: self.delete_channel(ch),
-        )
-        delete_btn.pack(side="right")
+        if self.__is_admin:
+            delete_btn = ctk.CTkButton(
+                channel_frame,
+                text="✕",
+                text_color="black",
+                fg_color="transparent",
+                hover_color="gray",
+                width=30,
+                command=lambda ch=channel: self.delete_channel(ch),
+            )
+            delete_btn.pack(side="right")
 
     def delete_channel(self, channel):
         channel_name = channel["name"]

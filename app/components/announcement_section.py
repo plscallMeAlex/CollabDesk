@@ -4,11 +4,12 @@ from datetime import datetime
 
 
 class AnnouncementSection(ctk.CTkFrame):
-    def __init__(self, master, configuration, guildId=None):
+    def __init__(self, master, configuration, guildId=None, is_admin=False):
         super().__init__(master, fg_color="#e0e0e0", corner_radius=10)
 
         self._configuration = configuration
         self.guildId = guildId
+        self.is_admin = is_admin
 
         self.announcements = self.fetch_announcements()
         self.current_announcement = 0
@@ -32,16 +33,16 @@ class AnnouncementSection(ctk.CTkFrame):
         # Navigation buttons
         self.nav_buttons_frame = ctk.CTkFrame(self.header, fg_color="transparent")
         self.nav_buttons_frame.pack(side="right", padx=20)
-
-        self.add_announcement_btn = ctk.CTkButton(
-            self.nav_buttons_frame,
-            text="+ New",
-            width=80,
-            fg_color="#4CAF50",
-            hover_color="#45a049",
-            command=self.show_new_announcement_dialog,
-        )
-        self.add_announcement_btn.pack(side="left", padx=5)
+        if self.is_admin:
+            self.add_announcement_btn = ctk.CTkButton(
+                self.nav_buttons_frame,
+                text="+ New",
+                width=80,
+                fg_color="#4CAF50",
+                hover_color="#45a049",
+                command=self.show_new_announcement_dialog,
+            )
+            self.add_announcement_btn.pack(side="left", padx=5)
 
         self.prev_announcement_btn = ctk.CTkButton(
             self.nav_buttons_frame,

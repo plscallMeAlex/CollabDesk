@@ -10,9 +10,10 @@ from collections import defaultdict
 
 
 class Dashboard(Frame):
-    def __init__(self, master, configuration, guildId=None, **kwargs):
+    def __init__(self, master, configuration, guildId=None, is_admin=False, **kwargs):
         super().__init__(master, configuration, guildId, **kwargs)
         self.configure(fg_color="#f5f5f5")
+        self.__is_admin = is_admin
 
         # Main content area - split into left and right sections
         self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -28,7 +29,7 @@ class Dashboard(Frame):
 
         # Initialize components
         self.announcement_section = AnnouncementSection(
-            self.left_frame, self._configuration, self._guildId
+            self.left_frame, self._configuration, self._guildId, self.__is_admin
         )
         self.announcement_section.pack(fill="x", pady=(0, 20))
 

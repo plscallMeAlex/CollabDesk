@@ -50,9 +50,9 @@ class HomePage(Page):
             fg_color=master.configuration.colors["frame-color-secondary"],
         )
         self.master = master
-        self.__is_admin = self.check_is_admin()
         self.__current_guild: Optional[str] = None
         self.__current_frame: Optional[ctk.CTkFrame] = None
+        self.__is_admin: Optional[bool] = None
 
         # Track and clean up after events
         self.__after_ids: list = []
@@ -78,8 +78,10 @@ class HomePage(Page):
         # Set the current guild to the first one in the list
         if response:
             self.__current_guild = response[0]["id"]
+            self.__is_admin = self.check_is_admin()
         else:
             self.__current_guild = None
+            self.__is_admin = False
 
         # Main frame for the page
         self.__mainframe = ctk.CTkFrame(self, fg_color="transparent")
@@ -104,6 +106,7 @@ class HomePage(Page):
             self.change_frame_callback,
             self.__current_guild,
             self.logout_callback,
+            self.__is_admin,
         )
         self.channel_bar.pack(side="left", fill="y")
 
@@ -131,7 +134,10 @@ class HomePage(Page):
         """Create and pack the initial frame (Dashboard)"""
         guild_id = self.__current_guild
         self.__current_frame = Dashboard(
-            self.frame_container, self.master.configuration, guildId=guild_id
+            self.frame_container,
+            self.master.configuration,
+            guildId=guild_id,
+            is_admin=self.__is_admin,
         )
         self.__current_frame.pack(expand=True, fill="both")
 
@@ -197,13 +203,18 @@ class HomePage(Page):
                 pass
         self.channel_bar.refresh_channels(guild_id)
 
+        self.__is_admin = self.check_is_admin()
+        self.channel_bar.set_is_admin(self.__is_admin)
         # Create new BulletinBoard frame
         self.__current_frame = Dashboard(
             self.frame_container,
             self.master.configuration,
             guildId=self.__current_guild,
+            is_admin=self.__is_admin,
         )
         self.__current_frame.pack(expand=True, fill="both")
+
+        # Update the is_admin status
 
     def change_frame_callback(self, frame_name, channel=None):
         # Destroy current frame
@@ -231,6 +242,7 @@ class HomePage(Page):
                 self.frame_container,
                 self.master.configuration,
                 guildId=self.__current_guild,
+                is_admin=self.__is_admin,
             )
 
         elif frame_name == "TextChannel":
@@ -281,6 +293,9 @@ class HomePage(Page):
 
     def check_is_admin(self):
         """Check if the user is an admin of the current guild"""
+        if not self.__current_guild:
+            return False
+
         user_id = self.master.configuration.load_user_data()
         params = {
             "guild_id": self.__current_guild,
