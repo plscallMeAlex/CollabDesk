@@ -19,6 +19,13 @@ class TokenManger(object):
         with open(self.file_path, "wb") as file:
             pickle.dump(token_data, file)
 
+    def destroy_token(self):
+        """Destroy token file"""
+        try:
+            os.remove(self.file_path)
+        except FileNotFoundError:
+            pass
+
     def get_token(self):
         """Get access and refresh token from file"""
         try:

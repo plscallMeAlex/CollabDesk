@@ -100,6 +100,7 @@ class HomePage(Page):
             self.master.configuration,
             self.change_frame_callback,
             self.__current_guild,
+            self.logout_callback,
         )
         self.channel_bar.pack(side="left", fill="y")
 
@@ -242,6 +243,14 @@ class HomePage(Page):
 
         # Pack the new frame
         self.__current_frame.pack(expand=True, fill="both")
+
+    def logout_callback(self):
+        """Logout callback"""
+        self.master.token_manager.destroy_token()
+        from app.pages.login import LoginPage
+
+        # Destroy current frame
+        self.master.pagemanager.switch_page(LoginPage)
 
     def __fetch_guilds(self):
         params = {"user_id": self.master.configuration.load_user_data()}

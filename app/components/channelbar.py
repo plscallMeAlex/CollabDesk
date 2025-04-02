@@ -1,3 +1,4 @@
+from CTkMessagebox import CTkMessagebox
 import customtkinter as ctk
 import requests
 from tkinter import StringVar, Toplevel, ttk
@@ -6,11 +7,14 @@ import os
 
 
 class ChannelBar(ctk.CTkFrame):
-    def __init__(self, parent, configuration, change_frame_callback, guildId):
+    def __init__(
+        self, parent, configuration, change_frame_callback, guildId, logout_callback
+    ):
         super().__init__(parent)
         self._conguration = configuration
         self.configure(width=250, corner_radius=10)
         self.change_frame_callback = change_frame_callback
+        self.logout_callback = logout_callback
         self.__guildId = guildId
         guild_name = self.fetch_guild_name()
         self.__user = self._conguration.load_user()
@@ -21,9 +25,24 @@ class ChannelBar(ctk.CTkFrame):
             text=guild_name,
             font=("Inter", 16, "bold"),
             text_color="black",
-            anchor="w",
+            anchor="center",
         )
         self.server_label.pack(fill="x", padx=10, pady=10)
+        self.server_label.bind(
+            "<Enter>",
+            lambda e: self.server_label.configure(fg_color="gray", corner_radius=10),
+        )
+        self.server_label.bind(
+            "<Leave>",
+            lambda e: self.server_label.configure(
+                fg_color="transparent", corner_radius=0
+            ),
+        )
+
+        self.server_label.bind(
+            "<Button-1>",
+            self.get_invite_link,
+        )
         # separator
         style = ttk.Style()
         style.configure("Black.TSeparator", background="black")
@@ -129,13 +148,24 @@ class ChannelBar(ctk.CTkFrame):
 
         self.settings_btn = ctk.CTkButton(
             self.user_frame,
-            text="+",
+            text="⍈",
             text_color="black",
             fg_color="transparent",
-            command=self.get_invite_link,
+            command=self.__logout,
             width=30,
         )
         self.settings_btn.pack(side="right", padx=10)
+
+    def __logout(self):
+        box = CTkMessagebox(
+            title="Logout",
+            message="Are you sure you want to logout?",
+            icon="warning",
+            option_1="Yes",
+            option_2="No",
+        )
+        if box.get() == "Yes":
+            self.logout_callback()
 
     def __fetch_channels_in_guild(self):
         try:
@@ -196,7 +226,7 @@ class ChannelBar(ctk.CTkFrame):
         for channel in self.channels:
             self.pack_channel_btn(channel)
 
-    def get_invite_link(self):
+    def get_invite_link(self, event=None):
         response = requests.get(
             f"{self._conguration.api_url}/guilds/get_guild_by_id/",
             params={"guild_id": self.__guildId},
