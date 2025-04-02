@@ -198,8 +198,10 @@ class ChannelBar(ctk.CTkFrame):
     def pack_channel_btn(self, channel):
         channel_name = channel["name"] if isinstance(channel, dict) else channel
 
+        channel_frame = ctk.CTkFrame(self.channels_frame, fg_color="transparent")
+        channel_frame.pack(fill="x", padx=10, pady=2)
         btn = ctk.CTkButton(
-            self.channels_frame,
+            channel_frame,
             text=channel_name,
             text_color="black",
             fg_color="transparent",
@@ -209,7 +211,50 @@ class ChannelBar(ctk.CTkFrame):
                 txt, ch
             ),
         )
-        btn.pack(fill="x", padx=10, pady=2)
+        btn.pack(fill="x", side="left", expand=True)
+        delete_btn = ctk.CTkButton(
+            channel_frame,
+            text="✕",
+            text_color="black",
+            fg_color="transparent",
+            hover_color="gray",
+            width=30,
+            command=lambda ch=channel: self.delete_channel(ch),
+        )
+        delete_btn.pack(side="right")
+
+    def delete_channel(self, channel):
+        channel_name = channel["name"]
+        box = CTkMessagebox(
+            title="Delete Channel",
+            message=f"Are you sure you want to delete {channel_name}?",
+            icon="warning",
+            option_1="Yes",
+            option_2="No",
+        )
+        if box.get() == "No":
+            return
+
+        try:
+            params = {"channel_id": channel["id"]}
+            response = requests.delete(
+                f"{self._conguration.api_url}/channels/delete_channel/", params=params
+            )
+            if response.status_code == 204:
+                print(f"Channel {channel_name} deleted successfully.")
+                # Refresh channels after deletion
+                self.refresh_channels(self.__guildId)
+            else:
+                print(f"Error deleting channel {channel_name}: {response.status_code}")
+        except Exception as e:
+            print(f"Error deleting channel: {e}")
+
+        box = CTkMessagebox(
+            title="Channel Deleted",
+            message=f"Channel {channel_name} deleted successfully.",
+            icon="check",
+        )
+        box.wait_window()
 
     def refresh_channels(self, guild_id):
         # Update current guild

@@ -42,3 +42,21 @@ class ChannelViewSet(ModelViewSet):
 
         serializer = ChannelSerializer(channel)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["DELETE"])
+    def delete_channel(self, request):
+        channel_id = request.query_params.get("channel_id")
+        if channel_id is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        channel = Channel.objects.filter(id=channel_id).first()
+        if channel is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        # Delete all messages in the channel
+        Message.objects.filter(channel=channel).delete()
+
+        # Delete the channel
+        channel.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
