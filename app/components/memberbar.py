@@ -23,9 +23,25 @@ class MemberBar(ctk.CTkToplevel):
     def create_widgets(self):
         """Create widgets for the member bar"""
 
+        # frame for the member list
+        self.member_list_frames = ctk.CTkFrame(
+            self,
+            fg_color=self.configuration.colors["frame-color-main"],
+            corner_radius=10,
+        )
+        self.member_list_frames.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.member_list_label = ctk.CTkLabel(
+            self.member_list_frames,
+            text="Members",
+            font=("Inter", 16, "bold"),
+            text_color=self.configuration.colors["black-text"],
+        )
+        self.member_list_label.pack(pady=(10, 0))
+
         # Create a scrollable frame for the member list
         self.member_list_frame = ctk.CTkScrollableFrame(
-            self,
+            self.member_list_frames,
             fg_color="transparent",
             scrollbar_button_color=self.configuration.colors["frame-color-secondary"],
             scrollbar_button_hover_color="black",
@@ -35,8 +51,6 @@ class MemberBar(ctk.CTkToplevel):
         # Add members to the scrollable frame
         for member in self.member_list:
             self.add_member_card(member)
-
-        # close button
 
     def add_member_card(self, member):
         """Add a member inside a card-style frame"""
