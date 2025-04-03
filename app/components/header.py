@@ -57,6 +57,14 @@ class Header(ctk.CTkFrame):
         )
         self.notification_button.pack(side="right", padx=5, pady=0)
 
+        # Add Bottom Border (Thin Frame)
+        self.bottom_border = ctk.CTkFrame(
+            self,
+            height=1,
+            fg_color="#cccccc",
+        )
+        self.bottom_border.pack(side="bottom", fill="x", pady=(20, 0))
+
     def set_title(self, title):
         """Update the header title"""
         self.title_label.configure(text=title)

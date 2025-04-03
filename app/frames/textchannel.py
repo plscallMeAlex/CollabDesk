@@ -13,7 +13,7 @@ import sys
 
 class ChatFrame(ctk.CTkFrame):
     def __init__(self, parent, configuration, channel, **kwargs):
-        super().__init__(parent, **kwargs)
+        super().__init__(parent, corner_radius=0, **kwargs)
         self.__configuration = configuration
         self.__channel = channel
         self.__guildId = channel["guild"]
@@ -47,7 +47,7 @@ class ChatFrame(ctk.CTkFrame):
 
     def create_chat_area(self):
         # Chat container (Expands to fit the parent)
-        chat_frame = ctk.CTkFrame(self, fg_color="#ffffff")
+        chat_frame = ctk.CTkFrame(self, fg_color="#ffffff", corner_radius=0)
         chat_frame.grid(row=0, column=0, sticky="nsew")
         chat_frame.grid_columnconfigure(0, weight=1)
         chat_frame.grid_rowconfigure(0, weight=1)  # Messages area expands
@@ -59,11 +59,12 @@ class ChatFrame(ctk.CTkFrame):
             fg_color="#ffffff",
             scrollbar_button_color="#ffffff",
             scrollbar_button_hover_color="#f0f0f0",
+            corner_radius=0,
         )
         self.messages_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # Message input area (Stays at bottom)
-        input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3")
+        input_frame = ctk.CTkFrame(self, fg_color="#f3f3f3", corner_radius=0)
         input_frame.grid(row=1, column=0, sticky="ew")
         input_frame.grid_columnconfigure(0, weight=1)
 
