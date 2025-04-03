@@ -259,11 +259,22 @@ class HomePage(Page):
             )
             self.header.set_title("Text Channel")
         elif frame_name == "VoiceChannel":
+            user = self.master.configuration.load_user()
+            if not user:
+                return
+
+            channel_id = channel["id"]
+            channel_name = channel["name"]
+            user_name = user["username"]
+
             self.__current_frame = VoiceChannelUI(
                 self.frame_container,
-                self.master.configuration,
-                channel_id=channel["id"],
-                channel_name=channel["name"],
+                configuration={
+                    "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+                },
+                channel_id=channel_id,
+                channel_name=channel_name,
+                username=user_name,
             )
         else:
             return

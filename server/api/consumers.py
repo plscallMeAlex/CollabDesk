@@ -74,64 +74,91 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"voice_{self.room_name}"
 
+        # Get user info safely with fallbacks
+        try:
+            if self.scope.get("user") and self.scope["user"].is_authenticated:
+                self.user_id = self.scope["user"].id
+                self.username = self.scope["user"].username
+            else:
+                # Fallback to query parameters or generate temporary ID
+                query_string = self.scope.get("query_string", b"").decode()
+                query_params = dict(
+                    item.split("=") for item in query_string.split("&") if "=" in item
+                )
+                self.user_id = query_params.get("user_id", f"anonymous_{id(self)}")
+                self.username = query_params.get("username", f"Guest_{id(self) % 1000}")
+        except Exception:
+            # If all else fails, use anonymous identifiers
+            self.user_id = f"anonymous_{id(self)}"
+            self.username = f"Guest_{id(self) % 1000}"
+
+        # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
+        # Notify group about new user
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "user_join",
-                "user_id": self.scope["user"].id,
-                "username": self.scope["user"].username,
+                "user_id": self.user_id,
+                "username": self.username,
             },
         )
 
     async def disconnect(self, close_code):
+        # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
+        # Notify group about user leaving
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "user_leave",
-                "user_id": self.scope["user"].id,
-                "username": self.scope["user"].username,
+                "user_id": self.user_id,
+                "username": self.username,
             },
         )
 
     async def receive(self, text_data):
-        data = json.loads(text_data)
-        message_type = data.get("type")
+        try:
+            data = json.loads(text_data)
+            message_type = data.get("type")
 
-        if message_type == "offer":
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "webrtc_offer",
-                    "offer": data["sdp"],
-                    "sender_id": data.get("sender_id"),
-                    "target_id": data.get("target_id"),
-                },
-            )
-        elif message_type == "answer":
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "webrtc_answer",
-                    "answer": data["answer"],
-                    "sender_id": data.get("sender_id"),
-                    "target_id": data.get("target_id"),
-                },
-            )
-        elif message_type == "ice_candidate":
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "ice_candidate",
-                    "candidate": data["candidate"],
-                    "sender_id": data.get("sender_id"),
-                    "target_id": data.get("target_id"),
-                },
-            )
+            if message_type == "offer":
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        "type": "webrtc_offer",
+                        "offer": data["sdp"],
+                        "sender_id": data.get("sender_id", self.user_id),
+                        "target_id": data.get("target_id"),
+                    },
+                )
+            elif message_type == "answer":
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        "type": "webrtc_answer",
+                        "answer": data["answer"],
+                        "sender_id": data.get("sender_id", self.user_id),
+                        "target_id": data.get("target_id"),
+                    },
+                )
+            elif message_type == "ice_candidate":
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        "type": "ice_candidate",
+                        "candidate": data["candidate"],
+                        "sender_id": data.get("sender_id", self.user_id),
+                        "target_id": data.get("target_id"),
+                    },
+                )
+        except json.JSONDecodeError:
+            print(f"Invalid JSON received: {text_data}")
+        except Exception as e:
+            print(f"Error processing message: {str(e)}")
 
     async def user_join(self, event):
         await self.send(text_data=json.dumps(event))
