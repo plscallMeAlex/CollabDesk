@@ -336,7 +336,7 @@ class SidebarFrame(ctk.CTkFrame):
         self.sidebar_component = SidebarComponent(
             self, self.__configuration, self.__change_guild_callback
         )
-        self.sidebar_component.pack(pady=10)
+        self.sidebar_component.pack(pady=10, fill="both", expand=True)
         # self.sidebar_component.grid(
         #     row=1, column=0, sticky="nsew"
         # )  # Make it fill the space
