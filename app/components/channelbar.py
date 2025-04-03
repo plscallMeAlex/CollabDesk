@@ -115,6 +115,30 @@ class ChannelBar(ctk.CTkFrame):
         for channel in self.channels:
             self.pack_channel_btn(channel)
 
+        # separator
+        self.separator = ttk.Separator(
+            self, orient="horizontal", style="Black.TSeparator"
+        )
+        self.separator.pack(fill="x", padx=10, pady=(0, 10))
+
+        # voice channel
+        # In ChannelBar.__init__
+        self.voice_channel_label = ctk.CTkLabel(
+            self,
+            text="VOICE CHANNELS",
+            font=("Inter", 12, "bold"),
+            text_color="black",
+            anchor="w",
+        )
+        self.voice_channel_label.pack(fill="x", padx=10, pady=(10, 5))
+
+        self.voice_channels_frame = ctk.CTkFrame(self)
+        self.voice_channels_frame.pack(fill="x")
+
+        # Add some voice channels
+        self.pack_voice_channel_btn("General")
+        self.pack_voice_channel_btn("Team 1")
+
         # channel button and in the center
         self.add_channel_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.add_channel_frame.pack(fill="x")
@@ -259,6 +283,20 @@ class ChannelBar(ctk.CTkFrame):
                 command=lambda ch=channel: self.delete_channel(ch),
             )
             delete_btn.pack(side="right")
+
+    def pack_voice_channel_btn(self, channel_name):
+        btn = ctk.CTkButton(
+            self.voice_channels_frame,
+            text=f"🔊 {channel_name}",
+            text_color="black",
+            fg_color="transparent",
+            hover_color="gray",
+            anchor="w",
+            command=lambda: self.change_frame_callback(
+                "VoiceChannel", {"name": channel_name, "id": f"voice-{channel_name}"}
+            ),
+        )
+        btn.pack(fill="x", padx=10, pady=2)
 
     def delete_channel(self, channel):
         channel_name = channel["name"]

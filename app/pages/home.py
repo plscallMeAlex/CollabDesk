@@ -36,6 +36,7 @@ from app.frames.bulletinboard import BulletinBoard
 from app.components.sidebar import SidebarFrame
 from app.components.header import Header
 from app.components.channelbar import ChannelBar
+from app.frames.voicechannel import VoiceChannelUI
 
 from app.components.memberbar import MemberBar
 from app.frames.calendar import TaskCalendarWidget
@@ -257,8 +258,15 @@ class HomePage(Page):
                 channel=channel,
             )
             self.header.set_title("Text Channel")
+        elif frame_name == "VoiceChannel":
+            self.__current_frame = VoiceChannelUI(
+                self.frame_container,
+                self.master.configuration,
+                channel_id=channel["id"],
+                channel_name=channel["name"],
+            )
         else:
-            return  # Unknown frame
+            return
 
         # Pack the new frame
         self.__current_frame.pack(expand=True, fill="both")
