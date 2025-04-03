@@ -155,6 +155,8 @@ class ChatFrame(ctk.CTkFrame):
         content_label.pack(anchor="e" if is_sender else "w")
         content_label.configure(fg_color="#f0f0f0", corner_radius=5)
 
+        self.scroll_to_bottom()
+
     def send_message(self, event=None):
         message_text = self.message_entry.get().strip()
         if message_text:
@@ -195,6 +197,16 @@ class ChatFrame(ctk.CTkFrame):
         for message in messages:
             is_sender = message["sender"] == user_id
             self.add_message(message, is_sender)
+
+        self.scroll_to_bottom()  # Scroll to the bottom after loading messages
+
+    def scroll_to_bottom(self):
+        """Scroll the messages frame to the bottom"""
+        try:
+            # Wait a short moment for the widget to update
+            self.after(10, lambda: self.messages_frame._parent_canvas.yview_moveto(1.0))
+        except Exception as e:
+            print(f"Error scrolling to bottom: {e}")
 
     def fetch_messages(self):
         try:
