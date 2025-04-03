@@ -427,6 +427,8 @@ class ChannelBar(ctk.CTkFrame):
             command=self.cancel_create_channel,
         )
         self.cancel_btn.pack(side="right", padx=10)
+        self.popup.grab_set()
+        self.popup.wait_window()
 
     def create_channel(self):
         new_channel_name = self.channel_name_var.get().strip()
