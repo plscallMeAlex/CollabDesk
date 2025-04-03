@@ -303,6 +303,9 @@ class ChannelBar(ctk.CTkFrame):
         for widget in self.channels_frame.winfo_children():
             widget.destroy()
 
+        for widget in self.add_channel_frame.winfo_children():
+            widget.destroy()
+
         # Fetch and repopulate channels
         self.channels = self.__fetch_channels_in_guild()
         for channel in self.channels:
