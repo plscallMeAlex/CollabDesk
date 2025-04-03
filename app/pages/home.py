@@ -212,6 +212,7 @@ class HomePage(Page):
             guildId=self.__current_guild,
             is_admin=self.__is_admin,
         )
+        self.header.set_title("📊 Dashboard")
         self.__current_frame.pack(expand=True, fill="both")
 
         # Update the is_admin status
@@ -231,12 +232,14 @@ class HomePage(Page):
                 self.master.configuration,
                 guildId=self.__current_guild,
             )
+            self.header.set_title("📌 Bulletin board")
         elif frame_name == "Calendar":
             self.__current_frame = TaskCalendarWidget(
                 self.frame_container,
                 self.master.configuration,
                 guildId=self.__current_guild,
             )
+            self.header.set_title("📅 Calendar")
         elif frame_name == "Dashboard":
             self.__current_frame = Dashboard(
                 self.frame_container,
@@ -244,6 +247,7 @@ class HomePage(Page):
                 guildId=self.__current_guild,
                 is_admin=self.__is_admin,
             )
+            self.header.set_title("📊 Dashboard")
 
         elif frame_name == "TextChannel":
             print("TextChannel")
@@ -252,6 +256,7 @@ class HomePage(Page):
                 self.master.configuration,
                 channel=channel,
             )
+            self.header.set_title("Text Channel")
         else:
             return  # Unknown frame
 
