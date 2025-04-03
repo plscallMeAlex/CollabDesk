@@ -108,8 +108,8 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
                 {
                     "type": "webrtc_offer",
                     "offer": data["sdp"],
-                    "sender_id": self.scope["sender_id"],
-                    "target_id": self.scope["target_id"],
+                    "sender_id": data.get("sender_id"),
+                    "target_id": data.get("target_id"),
                 },
             )
         elif message_type == "answer":
@@ -118,8 +118,8 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
                 {
                     "type": "webrtc_answer",
                     "answer": data["answer"],
-                    "sender_id": self.scope["sender_id"],
-                    "target_id": self.scope["target_id"],
+                    "sender_id": data.get("sender_id"),
+                    "target_id": data.get("target_id"),
                 },
             )
         elif message_type == "ice_candidate":
@@ -128,8 +128,8 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
                 {
                     "type": "ice_candidate",
                     "candidate": data["candidate"],
-                    "sender_id": self.scope["sender_id"],
-                    "target_id": self.scope["target_id"],
+                    "sender_id": data.get("sender_id"),
+                    "target_id": data.get("target_id"),
                 },
             )
 
