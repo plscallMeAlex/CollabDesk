@@ -12,17 +12,18 @@ from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from django.urls import path
-from api.consumers import ChatConsumer
+from api.consumers import ChatConsumer, VoiceChatConsumer
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "server.settings")
 
 websocket_urlpatterns = [
-    path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
+    path("ws/chat/<room_name>/", ChatConsumer.as_asgi()),
+    path("ws/voice/<room_name>/", VoiceChatConsumer.as_asgi()),
 ]
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(
-        URLRouter(websocket_urlpatterns)
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+    }
+)
