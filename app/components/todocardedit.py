@@ -521,6 +521,14 @@ class TodoCardEditing(ctk.CTkToplevel):
                 else:
                     changed_data["assignee"] = None
 
+                # If the seclected user is None, the card will go to state "To Do"
+                if selected_user == None:
+                    states = self.__fetch_states()
+                    for state in states:
+                        if state["title"] == "Todo":
+                            changed_data["state"] = state["id"]
+                            break
+
             # If no changes, show message and return
             if not changed_data:
                 CTkMessagebox(
