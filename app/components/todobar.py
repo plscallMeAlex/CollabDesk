@@ -109,6 +109,9 @@ class TodoBar(ctk.CTkScrollableFrame):
         if response.status_code == 200:
             tasks = response.json()
             for task in tasks:
+                overdue = self.__check_task_overdue(task_data=task)
+                if overdue:
+                    continue
                 task_card = TodoCard(
                     self.__frame0,
                     self.__configuration,
@@ -118,6 +121,118 @@ class TodoBar(ctk.CTkScrollableFrame):
                 )
                 task_card.pack(side="top", pady=5)
                 self.__tasks.append(task_card)
+
+    def __check_task_overdue(self, task_data=None):
+        """
+        Check if a specific task is overdue and update its status if necessary
+
+        Parameters:
+        task_data (dict): The task data to check. If None, checks all tasks in this bar.
+        """
+        # Get current bar's information
+        current_state_title = self.__bar_data.get("title", "")
+        guild_id = self.__bar_data.get("guild", "")
+
+        # Skip check if this is already the "Overdue" state
+        if current_state_title.lower() == "overdue":
+            return
+
+        # First, find the Overdue state ID
+        try:
+            params = {
+                "title": "Overdue",  # Assuming there's a state named "Overdue"
+                "guild_id": guild_id,
+            }
+            response = requests.get(
+                self.__configuration.api_url + "/taskstates/get_state_by_title/",
+                params=params,
+            )
+
+            if response.status_code != 200:
+                print(f"Failed to find Overdue state: {response.status_code}")
+                return
+
+            overdue_state = response.json()
+            overdue_state_id = overdue_state.get("id")
+
+            if not overdue_state_id:
+                print("Overdue state ID not found")
+                return
+
+            # If a specific task is provided, check only that task
+            if task_data:
+                tasks_to_check = [task_data]
+            else:
+                # Otherwise check all tasks in this bar
+                tasks_to_check = [
+                    task_card.get_task_data() for task_card in self.__tasks
+                ]
+
+            # Check each task for due dates
+            for task in tasks_to_check:
+                # Check if task has a due date and is overdue
+                if task.get("due_date"):
+                    due_date = task["due_date"]
+                    # Convert due date string to datetime object for comparison
+                    from datetime import datetime
+
+                    # Parse the due date (assuming format like "2023-12-31T23:59:59")
+                    try:
+                        due_datetime = datetime.fromisoformat(
+                            due_date.replace("Z", "+00:00")
+                        )
+                        now = (
+                            datetime.now().astimezone()
+                        )  # Get current time with timezone info
+
+                        # If due date has passed, move task to Overdue state
+                        if due_datetime < now:
+                            # Update the task's state
+                            task_id = task["id"]
+                            payload = {"state": overdue_state_id}
+
+                            # Call API to update the task
+                            update_response = requests.patch(
+                                self.__configuration.api_url
+                                + f"/tasks/{task_id}/update_task/",
+                                json=payload,
+                            )
+
+                            if update_response.status_code == 200:
+                                print(f"Task {task['title']} moved to Overdue state")
+                                # Create activity log for the task being moved to Overdue
+                                user_id = self.__configuration.load_user_data()
+                                username = self.__configuration.load_user()["username"]
+
+                                activity_payload = {
+                                    "guild": guild_id,
+                                    "user": user_id,
+                                    "detail": f"Task '{task['title']}' moved to Overdue state automatically",
+                                }
+
+                                requests.post(
+                                    self.__configuration.api_url
+                                    + "/activities/create_activity/",
+                                    json=activity_payload,
+                                )
+
+                                # Return True if we successfully moved a task (useful for single task check)
+                                return True
+                            else:
+                                print(
+                                    f"Failed to move task to Overdue: {update_response.status_code}"
+                                )
+
+                    except (ValueError, TypeError) as e:
+                        print(f"Error parsing due date: {e}")
+                        continue
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request error checking overdue tasks: {e}")
+        except Exception as e:
+            print(f"Unexpected error in check_task_overdue: {e}")
+
+        return False
 
     def __create_task(self, event):
         """Create a new task card"""
