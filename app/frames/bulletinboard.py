@@ -6,7 +6,7 @@ from app.frames.frame import Frame
 from app.components.todobar import TodoBar
 from app.components.usertask import UserTask
 
-DEFAULT_BARS = ["Todo", "Doing", "Done"]
+DEFAULT_BARS = ["Todo", "Doing", "Done", "Overdue"]
 
 
 class BulletinBoard(Frame):
