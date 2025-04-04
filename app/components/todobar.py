@@ -83,11 +83,12 @@ class TodoBar(ctk.CTkScrollableFrame):
         self.__taskButt.lower()
 
         # Specific the event that want to show the add task button while hovering or not
-        self.bind("<Enter>", self.__add_task_hover)
+        if self.__bar_data["title"] == "Todo":
+            self.bind("<Enter>", self.__add_task_hover)
+            self.__frame0.bind("<Enter>", self.__add_task_hover)
+            self.__taskButt.bind("<Enter>", self.__add_task_hover)
         self.bind("<Leave>", self.__add_task_leave)
-        self.__frame0.bind("<Enter>", self.__add_task_hover)
         self.__frame0.bind("<Leave>", self.__add_task_leave)
-        self.__taskButt.bind("<Enter>", self.__add_task_hover)
         self.__taskButt.bind("<Leave>", self.__add_task_leave)
 
         self.__fetch_tasks()
