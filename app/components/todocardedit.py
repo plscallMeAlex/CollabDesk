@@ -94,6 +94,26 @@ class TodoCardEditing(ctk.CTkToplevel):
             print(f"Error fetching states: {e}")
         return []
 
+    def __fetch_state(self, state_id):
+        """Fetch a specific state by ID from the backend"""
+        try:
+            params = {
+                "state_id": state_id,
+            }
+            # Send GET request to fetch states
+            response = requests.get(
+                f"{self.__configuration.api_url}/taskstates/get_state/", params=params
+            )
+
+            if response.status_code == 200:
+                state_data = response.json()
+                return state_data
+            else:
+                print(f"Failed to fetch states: {response.status_code}")
+        except Exception as e:
+            print(f"Error fetching states: {e}")
+        return None
+
     def create_close_button(self):
         """Create a button frame with Save Changes and Close buttons"""
         button_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -203,10 +223,25 @@ class TodoCardEditing(ctk.CTkToplevel):
         state_names = (
             [state["title"] for state in states]
             if states
-            else ["To Do", "In Progress", "Done"]
+            else ["Todo", "Doing", "Done"]
         )
         state_ids = [state["id"] for state in states] if states else [1, 2, 3]
         mapstate = {state["title"]: state["id"] for state in states}
+
+        # Check if the current state is todo
+        current_state_id = self.__task_data["state"]
+        if current_state_id:
+            current_state = self.__fetch_state(current_state_id)
+            if (
+                current_state["title"] == "Todo"
+                and self.__task_data["assignee"] is None
+            ):
+                state_names = ["Todo", "Doing"]
+                mapstate = {
+                    state["title"]: state["id"]
+                    for state in states
+                    if state["title"] in ["Todo", "Doing"]
+                }
 
         # State ComboBox
         self.__state_combo = ctk.CTkComboBox(
