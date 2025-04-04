@@ -4,10 +4,36 @@ import threading
 import websocket
 import pyaudio
 import asyncio
-from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate
+import aiortc.sdp
+from aiortc import (
+    RTCPeerConnection,
+    RTCSessionDescription,
+    RTCIceCandidate,
+    MediaStreamTrack,
+)
 from aiortc.contrib.media import MediaStreamTrack, MediaBlackhole, MediaRecorder
+from aiortc.mediastreams import AudioStreamTrack
 import uuid
 import urllib.parse
+import queue
+import time
+
+
+class AudioReceiveTrack(MediaStreamTrack):
+    """Media track for receiving audio."""
+
+    kind = "audio"
+
+    def __init__(self):
+        super().__init__()
+        self.queue = queue.Queue()
+        self.sample_rate = 48000
+        self.channels = 1
+        self.active = True
+
+    def add_frame(self, frame):
+        if self.active:
+            self.queue.put(frame)
 
 
 class VoiceChannelUI(ctk.CTkFrame):
@@ -29,15 +55,26 @@ class VoiceChannelUI(ctk.CTkFrame):
         self.is_connected = False
         self.is_muted = False
 
+        # Event loop for WebRTC
+        self.loop = asyncio.new_event_loop()
+        self.thread = None
+
         # WebSocket and WebRTC setup
         self.ws = None
         self.peer_connections = {}  # Store RTCPeerConnection objects
         self.participants = {}  # Store participant info
 
+        # Audio tracks
+        self.local_audio_track = None
+        self.remote_audio_tracks = {}
+
         # Audio setup
         self.audio = pyaudio.PyAudio()
         self.input_stream = None
         self.output_stream = None
+        self.audio_chunk = 1024
+        self.sample_rate = 48000
+        self.channels = 1
 
         # Set up UI
         self.setup_ui()
@@ -104,7 +141,7 @@ class VoiceChannelUI(ctk.CTkFrame):
         # Update UI
         self.mute_button.configure(text="🔇" if self.is_muted else "🎤")
 
-        # Mute/unmute audio track if available
+        # Mute/unmute audio track
         if self.input_stream:
             if self.is_muted:
                 self.input_stream.stop_stream()
@@ -114,6 +151,12 @@ class VoiceChannelUI(ctk.CTkFrame):
     def join_voice_channel(self):
         """Connect to WebSocket and establish WebRTC connections"""
         print(f"Joining voice channel: {self.channel_name}")
+
+        # Start WebRTC thread if not already running
+        if not self.thread or not self.thread.is_alive():
+            self.thread = threading.Thread(target=self._run_event_loop)
+            self.thread.daemon = True
+            self.thread.start()
 
         # Start websocket connection with query params for identification
         query_params = urllib.parse.urlencode(
@@ -133,9 +176,13 @@ class VoiceChannelUI(ctk.CTkFrame):
         print(f"Leaving voice channel: {self.channel_name}")
 
         # Close all peer connections
-        for peer_id, pc in self.peer_connections.items():
-            pc.close()
-        self.peer_connections = {}
+        async def close_connections():
+            for peer_id, pc in self.peer_connections.items():
+                await pc.close()
+            self.peer_connections = {}
+
+        future = asyncio.run_coroutine_threadsafe(close_connections(), self.loop)
+        future.result(timeout=5)  # Wait for connections to close
 
         # Close websocket
         if self.ws:
@@ -219,7 +266,9 @@ class VoiceChannelUI(ctk.CTkFrame):
                             ),
                         )
                         # Create new peer connection for this user
-                        self.create_peer_connection(user_id)
+                        asyncio.run_coroutine_threadsafe(
+                            self.create_peer_connection(user_id), self.loop
+                        )
                     elif user_id == self.user_id and not self.is_connected:
                         # This is confirmation we've connected
                         self.after(0, self.connection_confirmed)
@@ -228,27 +277,38 @@ class VoiceChannelUI(ctk.CTkFrame):
                     user_id = data.get("user_id")
                     print(f"User left: {user_id}")
                     if user_id in self.peer_connections:
-                        self.peer_connections[user_id].close()
+                        asyncio.run_coroutine_threadsafe(
+                            self.peer_connections[user_id].close(), self.loop
+                        )
                         del self.peer_connections[user_id]
                     self.after(0, lambda: self.remove_participant(user_id))
 
                 elif message_type == "webrtc_offer":
                     sender_id = data.get("sender_id")
                     if sender_id not in self.peer_connections:
-                        self.create_peer_connection(sender_id)
+                        asyncio.run_coroutine_threadsafe(
+                            self.create_peer_connection(sender_id), self.loop
+                        )
 
                     # Set remote description and create answer
-                    self.handle_offer(sender_id, data.get("offer"))
+                    asyncio.run_coroutine_threadsafe(
+                        self.handle_offer(sender_id, data.get("offer")), self.loop
+                    )
 
                 elif message_type == "webrtc_answer":
                     sender_id = data.get("sender_id")
                     if sender_id in self.peer_connections:
-                        self.handle_answer(sender_id, data.get("answer"))
+                        asyncio.run_coroutine_threadsafe(
+                            self.handle_answer(sender_id, data.get("answer")), self.loop
+                        )
 
                 elif message_type == "ice_candidate":
                     sender_id = data.get("sender_id")
                     if sender_id in self.peer_connections:
-                        self.handle_ice_candidate(sender_id, data.get("candidate"))
+                        asyncio.run_coroutine_threadsafe(
+                            self.handle_ice_candidate(sender_id, data.get("candidate")),
+                            self.loop,
+                        )
 
             except json.JSONDecodeError:
                 print(f"Invalid JSON received: {message}")
@@ -302,36 +362,44 @@ class VoiceChannelUI(ctk.CTkFrame):
 
         # Set up audio
         try:
-            self.setup_audio_input(None)  # Set up local audio
+            self.setup_audio_input()  # Set up local audio
+            self.setup_audio_output()  # Set up output
         except Exception as e:
             print(f"Audio setup error: {e}")
 
+    def _run_event_loop(self):
+        """Run the asyncio event loop in a separate thread"""
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
+
     # WebRTC Connection Handling
-    def create_peer_connection(self, peer_id):
+    async def create_peer_connection(self, peer_id):
         """Create a new WebRTC peer connection"""
         try:
-            pc = RTCPeerConnection()
+            # Create and configure the peer connection
+            pc = RTCPeerConnection(configuration=self.configuration)
             self.peer_connections[peer_id] = pc
 
+            # Set up ice candidate handling
             @pc.on("icecandidate")
             def on_ice_candidate(candidate):
                 if candidate and self.ws and self.ws.sock and self.ws.sock.connected:
                     self.send_ice_candidate(peer_id, candidate)
 
+            # Set up track handling
             @pc.on("track")
             def on_track(track):
                 if track.kind == "audio":
-                    # Handle incoming audio stream
-                    self.setup_audio_output(track)
+                    print(f"Received audio track from {peer_id}")
+                    self.remote_audio_tracks[peer_id] = track
 
-            # Setup and add local audio track if we have it
-            if self.input_stream:
-                # In a real implementation, this would add the audio track to the connection
-                pass
+            # Add local audio track if we have it
+            if self.local_audio_track:
+                pc.addTrack(self.local_audio_track)
 
             # If we're initiating the connection, create and send offer
             if self.user_id < peer_id:  # Simple way to decide who initiates
-                self.create_and_send_offer(peer_id)
+                await self.create_and_send_offer(peer_id)
 
             return pc
 
@@ -339,47 +407,234 @@ class VoiceChannelUI(ctk.CTkFrame):
             print(f"Error creating peer connection: {e}")
             return None
 
-    def create_and_send_offer(self, peer_id):
+    async def create_and_send_offer(self, peer_id):
         """Create and send WebRTC offer"""
-        # This is a placeholder - in a real app, you'd use asyncio correctly here
-        print(f"Creating offer for peer {peer_id}")
-        # Simplified for this example
+        pc = self.peer_connections.get(peer_id)
+        if not pc:
+            return
 
-    def handle_offer(self, peer_id, offer_sdp):
+        try:
+            # Create offer
+            offer = await pc.createOffer()
+            await pc.setLocalDescription(offer)
+
+            # Wait for ICE gathering to complete
+            await self.gather_candidates(pc)
+
+            # Send the offer
+            if self.ws and self.ws.sock and self.ws.sock.connected:
+                message = {
+                    "type": "offer",
+                    "sdp": pc.localDescription.sdp,
+                    "sender_id": self.user_id,
+                    "target_id": peer_id,
+                }
+                self.ws.send(json.dumps(message))
+                print(f"Sent offer to {peer_id}")
+        except Exception as e:
+            print(f"Error creating offer: {e}")
+
+    async def handle_offer(self, peer_id, offer_sdp):
         """Handle incoming WebRTC offer"""
-        print(f"Received offer from {peer_id}")
-        # Simplified for this example
+        pc = self.peer_connections.get(peer_id)
+        if not pc:
+            pc = await self.create_peer_connection(peer_id)
+            if not pc:
+                return
 
-    def handle_answer(self, peer_id, answer_sdp):
+        try:
+            # Set remote description
+            offer = RTCSessionDescription(sdp=offer_sdp, type="offer")
+            await pc.setRemoteDescription(offer)
+
+            # Create answer
+            answer = await pc.createAnswer()
+            await pc.setLocalDescription(answer)
+
+            # Wait for ICE gathering to complete
+            await self.gather_candidates(pc)
+
+            # Send the answer
+            if self.ws and self.ws.sock and self.ws.sock.connected:
+                message = {
+                    "type": "answer",
+                    "answer": pc.localDescription.sdp,
+                    "sender_id": self.user_id,
+                    "target_id": peer_id,
+                }
+                self.ws.send(json.dumps(message))
+                print(f"Sent answer to {peer_id}")
+        except Exception as e:
+            print(f"Error handling offer: {e}")
+
+    async def handle_answer(self, peer_id, answer_sdp):
         """Handle incoming WebRTC answer"""
-        print(f"Received answer from {peer_id}")
-        # Simplified for this example
+        pc = self.peer_connections.get(peer_id)
+        if not pc:
+            return
 
-    def handle_ice_candidate(self, peer_id, candidate_dict):
+        try:
+            answer = RTCSessionDescription(sdp=answer_sdp, type="answer")
+            await pc.setRemoteDescription(answer)
+            print(f"Set remote description from {peer_id}")
+        except Exception as e:
+            print(f"Error handling answer: {e}")
+
+    async def handle_ice_candidate(self, peer_id, candidate_dict):
         """Handle incoming ICE candidate"""
-        print(f"Received ICE candidate from {peer_id}")
-        # Simplified for this example
+        pc = self.peer_connections.get(peer_id)
+        if not pc:
+            return
+
+        try:
+            candidate = RTCIceCandidate(
+                component=candidate_dict["component"],
+                foundation=candidate_dict["foundation"],
+                ip=candidate_dict["ip"],
+                port=candidate_dict["port"],
+                priority=candidate_dict["priority"],
+                protocol=candidate_dict["protocol"],
+                type=candidate_dict["type"],
+                sdpMLineIndex=candidate_dict["sdpMLineIndex"],
+                sdpMid=candidate_dict["sdpMid"],
+            )
+            await pc.addIceCandidate(candidate)
+            print(f"Added ICE candidate from {peer_id}")
+        except Exception as e:
+            print(f"Error handling ICE candidate: {e}")
 
     def send_ice_candidate(self, peer_id, candidate):
         """Send ICE candidate to peer"""
-        print(f"Sending ICE candidate to {peer_id}")
-        # Simplified for this example
+        if not self.ws or not self.ws.sock or not self.ws.sock.connected:
+            return
 
-    # Audio Handling - simplified for this example
-    def setup_audio_input(self, peer_connection):
+        try:
+            message = {
+                "type": "ice_candidate",
+                "candidate": {
+                    "candidate": candidate.candidate,
+                    "sdpMid": candidate.sdpMid,
+                    "sdpMLineIndex": candidate.sdpMLineIndex,
+                    "component": candidate.component,
+                    "foundation": candidate.foundation,
+                    "ip": candidate.ip,
+                    "port": candidate.port,
+                    "priority": candidate.priority,
+                    "protocol": candidate.protocol,
+                    "type": candidate.type,
+                },
+                "sender_id": self.user_id,
+                "target_id": peer_id,
+            }
+            self.ws.send(json.dumps(message))
+            print(f"Sent ICE candidate to {peer_id}")
+        except Exception as e:
+            print(f"Error sending ICE candidate: {e}")
+
+    async def gather_candidates(self, pc):
+        """Wait for ICE gathering to complete."""
+        # In a real implementation, this would use proper signaling
+        # This is a simplified version
+        waiter = asyncio.Future()
+
+        @pc.on("icegatheringstatechange")
+        def state_change():
+            if pc.iceGatheringState == "complete":
+                waiter.set_result(None)
+
+        # Set a timeout for ICE gathering
+        try:
+            await asyncio.wait_for(waiter, timeout=5.0)
+        except asyncio.TimeoutError:
+            # Continue even if gathering isn't complete
+            pass
+
+        return
+
+    # Audio Handling
+    def setup_audio_input(self):
         """Set up audio input stream"""
         try:
-            # Simplified audio setup for demonstration
-            print("Setting up audio input")
-            # In a real implementation, this would properly set up the audio devices
+            # Create a custom AudioStreamTrack
+            class LocalAudioTrack(AudioStreamTrack):
+                def __init__(self, audio_instance, sample_rate, channels):
+                    super().__init__()
+                    self.audio = audio_instance
+                    self.sample_rate = sample_rate
+                    self.channels = channels
+                    self.pts = 0
+                    self.sample_rate = sample_rate
+                    self.active = True
+                    self._queue = queue.Queue()
+                    self._start_recording()
+
+                def _audio_callback(self, in_data, frame_count, time_info, status):
+                    self._queue.put(in_data)
+                    return (None, pyaudio.paContinue)
+
+                def _start_recording(self):
+                    self.stream = self.audio.open(
+                        format=pyaudio.paInt16,
+                        channels=self.channels,
+                        rate=self.sample_rate,
+                        input=True,
+                        frames_per_buffer=1024,
+                        stream_callback=self._audio_callback,
+                    )
+                    self.stream.start_stream()
+
+            # Create and store the local audio track
+            self.local_audio_track = LocalAudioTrack(
+                self.audio, self.sample_rate, self.channels
+            )
+            self.input_stream = self.local_audio_track.stream
+
+            # Add the track to existing peer connections
+            for peer_id, pc in self.peer_connections.items():
+                asyncio.run_coroutine_threadsafe(
+                    self._add_track_to_peer(pc, self.local_audio_track), self.loop
+                )
+
         except Exception as e:
             print(f"Audio input setup error: {e}")
+            raise
 
-    def setup_audio_output(self, track):
-        """Set up audio output for received track"""
+    async def _add_track_to_peer(self, pc, track):
+        """Add track to peer connection"""
+        pc.addTrack(track)
+
+    def setup_audio_output(self):
+        """Set up audio output for received tracks"""
         try:
-            # Simplified audio output setup for demonstration
-            print("Setting up audio output for received track")
-            # In a real implementation, this would connect the track to audio output
+            # Create output stream
+            self.output_stream = self.audio.open(
+                format=pyaudio.paInt16,
+                channels=self.channels,
+                rate=self.sample_rate,
+                output=True,
+                frames_per_buffer=self.audio_chunk,
+            )
+
+            # Start a thread to mix and play audio from remote tracks
+            threading.Thread(target=self._audio_mixer_thread, daemon=True).start()
+
         except Exception as e:
             print(f"Audio output setup error: {e}")
+            raise
+
+    def _audio_mixer_thread(self):
+        """Thread to mix and play audio from all remote tracks"""
+        while self.is_connected:
+            try:
+                # Simple mixer - just take audio from each remote track
+                # In a real implementation, you'd properly mix audio samples
+                for track_id, track in self.remote_audio_tracks.items():
+                    # Get audio data from the track if available
+                    # This is simplified - in reality you'd need to implement
+                    # proper audio frame mixing
+                    pass
+
+                # Short sleep to prevent CPU hogging
+                time.sleep(0.01)
+            except Exception as e:
+                print(f"Audio mixer error: {e}")
