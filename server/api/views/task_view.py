@@ -18,9 +18,11 @@ class TaskViewSet(ModelViewSet):
     @action(detail=False, methods=["POST"])
     def create_task(self, request):
         title = request.data.get("title", "").strip()
+        guild = request.data.get("guild")
+        guild = Guild.objects.filter(id=guild).first()
 
         # Check if the title already exists
-        if Task.objects.filter(title__iexact=title).exists():
+        if Task.objects.filter(title__iexact=title, guild=guild).exists():
             return Response(
                 {"error": "Task already exists"}, status=status.HTTP_400_BAD_REQUEST
             )
