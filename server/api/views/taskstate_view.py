@@ -73,6 +73,23 @@ class TaskStateViewSet(ModelViewSet):
         serializer = TaskStateSerializer(taskstate)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=["GET"])
+    def get_state_by_title(self, request):
+        title = request.query_params.get("title")
+        guild_id = request.query_params.get("guild_id")
+        if not title or not guild_id:
+            return Response(
+                {"error": "Title and Guild ID are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        taskstate = TaskState.objects.filter(title=title, guild=guild_id).first()
+        if not taskstate:
+            return Response(
+                {"error": "State not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = TaskStateSerializer(taskstate)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["PATCH"])
     def transfer_state(self, request):
         state_id = request.data.get("state_id")
