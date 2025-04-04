@@ -23,6 +23,7 @@ class TodoCard(ctk.CTkFrame):
         self.__task_data = task_data
         self.__refresh_callback = refresh_callback
         self.__bar_refresh_callback = bar_refresh_callback
+        self.__protect_state = self.__check_protect_state()
 
         # color for changing
         self.__normal_color = configuration.colors["snow-white"]
@@ -59,6 +60,12 @@ class TodoCard(ctk.CTkFrame):
         )
         self.__delBut.pack(side="right", padx=5, pady=2)
 
+        if self.__protect_state:
+            # disable the delete button if the task is not done
+            self.__delBut.configure(state="disabled")
+        else:
+            self.__delBut.configure(state="normal")
+
         # Bind hover events to all widgets
         self.__label.bind("<Enter>", self.__on_hover)
         self.__label.bind("<Leave>", self.__on_leave)
@@ -83,6 +90,25 @@ class TodoCard(ctk.CTkFrame):
         )
         self.master.wait_window(editor)
         return "break"  # Stop event propagation
+
+    def __check_protect_state(self):
+        """Check if the taskstate is not done it cannot be deleted."""
+        state = self.__task_data["state"]
+        try:
+            params = {"state_id": state}
+            response = requests.get(
+                f"{self._configuration.api_url}/taskstates/get_state/", params=params
+            )
+            if response.status_code == 200:
+                state_data = response.json()
+                if state_data["title"] == "Done":
+                    return False
+                else:
+                    return True
+        except Exception as e:
+            print(e)
+
+        return True
 
     # Delete the task
     def __delete_task(self):

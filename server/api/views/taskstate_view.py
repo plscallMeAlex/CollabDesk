@@ -58,6 +58,21 @@ class TaskStateViewSet(ModelViewSet):
                 TaskStateSerializer(taskstate).data, status=status.HTTP_201_CREATED
             )
 
+    @action(detail=False, methods=["GET"])
+    def get_state(self, request):
+        state_id = request.query_params.get("state_id")
+        if not state_id:
+            return Response(
+                {"error": "State ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        taskstate = TaskState.objects.filter(id=state_id).first()
+        if not taskstate:
+            return Response(
+                {"error": "State not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = TaskStateSerializer(taskstate)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["PATCH"])
     def transfer_state(self, request):
         state_id = request.data.get("state_id")
