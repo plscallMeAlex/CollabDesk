@@ -18,10 +18,48 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    depends_on:
+      - db
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  celery:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file:
+      - .env
+    command: ["celery", "-A", "server.celery", "worker", "--loglevel=info"]
+    depends_on:
+      - redis
+      - server
+    volumes:
+      - ./server:/server
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file:
+      - .env
+    command: ["celery", "-A", "server.celery", "beat", "--loglevel=info"]
+    depends_on:
+      - redis
+      - celery
+    volumes:
+      - ./server:/server
 
 volumes:
   postgres_data:
-    
