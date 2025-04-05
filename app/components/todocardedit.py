@@ -57,8 +57,13 @@ class TodoCardEditing(ctk.CTkToplevel):
             }
 
             # Send GET request to fetch users
+            params = {
+                "guild_id": self.__task_data["guild"],
+            }
             response = requests.get(
-                f"{self.__configuration.api_url}/users/get_all_users/", headers=headers
+                f"{self.__configuration.api_url}/users/get_users_by_guild/",
+                headers=headers,
+                params=params,
             )
 
             if response.status_code == 200:
