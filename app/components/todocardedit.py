@@ -234,13 +234,23 @@ class TodoCardEditing(ctk.CTkToplevel):
             current_state = self.__fetch_state(current_state_id)
             if (
                 current_state["title"] == "Todo"
-                and self.__task_data["assignee"] is None
+                and self.__task_data["assignee"] is not None
             ):
                 state_names = ["Todo", "Doing"]
                 mapstate = {
                     state["title"]: state["id"]
                     for state in states
                     if state["title"] in ["Todo", "Doing"]
+                }
+            elif (
+                current_state["title"] == "Todo"
+                and self.__task_data["assignee"] is None
+            ):
+                state_names = ["Todo"]
+                mapstate = {
+                    state["title"]: state["id"]
+                    for state in states
+                    if state["title"] == "Todo"
                 }
 
         # State ComboBox
